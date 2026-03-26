@@ -1,0 +1,4 @@
+﻿Open Package Manager Console in Visual Studio and run the following command to scaffold the database context and entities from the database.
+
+
+Scaffold-DbContext -Project ElasticSearchVSSQLServer.Persistence.Sql -StartupProject ElasticSearchVSSQLServer.Persistence.Sql -Connection "Server=ERMIRA;Database=ElasticSearchVSSQLServer;user id=Ajshe; password=1251673108; TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir .\Context -Force -NoPluralize -Context ApplicationDbContext
