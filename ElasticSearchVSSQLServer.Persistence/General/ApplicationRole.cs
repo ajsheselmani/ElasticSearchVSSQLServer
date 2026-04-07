@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace ElasticSearchVSSQLServer.Persistence.General;
-public class ApplicationRole : IdentityRole
+public class ApplicationRole : IdentityRole 
 {
     [Required, StringLength(128)]
     public string Name_SQ { get; set; }

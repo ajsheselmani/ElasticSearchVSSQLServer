@@ -2,7 +2,6 @@
 
 using ElasticSearchVSSQLServer.Domain.Repositories;
 using ElasticSearchVSSQLServer.Persistence.Controller;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,7 +9,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-public class PrivilegeService(IControllerRepository controllerRepo, IGenericRepository<ActionDTO, int> actionRepo, IRoleAccessRepository roleAccessRepository) : IPrivilegeService {
+public class PrivilegeService(IControllerRepository controllerRepo, IGenericRepository<ActionDTO, int> actionRepo/*, IRoleAccessRepository roleAccessRepository*/) : IPrivilegeService {
 
     private int maxActionId = 0;
 
@@ -105,14 +104,30 @@ public class PrivilegeService(IControllerRepository controllerRepo, IGenericRepo
         return result;
     }
 
-    private string GetHttpMethod(MethodInfo method) {
-        if (method.GetCustomAttribute<HttpGetAttribute>() != null) return "GET";
-        if (method.GetCustomAttribute<HttpPostAttribute>() != null) return "POST";
-        if (method.GetCustomAttribute<HttpPutAttribute>() != null) return "PUT";
-        if (method.GetCustomAttribute<HttpDeleteAttribute>() != null) return "DELETE";
-        if (method.GetCustomAttribute<HttpPatchAttribute>() != null) return "PATCH";
+    private string GetHttpMethod(MethodInfo method)
+    {
+        foreach (var attr in method.GetCustomAttributes())
+        {
+            var name = attr.GetType().Name;
+
+            if (name == "HttpGetAttribute") return "GET";
+            if (name == "HttpPostAttribute") return "POST";
+            if (name == "HttpPutAttribute") return "PUT";
+            if (name == "HttpDeleteAttribute") return "DELETE";
+            if (name == "HttpPatchAttribute") return "PATCH";
+        }
+
         return "UNKNOWN";
     }
+
+    //private string GetHttpMethod(MethodInfo method) {
+    //    if (method.GetCustomAttribute<HttpGetAttribute>() != null) return "GET";
+    //    if (method.GetCustomAttribute<HttpPostAttribute>() != null) return "POST";
+    //    if (method.GetCustomAttribute<HttpPutAttribute>() != null) return "PUT";
+    //    if (method.GetCustomAttribute<HttpDeleteAttribute>() != null) return "DELETE";
+    //    if (method.GetCustomAttribute<HttpPatchAttribute>() != null) return "PATCH";
+    //    return "UNKNOWN";
+    //}
 
     private DescriptionAttribute GetDescriptionAttribute(MethodInfo method) => method.GetCustomAttribute<DescriptionAttribute>();
 
@@ -144,10 +159,4 @@ public class PrivilegeService(IControllerRepository controllerRepo, IGenericRepo
             }
         }
     }
-    //public async Task<bool> AuthorizeAsync(string actionName, string roleName, string controllername, string userId)
-    //{
-
-    //    return await roleAccessRepository.HasAccessToAction(roleName, actionName, controllername, userId);
-    //}
-
 }

@@ -1,16 +1,16 @@
-﻿namespace ElasticSearchVSSQLServer.Persistence.Sql.Repositories
-{
-    using ElasticSearchVSSQLServer.Domain.Repositories;
-    //using ElasticSearchVSSQLServer.Persistence.RoleAccess;
-    using global::ElasticSearchVSSQLServer.Persistence.Sql.Context;
-    using Microsoft.EntityFrameworkCore;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+﻿//namespace ElasticSearchVSSQLServer.Persistence.Sql.Repositories
+//{
+//    using ElasticSearchVSSQLServer.Domain.Repositories;
+//    //using ElasticSearchVSSQLServer.Persistence.RoleAccess;
+//    using global::ElasticSearchVSSQLServer.Persistence.Sql.Context;
+//    using Microsoft.EntityFrameworkCore;
+//    using System.Collections.Generic;
+//    using System.Linq;
+//    using System.Threading.Tasks;
 
-    public class RoleAccessRepository(ApplicationDBService dbContext) : IRoleAccessRepository
-    {
-        private ApplicationDbContext _dbContext = dbContext.DbContext;
+//    public class RoleAccessRepository(ApplicationDBService dbContext) : IRoleAccessRepository
+//    {
+//        private ApplicationDbContext _dbContext = dbContext.DbContext;
 
         //public async Task<RoleAccessDTO> GetRoleTableAccessAsync(string roleId, string tableName)
         //{
@@ -56,5 +56,5 @@
         //    && (x.ModuleOperation.ModuleOperationRole.Any(mor => mor.Role.Name == role && mor.Active) ||
         //    x.ModuleOperation.ModuleOperationUser.Any(mou => mou.Active && mou.UserId == userId)));
         //}
-    }
-}
+//    }
+//}

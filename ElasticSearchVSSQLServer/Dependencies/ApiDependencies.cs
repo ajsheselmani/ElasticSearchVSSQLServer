@@ -4,6 +4,7 @@ using ElasticSearchVSSQLServer.Domain.Configuration;
 using ElasticSearchVSSQLServer.Domain.Extensions;
 using ElasticSearchVSSQLServer.Indexing.Extensions;
 using ElasticSearchVSSQLServer.Persistence.Sql.Extensions;
+using ElasticSearchVSSQLServer.RestApi.AutoMapper;
 using ElasticSearchVSSQLServer.RestApi.Configuration;
 using ElasticSearchVSSQLServer.RestApi.Utils.General;
 using HotChocolate.Execution.Configuration;
@@ -21,7 +22,12 @@ public static class ApiDependencies
         {
             services.AddIndexing(configuration.ElasticConfiguration);
 
-            services.AddSqlPersistence(configuration.DatabaseConfiguration);
+        services.AddAutoMapper(cfg =>
+        {
+            cfg.AddMaps(typeof(InputMappings).Assembly);
+        });
+
+        services.AddSqlPersistence(configuration.DatabaseConfiguration);
 
             services.AddDomain(configuration.DomainConfiguration);
 
@@ -91,7 +97,7 @@ public static class ApiDependencies
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "Template API",
+                    Title = "ElasticSearchVSSQLServer API",
                     Version = "v1"
                 });
 

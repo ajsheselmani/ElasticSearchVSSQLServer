@@ -16,7 +16,10 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 {
 	public async Task Invoke(HttpContext context)
 	{
-        var userName = UserClaimHelper.GetFullName(context.User);
+        //var userName = UserClaimHelper.GetFullName(context.User);
+        var userName = context.User?.Identity?.IsAuthenticated == true
+			? UserClaimHelper.GetFullName(context.User)
+			: "Anonymous";
 
         string[] methodsToAvoid = ["OPTIONS", "CONNECT"];
 

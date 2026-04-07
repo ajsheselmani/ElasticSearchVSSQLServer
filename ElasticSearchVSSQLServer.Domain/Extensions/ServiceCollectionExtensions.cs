@@ -1,4 +1,8 @@
-﻿using ElasticSearchVSSQLServer.Domain.Configuration;
+﻿using ElasticSearchVSSQLServer.Domain.AutoMapper;
+using ElasticSearchVSSQLServer.Domain.Configuration;
+using ElasticSearchVSSQLServer.Domain.Services.Administration.PrivilegeService;
+using ElasticSearchVSSQLServer.Domain.Services.Audit;
+using ElasticSearchVSSQLServer.Domain.Services.Auth;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -10,6 +14,11 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDomain(this IServiceCollection services, DomainConfiguration domainConfiguration)
     {
+        services.AddAutoMapper(cfg =>
+        {
+            cfg.AddMaps(typeof(DomainMappingConfiguration).Assembly);
+        });
+
         AddServices(services);
 
         services.Configure<DomainConfiguration>(options =>
@@ -34,6 +43,9 @@ public static class ServiceCollectionExtensions
 
     private static void AddServices(this IServiceCollection services)
     {
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IPrivilegeService, PrivilegeService>();
+        services.AddScoped<ILogService, LogService>();
 
     }
 }

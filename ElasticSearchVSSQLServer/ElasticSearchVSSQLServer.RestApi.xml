@@ -4,6 +4,23 @@
         <name>ElasticSearchVSSQLServer.RestApi</name>
     </assembly>
     <members>
-        
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.LogInController.Post(ElasticSearchVSSQLServer.RestApi.Models.Auth.LoginInputModel)">
+            <summary>
+            Handles user login by validating credentials and returning authentication details.
+            </summary>
+            <param name="login">The login credentials, including email and password.</param>
+            <returns>An HTTP 200 response with authentication details (e.g., token, user info) if successful.</returns>
+        </member>
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.LogInController.Logout(System.String)">
+            <summary>
+            Logs that the current user has successfully signed out.
+            (No session/token invalidation is done here.)
+            </summary>
+        </member>
+        <member name="T:Program">
+            <summary>
+            Auto-generated public partial Program class for top-level statement apps.
+            </summary>
+        </member>
     </members>
 </doc>

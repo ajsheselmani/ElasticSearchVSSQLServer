@@ -3,12 +3,15 @@ using ElasticSearchVSSQLServer.RestApi.Configuration;
 using ElasticSearchVSSQLServer.RestApi.Dependencies;
 using ElasticSearchVSSQLServer.RestApi.Utils;
 using ElasticSearchVSSQLServer.RestApi.Utils.Middlewares;
+using Hangfire;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Serilog;
+using Serilog.Exceptions;
 using Serilog.Sinks.Elasticsearch;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-var builder = WebApplication.CreateSlimBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
@@ -28,7 +31,12 @@ builder.Services.AddCors(p => p.AddDefaultPolicy(builder =>
     builder.WithOrigins(config.ClientUrl).WithExposedHeaders("x-pagination").AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition").AllowCredentials();
 }));
 
+configureLogging();
+builder.Host.UseSerilog();
+
 var app = builder.Build();
+
+app.UseMiddleware<SerilogEnrichUserInfoMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -41,9 +49,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<LogMiddleware>();
 app.UseCors();
+app.UseRouting();
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
@@ -53,6 +62,23 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+void configureLogging()
+{
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+    var configuration = new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).Build();
+
+     Serilog.Log.Logger = new LoggerConfiguration()
+           .Enrich.FromLogContext()
+           .Enrich.WithExceptionDetails()
+           .WriteTo.Debug()
+           .WriteTo.Console()
+           .WriteTo.Elasticsearch(ConfigureElasticSink(configuration, environment))
+           .Enrich.WithProperty("Environment", environment)
+           .ReadFrom.Configuration(configuration)
+           .CreateLogger();
+}
 
 ElasticsearchSinkOptions ConfigureElasticSink(IConfigurationRoot configuration, string environment)
 {

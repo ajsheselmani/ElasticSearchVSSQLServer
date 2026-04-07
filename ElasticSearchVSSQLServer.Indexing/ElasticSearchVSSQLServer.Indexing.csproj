@@ -9,10 +9,19 @@
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="16.1.1" />
 		<PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.12.0" />
+		<PackageReference Include="ExcelDataReader" Version="3.8.0" />
+		<PackageReference Include="ExcelDataReader.DataSet" Version="3.8.0" />
+		<PackageReference Include="GraphQL.Client" Version="6.1.0" />
+		<PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="6.1.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
 		<PackageReference Include="NEST" Version="7.17.5" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\ElasticSearchVSSQLServer.Domain\ElasticSearchVSSQLServer.Domain.csproj" />
+		<ProjectReference Include="..\ElasticSearchVSSQLServer.Persistence\ElasticSearchVSSQLServer.Persistence.csproj" />
 	</ItemGroup>
 
 </Project>

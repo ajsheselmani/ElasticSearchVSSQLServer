@@ -1,11 +1,10 @@
-﻿namespace ElasticSearchVSSQLServer.Persistence.Sql.Repositories;
-
-using AutoMapper;
+﻿using AutoMapper;
 using ElasticSearchVSSQLServer.Domain.Repositories;
 using ElasticSearchVSSQLServer.Persistence.Controller;
 using ElasticSearchVSSQLServer.Persistence.Sql.Context;
 using Microsoft.EntityFrameworkCore;
 
+namespace ElasticSearchVSSQLServer.Persistence.Sql.Repositories;
 
 class ControllerRepository(ApplicationDBService dbContext, IMapper mapper) : IControllerRepository {
 

@@ -1,14 +1,18 @@
 ﻿namespace ElasticSearchVSSQLServer.Persistence.Sql.Extensions;
 
 using ElasticSearchVSSQLServer.Domain.Repositories;
+using ElasticSearchVSSQLServer.Persistence.Audit;
+using ElasticSearchVSSQLServer.Persistence.Controller;
+using ElasticSearchVSSQLServer.Persistence.Domain;
 using ElasticSearchVSSQLServer.Persistence.Identity;
+using ElasticSearchVSSQLServer.Persistence.Sql.AutoMapper;
 using ElasticSearchVSSQLServer.Persistence.Sql.Configuration;
 using ElasticSearchVSSQLServer.Persistence.Sql.Context;
 using ElasticSearchVSSQLServer.Persistence.Sql.Identity;
 using ElasticSearchVSSQLServer.Persistence.Sql.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,8 +23,11 @@ using System.Text;
         public static IServiceCollection AddSqlPersistence(this IServiceCollection services, DatabaseConfiguration databaseConfiguration)
         {
             services.AddRepositorySupport();
-
-            services.AddPooledDbContextFactory<ApplicationDbContext>(options =>
+        services.AddAutoMapper(cfg =>
+        {
+            cfg.AddMaps(typeof(PersistenceSqlMappingConfiguration).Assembly);
+        });
+        services.AddPooledDbContextFactory<ApplicationDbContext>(options =>
             {
                 options.EnableSensitiveDataLogging();
                 options.UseSqlServer(databaseConfiguration.ConnectionString);
@@ -37,7 +44,7 @@ using System.Text;
         }
 
     private static void AddIdentitySupport(this IServiceCollection services, SecurityConfig configuration)
-        => services.AddIdentityCore<ApplicationUser>(options =>
+        => services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.Password.RequireLowercase = configuration.RequireLowercase;
             options.Password.RequireNonAlphanumeric = configuration.RequireNonAlphanumeric;
@@ -47,15 +54,20 @@ using System.Text;
             options.SignIn.RequireConfirmedEmail = configuration.RequireConfirmedEmail;
             options.SignIn.RequireConfirmedAccount = configuration.RequireConfirmedAccount;
             options.Lockout.MaxFailedAccessAttempts = configuration.MaxFailedAccessAttempts;
-        });
-        //.AddRoles<ApplicationRole>().AddEntityFrameworkStores<IdentityContext>().AddDefaultTokenProviders();
+        })
+        .AddEntityFrameworkStores<IdentityContext>().AddDefaultTokenProviders();
 
         private static void AddRepositorySupport(this IServiceCollection services)
         {
-            services.TryAddTransient<ApplicationDBService>();
-        }
+            services.AddTransient<ApplicationDBService>();
+            services.AddScoped<IGenericRepository<DomainDTO, int>, GenericRepository<Domain, DomainDTO, int>>();
+            services.AddScoped<IControllerRepository, ControllerRepository>();
+            services.AddScoped<IGenericRepository<ActionDTO, int>, GenericRepository<Context.Action, ActionDTO, int>>();
+            services.AddScoped<IGenericRepository<LogDTO, int>, GenericRepository<Log, LogDTO, int>>();
 
-        private static void SyncTestDatabase(this IServiceCollection services, DatabaseConfiguration databaseConfiguration)
+    }
+
+    private static void SyncTestDatabase(this IServiceCollection services, DatabaseConfiguration databaseConfiguration)
         {
             string exportFile = Path.Combine(Path.GetTempPath(), "db.bacpac");
             RunSqlPackage($"/Action:Export /SourceConnectionString:\"{databaseConfiguration.ConnectionStringTesting}\" /TargetFile:\"{exportFile}\"");
