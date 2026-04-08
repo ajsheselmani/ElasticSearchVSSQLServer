@@ -18,15 +18,6 @@ public class UserClaimHelper {
         return fullname;
     }
 
-    public static string[] GetRoles(ClaimsPrincipal user) {
-        return ((ClaimsIdentity)user.Identity)?
-               .Claims
-               .Where(c => c.Type == ClaimTypes.Role)
-               .ToList()
-               .Select(claim => claim.Value)
-               .ToArray();
-    }
-
     public static LanguageEnum GetLanguage(ClaimsPrincipal user) {
         var userLanguage = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Locality);
         return (LanguageEnum)int.Parse(userLanguage.Value);

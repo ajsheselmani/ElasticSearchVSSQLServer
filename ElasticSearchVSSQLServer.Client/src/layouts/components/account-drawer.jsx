@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useBoolean } from "minimal-shared/hooks";
 
 import Box from "@mui/material/Box";
@@ -9,9 +8,6 @@ import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import Button from "@mui/material/Button";
-import Collapse from "@mui/material/Collapse";
-import Chip from "@mui/material/Chip";
 
 import { paths } from "src/routes/paths";
 import { usePathname } from "src/routes/hooks";
@@ -27,8 +23,6 @@ import { useTranslation } from "react-i18next";
 
 import { AccountButton } from "./account-button";
 import { SignOutButton } from "./sign-out-button";
-import RoleSelector from "src/pages/account/RoleSelector";
-import axiosInstance from "src/lib/axios";
 
 // ----------------------------------------------------------------------
 
@@ -36,29 +30,8 @@ export function AccountDrawer({ data = [], sx, ...other }) {
   const pathname = usePathname();
   const { t } = useTranslation();
   const { user } = useAuthContext();
-  const role = user?.roles[0];
-
-  const localizedRoleName =
-    user?.language === 2
-      ? role?.nameEn
-      : user?.language === 3
-        ? role?.nameSr
-        : role?.nameSq;
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
-  const [showRadios, setShowRadios] = useState(false);
-  const [allRoles, setAllRole] = useState([]);
-
-  useEffect(() => {
-    if (!open) return;
-    const getRole = async () => {
-      const res = await axiosInstance.get(
-        "/Administration/user/getAllUserRoles",
-      );
-      setAllRole(res.data);
-    };
-    getRole();
-  }, [open]);
 
   const renderAvatar = () => (
     <AnimateBorder
@@ -184,52 +157,6 @@ export function AccountDrawer({ data = [], sx, ...other }) {
             >
               {user?.email}
             </Typography>
-            <Box
-              sx={{
-                gap: 1,
-                flexWrap: "wrap",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <Typography
-                variant="span"
-                sx={{ color: "text.secondary", pt: 3, pb: 1 }}
-                noWrap
-              >
-                <Chip
-                  label={localizedRoleName}
-                  color="primary"
-                  variant="outlined"
-                />
-              </Typography>
-            </Box>
-            {/* toggle and role selector */}
-            {allRoles?.length > 1 && (
-              <Button
-                variant="contained"
-                color="primary"
-                size="medium"
-                onClick={() => setShowRadios(!showRadios)}
-                startIcon={<i className="fas fa-exchange-alt" />} // optional icon
-                sx={{
-                  mt: 1,
-                  mb: 2,
-                  borderRadius: 1,
-                  textTransform: "none",
-                  boxShadow: 2,
-                  px: 3,
-                  fontWeight: "bold",
-                }}
-              >
-                {t("changeRole")}
-              </Button>
-            )}
-            <Box sx={{ width: "100%", px: 2, paddingBottom: 0.5 }}>
-              <Collapse in={showRadios} timeout="auto" unmountOnExit>
-                <RoleSelector allRolesRes={allRoles} />
-              </Collapse>
-            </Box>
           </Box>
 
           {renderList()}

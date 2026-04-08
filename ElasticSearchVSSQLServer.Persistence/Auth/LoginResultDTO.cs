@@ -13,17 +13,15 @@ public class LoginResultDto {
     public bool IsUnauthorized { get; set; }
     public string Message { get; set; }
     public ErrorDTO? Error { get; set; }
-    public bool TwoFAEnabled { get; set; }
     public AuthenticationUserDTO User { get; set; }
 
-    public static LoginResultDto Success(string token, DateTime expiration, bool changePassword, AuthenticationUserDTO AuthenticationUser, bool TwoFAEnabled) {
+    public static LoginResultDto Success(string token, DateTime expiration, bool changePassword, AuthenticationUserDTO AuthenticationUser) {
         return new LoginResultDto
         {
             Token = token,
             Expiration = expiration,
             ChangePassword = changePassword,
             Error = null,
-            TwoFAEnabled= TwoFAEnabled,
             User = AuthenticationUser
         };
     }

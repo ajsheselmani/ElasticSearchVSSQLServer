@@ -3,7 +3,6 @@
 using ElasticSearchVSSQLServer.Persistence.Shared;
 
 public class AuthenticationUserDTO {
-    public IList<string> Authority { get; set; }
 
     public string? Id { get; set; }
 

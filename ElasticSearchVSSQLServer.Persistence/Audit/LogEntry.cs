@@ -19,14 +19,10 @@ public class LogEntry
 
     [JsonPropertyName("fields")]
     public Field? fields { get; set; }
-
-    [JsonPropertyName("fields.Role")]
-    public string? Role { get; set; }
 }
 
 public class Field
 {
-    public string? Role { get; set; }
     public string? Email { get; set; }
     public string? UserFullName { get; set; }
     public string? UserId { get; set; }

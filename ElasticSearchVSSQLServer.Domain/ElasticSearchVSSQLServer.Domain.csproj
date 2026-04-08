@@ -12,6 +12,9 @@
 		<PackageReference Include="ExcelDataReader.DataSet" Version="3.8.0" />
 		<PackageReference Include="GraphQL.Client" Version="6.1.0" />
 		<PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="6.1.0" />
+		<PackageReference Include="HotChocolate" Version="13.9.12" />
+		<PackageReference Include="HotChocolate.AspNetCore" Version="13.9.12" />
+		<PackageReference Include="HotChocolate.Subscriptions" Version="13.9.12" />
 		<PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
 		<PackageReference Include="MimeKit" Version="4.15.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />

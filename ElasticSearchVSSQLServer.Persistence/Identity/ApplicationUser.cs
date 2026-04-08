@@ -27,12 +27,4 @@ public class ApplicationUser: IdentityUser {
     public DateTime? ActivationDate { get; set; }
 
     public DateTime? ExpirationDate { get; set; }
-
-    public string InsertedFrom { get; set; }
-
-    public DateTime? InsertedDate { get; set; }
-
-    public string? UpdatedFrom { get; set; }
-
-    public DateTime? UpdatedDate { get; set; }
 }

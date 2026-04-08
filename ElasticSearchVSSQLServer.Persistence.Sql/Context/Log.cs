@@ -19,7 +19,7 @@ public partial class Log
 
     public string Action { get; set; }
 
-    public bool? Error { get; set; }
+    public bool Error { get; set; }
 
     public string FormContent { get; set; }
 
@@ -27,5 +27,5 @@ public partial class Log
 
     public string Exception { get; set; }
 
-    public DateTime? InsertedDate { get; set; }
+    public DateTime InsertedDate { get; set; }
 }

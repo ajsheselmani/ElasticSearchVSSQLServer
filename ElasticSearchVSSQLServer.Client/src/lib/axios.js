@@ -30,28 +30,9 @@ export const fetcher = async (args) => {
 // ----------------------------------------------------------------------
 
 export const endpoints = {
-  chat: "/api/Administration/chat",
-  kanban: "/api/Administration/kanban",
-  calendar: "/api/Administration/calendar",
   auth: {
-    me: "/Administration/user/currentuser",
-    signIn: "/Administration/auth",
-    signUp: "/Administration/auth/sign-up",
-  },
-  mail: {
-    list: "/api/Administration/mail/list",
-    details: "/api/Administration/mail/details",
-    labels: "/api/Administration/mail/labels",
-  },
-  post: {
-    list: "/api/Administration/post/list",
-    details: "/api/Administration/post/details",
-    latest: "/api/Administration/post/latest",
-    search: "/api/Administration/post/search",
-  },
-  product: {
-    list: "/api/Administration/product/list",
-    details: "/api/Administration/product/details",
-    search: "/api/Administration/product/search",
+    me: "/user/currentuser",
+    signIn: "/auth",
+    signUp: "/auth/sign-up",
   },
 };

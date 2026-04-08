@@ -62,24 +62,14 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<AspNetUsers>(entity =>
         {
-            entity.Property(e => e.Id).HasMaxLength(255);
-            entity.Property(e => e.ActivationDate).HasMaxLength(255);
-            entity.Property(e => e.Birthdate).HasMaxLength(255);
-            entity.Property(e => e.ConcurrencyStamp).HasMaxLength(255);
-            entity.Property(e => e.Email).HasMaxLength(255);
-            entity.Property(e => e.ExpirationDate).HasMaxLength(255);
-            entity.Property(e => e.Firstname).HasMaxLength(255);
-            entity.Property(e => e.ImageProfile).HasMaxLength(255);
-            entity.Property(e => e.Lastname).HasMaxLength(255);
-            entity.Property(e => e.LockoutEnd).HasMaxLength(255);
-            entity.Property(e => e.NormalizedEmail).HasMaxLength(255);
-            entity.Property(e => e.NormalizedUserName).HasMaxLength(255);
-            entity.Property(e => e.PasswordExpires).HasMaxLength(255);
-            entity.Property(e => e.PasswordHash).HasMaxLength(255);
-            entity.Property(e => e.PersonalNumber).HasMaxLength(255);
-            entity.Property(e => e.PhoneNumber).HasMaxLength(255);
-            entity.Property(e => e.SecurityStamp).HasMaxLength(255);
-            entity.Property(e => e.UserName).HasMaxLength(255);
+            entity.Property(e => e.Id).HasMaxLength(256);
+            entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.Firstname).IsRequired();
+            entity.Property(e => e.Lastname).IsRequired();
+            entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
+            entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
+            entity.Property(e => e.PersonalNumber).IsRequired();
+            entity.Property(e => e.UserName).HasMaxLength(256);
 
             entity.HasOne(d => d.Domain).WithMany(p => p.AspNetUsers)
                 .HasForeignKey(d => d.DomainId)
@@ -124,17 +114,12 @@ public partial class ApplicationDbContext : DbContext
         {
             entity.ToTable("Log", "core");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Action).HasMaxLength(128);
             entity.Property(e => e.Controller).HasMaxLength(128);
-            entity.Property(e => e.Exception).HasMaxLength(255);
-            entity.Property(e => e.FormContent).HasMaxLength(255);
             entity.Property(e => e.HttpMethod).HasMaxLength(64);
             entity.Property(e => e.InsertedDate).HasColumnType("datetime");
             entity.Property(e => e.Ip).HasMaxLength(64);
-            entity.Property(e => e.Response).HasMaxLength(255);
-            entity.Property(e => e.Url).HasMaxLength(255);
-            entity.Property(e => e.UserId).HasMaxLength(255);
+            entity.Property(e => e.UserId).HasMaxLength(256);
         });
 
         OnModelCreatingPartial(modelBuilder);

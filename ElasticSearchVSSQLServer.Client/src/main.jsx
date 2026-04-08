@@ -5,6 +5,7 @@ import { Outlet, RouterProvider, createBrowserRouter } from "react-router";
 import { ApolloClient, createHttpLink, InMemoryCache } from "@apollo/client";
 import { ApolloProvider } from "@apollo/client/react";
 import "./locales/index";
+import "./global.css";
 import App from "./app";
 import { routesSection } from "./routes/sections";
 import { ErrorBoundary } from "./routes/components";

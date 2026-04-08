@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useBoolean } from "minimal-shared/hooks";
-import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
@@ -12,7 +11,7 @@ import { FormHead } from "../../components/form-head";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
-import { MenuItem, TextField } from "@mui/material";
+import { Box, Card, MenuItem, TextField } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import moment from "moment";
@@ -68,12 +67,13 @@ export function JwtSignUpView() {
     const data = {
       ...values,
       birthdate: moment(values.birthdate).toISOString(),
-      language: languageId,
+      language: +languageId,
       gender: +values.gender,
     };
-    const response = await axiosInstance.post("/Administration/User", data, {
+    const response = await axiosInstance.post("/User", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+
     if (response.status !== 200) {
       var message = response.response.data.message;
       enqueueSnackbar(message, {
@@ -103,24 +103,39 @@ export function JwtSignUpView() {
 
   return (
     <>
-      <FormHead
-        title={t("register")}
-        description={
-          <>
-            {t("doYouHaveAnAccount")}{" "}
-            <Link
-              component={RouterLink}
-              href={paths.auth.jwt.signIn}
-              variant="subtitle2"
-            >
-              {t("login")}
-            </Link>
-          </>
-        }
-        sx={{ textAlign: { xs: "center", md: "center" } }}
-      />
-      <Box sx={{ gap: 3, display: "flex", flexDirection: "column" }}>
-        <Box sx={{ gap: { xs: 3, sm: 2 } }}>
+      <Card
+        sx={{
+          width: "100%",
+          maxWidth: 820,
+          mx: "auto",
+          p: { xs: 2, sm: 3 },
+          borderRadius: 3,
+          boxShadow: 3,
+        }}
+      >
+        <FormHead
+          title={t("register")}
+          description={
+            <>
+              {t("doYouHaveAnAccount")}{" "}
+              <Link
+                component={RouterLink}
+                href={paths.auth.jwt.signIn}
+                variant="subtitle2"
+              >
+                {t("login")}
+              </Link>
+            </>
+          }
+          sx={{ textAlign: { xs: "center", md: "center" }, mb: 3 }}
+        />
+        <Box
+          sx={{
+            gap: 5,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Formik
             initialValues={formValues}
             enableReinitialize="true"
@@ -140,11 +155,20 @@ export function JwtSignUpView() {
               setFieldValue,
             }) => (
               <>
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      xl: "repeat(2, minmax(0, 1fr))",
+                    },
+                    gap: 2,
+                  }}
+                >
                   <TextField
                     fullWidth
                     size="small"
-                    className="col-span-2 xl:col-span-1 "
+                    sx={{ gridColumn: { xs: "span 1", xl: "span 1" } }}
                     label={t("personalNumber")}
                     name="personalNumber"
                     onChange={handleChange}
@@ -160,7 +184,7 @@ export function JwtSignUpView() {
                     size="small"
                     label={t("firstname")}
                     name="firstname"
-                    className="col-span-2 xl:col-span-1"
+                    sx={{ gridColumn: { xs: "span 1", xl: "span 1" } }}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     value={values.firstname}
@@ -171,7 +195,7 @@ export function JwtSignUpView() {
                     fullWidth
                     label={t("lastname")}
                     name="lastname"
-                    className="col-span-2 xl:col-span-1"
+                    sx={{ gridColumn: { xs: "span 1", xl: "span 1" } }}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     size="small"
@@ -194,7 +218,7 @@ export function JwtSignUpView() {
                       slotProps={{
                         textField: {
                           size: "small",
-                          className: "col-span-2 xl:col-span-1",
+                          sx: { gridColumn: { xs: "span 1", xl: "span 1" } },
                           error: Boolean(touched.birthdate && errors.birthdate),
                           helperText: touched.birthdate && errors.birthdate,
                         },
@@ -209,7 +233,7 @@ export function JwtSignUpView() {
                     type="email"
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    className="col-span-2 xl:col-span-1"
+                    sx={{ gridColumn: { xs: "span 1", xl: "span 1" } }}
                     value={values.email}
                     error={Boolean(touched.email && errors.email)}
                     helperText={touched.email && errors.email}
@@ -220,7 +244,7 @@ export function JwtSignUpView() {
                     label={t("confirmEmail")}
                     name="confirmEmail"
                     type="confirmEmail"
-                    className="col-span-2 xl:col-span-1"
+                    sx={{ gridColumn: { xs: "span 1", xl: "span 1" } }}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     value={values.confirmEmail}
@@ -234,7 +258,7 @@ export function JwtSignUpView() {
                     type={showPassword.value ? "text" : "password"}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    className="col-span-2 xl:col-span-1"
+                    sx={{ gridColumn: { xs: "span 1", xl: "span 1" } }}
                     name="password"
                     value={values.password}
                     error={Boolean(touched.password && errors.password)}
@@ -266,7 +290,7 @@ export function JwtSignUpView() {
                     label={t("confirmPassword")}
                     name="confirmPassword"
                     onChange={handleChange}
-                    className="col-span-2 xl:col-span-1"
+                    sx={{ gridColumn: { xs: "span 1", xl: "span 1" } }}
                     size="small"
                     onBlur={handleBlur}
                     value={values.confirmPassword}
@@ -308,7 +332,7 @@ export function JwtSignUpView() {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     size="small"
-                    className="col-span-2 xl:col-span-1"
+                    sx={{ gridColumn: { xs: "span 1", xl: "span 1" } }}
                     error={Boolean(touched.gender && errors.gender)}
                     helperText={touched.gender && errors.gender}
                   >
@@ -319,7 +343,7 @@ export function JwtSignUpView() {
                     label={t("phonenumber")}
                     placeholder="+383 (__) ___-___"
                     value={values.phoneNumber}
-                    className="col-span-2 xl:col-span-1"
+                    sx={{ gridColumn: { xs: "span 1", xl: "span 1" } }}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={Boolean(touched.phoneNumber && errors.phoneNumber)}
@@ -329,24 +353,24 @@ export function JwtSignUpView() {
                     setFieldValue={setFieldValue}
                     size="small"
                   />
-                  <br />
                   <Button
                     variant="contained"
-                    className="col-span-2"
+                    sx={{
+                      gridColumn: { xs: "span 1", xl: "span 2" },
+                      mt: 1,
+                    }}
                     color="inherit"
                     type="submit"
                     onClick={submitForm}
                   >
                     {t("save")}
                   </Button>
-                </div>
+                </Box>
               </>
             )}
           </Formik>
         </Box>
-      </Box>
-
-      {/* <SignUpTerms /> */}
+      </Card>
     </>
   );
 }

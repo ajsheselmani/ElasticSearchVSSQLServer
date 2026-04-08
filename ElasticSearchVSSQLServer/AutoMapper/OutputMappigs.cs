@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using ElasticSearchVSSQLServer.Persistence.User;
+using ElasticSearchVSSQLServer.RestApi.Models.OutputModels.User;
 
 namespace ElasticSearchVSSQLServer.RestApi.AutoMapper
 {
@@ -8,6 +10,9 @@ namespace ElasticSearchVSSQLServer.RestApi.AutoMapper
 
         private void SetupMappings()
         {
+            CreateMap<UserDto, UserOutputModel>();
+            CreateMap<UserDto, CurrentUserOutputModel>();
+
 
         }
     }

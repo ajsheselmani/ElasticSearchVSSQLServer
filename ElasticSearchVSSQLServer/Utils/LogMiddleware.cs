@@ -3,11 +3,8 @@ using ElasticSearchVSSQLServer.Persistence.Audit;
 using ElasticSearchVSSQLServer.RestApi.Utils.General;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.ReportingServices.ReportProcessing.ReportObjectModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Runtime.InteropServices.Marshalling;
-using System.Text.Json.Serialization;
 
 namespace ElasticSearchVSSQLServer.RestApi.Utils.Middlewares;
 
@@ -16,10 +13,7 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 {
 	public async Task Invoke(HttpContext context)
 	{
-        //var userName = UserClaimHelper.GetFullName(context.User);
-        var userName = context.User?.Identity?.IsAuthenticated == true
-			? UserClaimHelper.GetFullName(context.User)
-			: "Anonymous";
+        var userName = UserClaimHelper.GetFullName(context.User);
 
         string[] methodsToAvoid = ["OPTIONS", "CONNECT"];
 
@@ -105,6 +99,7 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 					memoryStream.Seek(0, SeekOrigin.Begin);
 					await memoryStream.CopyToAsync(originalResponseBody);
 					context.Response.Body = originalResponseBody;
+                    
 					await logService.Save(log);
 					return;
 				}

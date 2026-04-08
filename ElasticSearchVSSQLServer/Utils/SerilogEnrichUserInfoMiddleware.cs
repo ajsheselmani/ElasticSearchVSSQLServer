@@ -15,7 +15,6 @@ public class SerilogEnrichUserInfoMiddleware {
         var user = context.User;
 
         var userId = UserClaimHelper.GetUserId(user);
-        var role = string.Join(",", UserClaimHelper.GetRoles(user) ?? []);
         var name = UserClaimHelper.GetFullName(user);
         var email = UserClaimHelper.GetUserProperty(user, ClaimTypes.Email);
 
@@ -23,7 +22,6 @@ public class SerilogEnrichUserInfoMiddleware {
         using (LogContext.PushProperty("Email", email))
         using (LogContext.PushProperty("UserFullName", name))
         using (LogContext.PushProperty("UserId", userId))
-        using (LogContext.PushProperty("Role", role))
         {
             await _next(context);
         }

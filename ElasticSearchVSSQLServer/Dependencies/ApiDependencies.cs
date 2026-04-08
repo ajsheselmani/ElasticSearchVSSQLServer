@@ -3,10 +3,13 @@
 using ElasticSearchVSSQLServer.Domain.Configuration;
 using ElasticSearchVSSQLServer.Domain.Extensions;
 using ElasticSearchVSSQLServer.Indexing.Extensions;
+using ElasticSearchVSSQLServer.Persistence.Sql.Context;
 using ElasticSearchVSSQLServer.Persistence.Sql.Extensions;
 using ElasticSearchVSSQLServer.RestApi.AutoMapper;
 using ElasticSearchVSSQLServer.RestApi.Configuration;
 using ElasticSearchVSSQLServer.RestApi.Utils.General;
+using GraphQL;
+using HotChocolate.AspNetCore;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -38,11 +41,9 @@ public static class ApiDependencies
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddSwagger();
+        services.ConfigureGraphQL();
 
-
-            services.AddHostedService<InitializePrivilegeService>();
-
-            return services;
+        return services;
         }
 
         private static void AddAuthentication(this IServiceCollection services, JWTConfiguration configuration)
@@ -148,4 +149,34 @@ public static class ApiDependencies
 
             return schemaBuilder;
         }
+
+    private static void ConfigureGraphQL(this IServiceCollection services)
+    {
+        var currentAssembly = typeof(ApiDependencies).Assembly;
+        var assemblyTypes = currentAssembly.GetTypes();
+
+        services
+            .AddGraphQLServer()
+            .RegisterService<ApplicationDBService>()
+            .AddAuthorization()
+            .BindRuntimeType<char, StringType>()
+            .AddInMemorySubscriptions()
+            .AddAllDeclaredObjectTypesFromAssembly(assemblyTypes)
+            .SetPagingOptions(
+                 new HotChocolate.Types.Pagination.PagingOptions
+                 {
+                     MaxPageSize = int.MaxValue,
+                     DefaultPageSize = int.MaxValue - 1,
+                     IncludeTotalCount = true,
+                 }
+             )
+            .AddProjections()
+            .AddFiltering()
+            .AddSorting()
+            .ModifyRequestOptions(opt =>
+            {
+                opt.IncludeExceptionDetails = false;
+                opt.ExecutionTimeout = TimeSpan.FromSeconds(30);
+            });
     }
+}

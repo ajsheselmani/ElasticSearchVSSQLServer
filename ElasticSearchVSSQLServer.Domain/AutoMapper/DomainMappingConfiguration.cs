@@ -28,10 +28,8 @@ namespace ElasticSearchVSSQLServer.Domain.AutoMapper
                 .ForMember(dest => dest.LockoutEnabled, opt => opt.Ignore())
                 .ForMember(dest => dest.LockoutEnd, opt => opt.Ignore())
                 .ForMember(dest => dest.ChangePassword, opt => opt.Ignore())
-                .ForMember(dest => dest.InsertedDate, opt => opt.Ignore())
                 .ForMember(dest => dest.ExpirationDate, opt => opt.Ignore())
                 .ForMember(dest => dest.ActivationDate, opt => opt.Ignore())
-                .ForMember(dest => dest.InsertedFrom, opt => opt.Ignore())
                 .ForMember(dest => dest.PasswordExpires, opt =>
                 {
                     opt.PreCondition((src, dest) => src.Id == null);

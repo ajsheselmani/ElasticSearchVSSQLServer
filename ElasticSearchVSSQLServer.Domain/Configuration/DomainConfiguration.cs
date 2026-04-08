@@ -7,4 +7,5 @@ public class DomainConfiguration
 {
     public string ClientApplicationPath { get; set; }
     public JWTConfiguration JWTConfiguration { get; set; }
+    public GraphQLClientConfig GraphQLClientConfig { get; set; }
 }

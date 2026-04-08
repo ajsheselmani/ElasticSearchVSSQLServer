@@ -52,10 +52,5 @@
 		<ProjectReference Include="..\ElasticSearchVSSQLServer.Indexing\ElasticSearchVSSQLServer.Indexing.csproj" />
 		<ProjectReference Include="..\ElasticSearchVSSQLServer.Persistence.Sql\ElasticSearchVSSQLServer.Persistence.Sql.csproj" />
 	</ItemGroup>
-	
-	<ItemGroup>
-		<Folder Include="Controllers\" />
-		<Folder Include="Models\" />
-	</ItemGroup>
   
 </Project>

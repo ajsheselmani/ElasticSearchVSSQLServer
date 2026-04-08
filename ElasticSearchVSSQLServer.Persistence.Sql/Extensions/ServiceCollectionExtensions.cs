@@ -10,6 +10,7 @@ using ElasticSearchVSSQLServer.Persistence.Sql.Configuration;
 using ElasticSearchVSSQLServer.Persistence.Sql.Context;
 using ElasticSearchVSSQLServer.Persistence.Sql.Identity;
 using ElasticSearchVSSQLServer.Persistence.Sql.Repositories;
+using ElasticSearchVSSQLServer.Persistence.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,6 +65,7 @@ using System.Text;
             services.AddScoped<IControllerRepository, ControllerRepository>();
             services.AddScoped<IGenericRepository<ActionDTO, int>, GenericRepository<Context.Action, ActionDTO, int>>();
             services.AddScoped<IGenericRepository<LogDTO, int>, GenericRepository<Log, LogDTO, int>>();
+            services.AddScoped<IGenericRepository<UserDto, string>, GenericRepository<AspNetUsers, UserDto, string>>();
 
     }
 

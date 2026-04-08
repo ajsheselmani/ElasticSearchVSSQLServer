@@ -13,15 +13,15 @@ public partial class AspNetUsers
 
     public string PersonalNumber { get; set; }
 
-    public string Birthdate { get; set; }
+    public DateTime? Birthdate { get; set; }
 
-    public double? Gender { get; set; }
+    public int? Gender { get; set; }
 
-    public string PasswordExpires { get; set; }
+    public DateTime? PasswordExpires { get; set; }
 
-    public double? ChangePassword { get; set; }
+    public bool? ChangePassword { get; set; }
 
-    public double? Language { get; set; }
+    public int? Language { get; set; }
 
     public int? DomainId { get; set; }
 
@@ -33,7 +33,7 @@ public partial class AspNetUsers
 
     public string NormalizedEmail { get; set; }
 
-    public double? EmailConfirmed { get; set; }
+    public bool? EmailConfirmed { get; set; }
 
     public string PasswordHash { get; set; }
 
@@ -43,21 +43,21 @@ public partial class AspNetUsers
 
     public string PhoneNumber { get; set; }
 
-    public double? PhoneNumberConfirmed { get; set; }
+    public bool? PhoneNumberConfirmed { get; set; }
 
-    public double? TwoFactorEnabled { get; set; }
+    public DateTimeOffset? LockoutEnd { get; set; }
 
-    public string LockoutEnd { get; set; }
+    public bool? LockoutEnabled { get; set; }
 
-    public double? LockoutEnabled { get; set; }
+    public int? AccessFailedCount { get; set; }
 
-    public double? AccessFailedCount { get; set; }
+    public DateTime? ActivationDate { get; set; }
 
-    public string ActivationDate { get; set; }
-
-    public string ExpirationDate { get; set; }
+    public DateTime? ExpirationDate { get; set; }
 
     public string ImageProfile { get; set; }
+
+    public bool? TwoFactorEnabled { get; set; }
 
     public virtual Domain Domain { get; set; }
 }

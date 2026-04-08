@@ -130,99 +130,63 @@ export function JwtSignInView() {
 
   return (
     <>
-      <Box
+      <Card
         sx={{
-          height: "60vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          minWidth: 450,
+          mt: 3,
+          p: 1,
+          borderRadius: 3,
+          boxShadow: 3,
+          textAlign: "center",
         }}
       >
-        <Card
-          sx={{
-            minWidth: 450,
-            height: "73vh",
-            mt: 3,
-            p: 1,
-            borderRadius: 3,
-            boxShadow: 3,
-            textAlign: "center",
-          }}
-        >
-          <CardContent>
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: "1.10rem",
-                }}
-              >
-                <img
-                  src={CONFIG.appLogo}
-                  width={150}
-                  height={150}
-                  style={{
-                    borderRadius: "16px",
-                    border: "0.5px solid var(--color-border-tertiary)",
-                    objectFit: "contain",
-                  }}
-                />
+        <CardContent>
+          <div className="flex flex-col items-center justify-center mb-4 gap-2">
+            <img src={CONFIG.appLogo} width={84} height={84} />
+            <div>
+              <div className="text-center">
+                <h1 style={{ fontSize: "1.0rem" }}>
+                  {t("welcomeToSystem")} {CONFIG.appName}
+                </h1>
+                <h2 style={{ fontSize: "0.9rem" }}>
+                  {t("signInToYourAccount")}
+                </h2>
               </div>
-
-              <p
-                style={{
-                  margin: "0 0 6px",
-                  fontWeight: 500,
-                }}
-              >
-                {t("welcomeToSystem")}: <strong>{CONFIG.appName}</strong>
-              </p>
-
-              <p
-                style={{
-                  fontSize: "0.85rem",
-                  color: "var(--color-text-secondary)",
-                  margin: 0,
-                }}
-              >
-                {t("signInToYourAccount")}
-              </p>
             </div>
-            <FormHead
-              description={
-                <>
-                  {t("noAccount") + " "}
-                  <Link
-                    component={RouterLink}
-                    href={paths.auth.jwt.signUp}
-                    variant="subtitle2"
-                  >
-                    {t("openAccount")}
-                  </Link>
-                </>
-              }
-              sx={{ textAlign: "center" }}
-            />
+          </div>
+          <FormHead
+            description={
+              <>
+                {t("noAccount") + " "}
+                <Link
+                  component={RouterLink}
+                  href={paths.auth.jwt.signUp}
+                  variant="subtitle2"
+                >
+                  {t("openAccount")}
+                </Link>
+              </>
+            }
+            sx={{ textAlign: { xs: "center", md: "left" } }}
+          />
 
-            {!!errorMessage && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {errorMessage}
-              </Alert>
-            )}
+          {!!errorMessage && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {errorMessage}
+            </Alert>
+          )}
 
-            <Form methods={methods} onSubmit={onSubmit}>
-              {renderForm()}
-            </Form>
+          <Form methods={methods} onSubmit={onSubmit}>
+            {renderForm()}
+          </Form>
 
-            <Box sx={{ mt: 2 }}>
-              <p style={{ fontSize: "0.8rem", color: "text.secondary" }}>
-                {t("version")} {CONFIG.version}
-              </p>
-            </Box>
-          </CardContent>
-        </Card>
-      </Box>
+          <div className="mt-2 text-center">
+            <p style={{ fontSize: "0.9rem" }}>
+              {t("version")} {CONFIG.version}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </>
   );
 }

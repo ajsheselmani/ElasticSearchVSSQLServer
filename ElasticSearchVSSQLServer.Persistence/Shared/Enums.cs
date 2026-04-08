@@ -59,9 +59,3 @@ public enum ReportOrientation
     Portrait,
     Landscape
 }
-
-public static class RoleEnum
-{
-    public const string Administrator = "2874edc8-8e8a-4109-8900-9f4e7381ae55"; 
-    public const string Aplikues = "34c91a96-904e-4fc8-9fc1-c5e8d8c245dc"; 
-}

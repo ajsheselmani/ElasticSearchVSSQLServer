@@ -21,7 +21,6 @@ import { MenuButton } from "../components/menu-button";
 import { HeaderSection } from "../core/header-section";
 import { LayoutSection } from "../core/layout-section";
 import { AccountDrawer } from "../components/account-drawer";
-// import { SettingsButton } from "../components/settings-button";
 import { LanguagePopover } from "../components/language-popover";
 import { dashboardLayoutVars, dashboardNavColorVars } from "./css-vars";
 import { useEffect, useMemo } from "react";
@@ -30,6 +29,7 @@ import { useSnackbar } from "notistack";
 import { Typography } from "@mui/material";
 import { Tooltip } from "@mui/material";
 import QueueWork from "../queue-work";
+import { navData } from "../nav-config-dashboard";
 
 // ----------------------------------------------------------------------
 
@@ -59,6 +59,7 @@ export function DashboardLayout({
   const isNavHorizontal = settings.state.navLayout === "horizontal";
   const isNavVertical = isNavMini || settings.state.navLayout === "vertical";
   const isSmallScreen = !useMediaQuery(theme.breakpoints.up("sm"));
+  const isDesktopNav = useMediaQuery(theme.breakpoints.up(layoutQuery));
 
   const canDisplayItemByRole = (allowedRoles) =>
     !allowedRoles?.includes(user?.role);
@@ -106,6 +107,12 @@ export function DashboardLayout({
     });
   }, [notifications]);
 
+  useEffect(() => {
+    if (isDesktopNav && open) {
+      onClose();
+    }
+  }, [isDesktopNav, open, onClose]);
+
   const renderHeader = () => {
     const headerSlotProps = {
       container: {
@@ -131,7 +138,7 @@ export function DashboardLayout({
       ),
       bottomArea: isNavHorizontal ? (
         <NavHorizontal
-          // data={navData}
+          data={navData}
           layoutQuery={layoutQuery}
           cssVars={navVars.section}
           checkPermissions={canDisplayItemByRole}
@@ -189,7 +196,7 @@ export function DashboardLayout({
           </Tooltip>
 
           <NavMobile
-            // data={navData}
+            data={navData}
             open={open}
             onClose={onClose}
             cssVars={navVars.section}
@@ -223,7 +230,7 @@ export function DashboardLayout({
           }}
         >
           <QueueWork />
-          <Searchbar /*data={navData}*/ />
+          <Searchbar data={navData} />
           <LanguagePopover
             data={[
               { value: "sq", label: "Shqip", countryCode: "AL" },
@@ -255,7 +262,7 @@ export function DashboardLayout({
 
   const renderSidebar = () => (
     <NavVertical
-      // data={navData}
+      data={navData}
       isNavMini={isNavMini}
       layoutQuery={layoutQuery}
       cssVars={navVars.section}
@@ -274,88 +281,6 @@ export function DashboardLayout({
   const renderMain = () => (
     <MainSection {...slotProps?.main}>{children}</MainSection>
   );
-
-  // useEffect(() => {
-  //   const getRoleAndLoadData = async () => {
-  //     loadData({
-  //       variables: {
-  //         roleId: user.roles[0].name,
-  //         userId: user.id,
-  //       },
-  //       fetchPolicy: "no-cache",
-  //     });
-  //   };
-
-  //   if (user.id) {
-  //     getRoleAndLoadData();
-  //   }
-  // }, []);
-
-  // const menus = useMemo(() => {
-  //   if (!data) return [];
-
-  //   const rawData = data?.modules?.items
-  //     ?.flatMap((x) => x.moduleOperation)
-  //     ?.flatMap((x) => x.moduleOperationMenu)
-  //     ?.map((x) => x.menu)
-  //     ?.sort((a, b) => a.orderNo - b.orderNo);
-
-  //   const finalMenus = [];
-  //   const parentMap = new Map();
-
-  //   rawData?.forEach((item) => {
-  //     if (item.type === 1) {
-  //       parentMap.set(item.menuId, {
-  //         subheader: item[nameLocale],
-  //         items: [],
-  //       });
-  //     }
-  //   });
-
-  //   rawData
-  //     ?.filter((item) => item.type === 2)
-  //     ?.forEach((item) => {
-  //       const menuItem = {
-  //         id: item.menuId,
-  //         title: item[nameLocale],
-  //         path: item.path,
-  //         icon:
-  //           item.icon in ICONS ? ICONS[item.icon] : <Icon icon={item.icon} />,
-  //       };
-
-  //       if (item.parentId && parentMap.has(item.parentId)) {
-  //         parentMap.get(item.parentId).items.push(menuItem);
-  //       } else {
-  //         finalMenus.push({ items: [menuItem] });
-  //       }
-  //     });
-
-  //   finalMenus.push(...parentMap.values());
-
-  //   rawData
-  //     ?.filter((item) => item.type === 3)
-  //     ?.forEach((item) => {
-  //       const parent = finalMenus
-  //         .flatMap((menu) => menu.items)
-  //         .find((i) => i.id === item.parentId);
-
-  //       if (!parent) return;
-
-  //       if (!parent.children) {
-  //         parent.children = [];
-  //       }
-
-  //       parent.children.push({
-  //         id: item.menuId,
-  //         title: item[nameLocale],
-  //         path: item.path,
-  //         icon:
-  //           item.icon in ICONS ? ICONS[item.icon] : <Icon icon={item.icon} />,
-  //       });
-  //     });
-
-  //   return finalMenus;
-  // }, [data, nameLocale]);
 
   return (
     <LayoutSection

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ElasticSearchVSSQLServer.Domain.Configuration;
 using ElasticSearchVSSQLServer.Domain.Repositories;
+using ElasticSearchVSSQLServer.Domain.Services.Subscription;
 using ElasticSearchVSSQLServer.Persistence.Auth;
 using ElasticSearchVSSQLServer.Persistence.Domain;
 using ElasticSearchVSSQLServer.Persistence.Identity;
@@ -17,7 +18,7 @@ using System.Text;
 
 namespace ElasticSearchVSSQLServer.Domain.Services.Auth
 {
-    public class AuthService(UserManager<ApplicationUser> userManager, IGenericRepository<DomainDTO, int> domainRepo, IOptions<JWTConfiguration> options, IOptions<DomainConfiguration> domainConfiguration, IMapper mapper, ILogger<AuthService> logger) : IAuthService
+    public class AuthService(UserManager<ApplicationUser> userManager, IGenericRepository<DomainDTO, int> domainRepo, IOptions<JWTConfiguration> options, IOptions<DomainConfiguration> domainConfiguration, IMapper mapper, ILogger<AuthService> logger, RealtimeEventPublisher realtimeEventPublisher) : IAuthService
     {
         private readonly JWTConfiguration settings = options.Value;
 
@@ -111,46 +112,25 @@ namespace ElasticSearchVSSQLServer.Domain.Services.Auth
                 });
             }
             SecurityToken token = new JwtSecurityToken();
-            if (user.TwoFactorEnabled)
-            {
-                logger.LogInformation("Kyçja kërkon 2FA. UserId: {UserId}.", user.Id);
 
-                var authClaims = new List<Claim>
+            var authClaims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new(ClaimTypes.Name, user.UserName),
+                new(ClaimTypes.GivenName, user.Firstname),
+                new(ClaimTypes.Surname, user.Lastname),
+                new(ClaimTypes.Name, user.UserName),
+                new(ClaimTypes.Email, user.Email),
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Locality, ((int)user.Language).ToString()),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
-                var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.IssuerSigningKey));
-                token = new JwtSecurityToken(expires: DateTime.Now.AddMinutes(10), claims: authClaims
-                    , signingCredentials: new SigningCredentials(authSigningKey
-                    , SecurityAlgorithms.HmacSha256));
-            }
-            else
-            {
 
-                var authClaims = new List<Claim>
-        {
-            new(ClaimTypes.Name, user.UserName),
-            new(ClaimTypes.GivenName, user.Firstname),
-            new(ClaimTypes.Surname, user.Lastname),
-            new(ClaimTypes.Name, user.UserName),
-            new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Locality, ((int)user.Language).ToString()),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-                var userRoles = await userManager.GetRolesAsync(user);
-                foreach (var userRole in userRoles)
-                {
-                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-                }
-                logger.LogInformation("Token po gjenerohet. UserId: {UserId}.", user.Id);
-                var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.IssuerSigningKey));
-                token = new JwtSecurityToken(
-                    expires: DateTime.Now.AddHours(settings.TokenExpireHour),
-                    claims: authClaims,
-                    signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256));
-            }
+            logger.LogInformation("Token po gjenerohet. UserId: {UserId}.", user.Id);
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.IssuerSigningKey));
+            token = new JwtSecurityToken(
+                expires: DateTime.Now.AddHours(settings.TokenExpireHour),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256));
             var changePassword = false;
             if (user.ChangePassword || user.PasswordExpires.Date <= DateTime.Now.Date)
             {
@@ -159,9 +139,22 @@ namespace ElasticSearchVSSQLServer.Domain.Services.Auth
 
             var authenticatedUser = mapper.Map<AuthenticationUserDTO>(user);
             await userManager.ResetAccessFailedCountAsync(user);
-            logger.LogInformation("Kyçja u krye me sukses. UserId: {UserId}, Email: {Email}, ChangePassword: {ChangePassword}, TwoFA: {TwoFA}.",
-        user.Id, user.Email, changePassword, user.TwoFactorEnabled);
-            return LoginResultDto.Success(new JwtSecurityTokenHandler().WriteToken(token), token.ValidTo, changePassword, authenticatedUser, user.TwoFactorEnabled);
+            logger.LogInformation("Kyçja u krye me sukses. UserId: {UserId}, Email: {Email}, ChangePassword: {ChangePassword}.",
+                user.Id, user.Email, changePassword);
+
+            await realtimeEventPublisher.PublishAsync(
+            eventType: RealtimeEventTypes.LoginSuccess,
+            entityType: RealtimeEntityTypes.Auth,
+            entityId: user.Id,
+            message: "User logged in successfully"
+             );
+
+            return LoginResultDto.Success(
+                new JwtSecurityTokenHandler().WriteToken(token),
+                token.ValidTo,
+                changePassword,
+                authenticatedUser
+            );
         }
 
         private async Task<LoginResultDto> HandleFailedLogin(ApplicationUser user, string email)

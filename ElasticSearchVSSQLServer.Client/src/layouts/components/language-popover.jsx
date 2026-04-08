@@ -34,7 +34,7 @@ export function LanguagePopover({ data = [], sx, ...other }) {
       if (user != null)
         axiosInstance
           .put(
-            `Administration/User/UpdateUserLanguage?languageId=${languageEnum[newLang]}`,
+            `/User/UpdateUserLanguage?languageId=${languageEnum[newLang]}`,
             {},
           )
           .then((res) => {

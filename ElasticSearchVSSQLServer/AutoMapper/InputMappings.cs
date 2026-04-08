@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using ElasticSearchVSSQLServer.Persistence.Auth;
-using ElasticSearchVSSQLServer.RestApi.Models.Auth;
+using ElasticSearchVSSQLServer.Persistence.User;
+using ElasticSearchVSSQLServer.RestApi.Models.InputModels;
+using ElasticSearchVSSQLServer.RestApi.Models.InputModels.User;
 
 namespace ElasticSearchVSSQLServer.RestApi.AutoMapper
 {
@@ -12,6 +14,8 @@ namespace ElasticSearchVSSQLServer.RestApi.AutoMapper
         private void SetupMappings()
         {
             CreateMap<LoginInputModel, LoginDTO>();
+            CreateMap<UserInputModel, UserDto>();
+
         }
     }
 }

@@ -4,18 +4,59 @@
         <name>ElasticSearchVSSQLServer.RestApi</name>
     </assembly>
     <members>
-        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.LogInController.Post(ElasticSearchVSSQLServer.RestApi.Models.Auth.LoginInputModel)">
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.AuthController.Post(ElasticSearchVSSQLServer.RestApi.Models.InputModels.LoginInputModel)">
             <summary>
             Handles user login by validating credentials and returning authentication details.
             </summary>
             <param name="login">The login credentials, including email and password.</param>
             <returns>An HTTP 200 response with authentication details (e.g., token, user info) if successful.</returns>
         </member>
-        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.LogInController.Logout(System.String)">
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.AuthController.Logout(System.String)">
             <summary>
             Logs that the current user has successfully signed out.
             (No session/token invalidation is done here.)
             </summary>
+        </member>
+        <member name="M:RBO.RestApi.Areas.Administration.Controllers.UserController.Post(ElasticSearchVSSQLServer.RestApi.Models.InputModels.User.UserInputModel)">
+            <summary>
+            Creates a new user.
+            </summary>
+            <param name="inputModel">The input model containing the user data.</param>
+            <returns>The result of the user creation operation.</returns>
+        </member>
+        <member name="M:RBO.RestApi.Areas.Administration.Controllers.UserController.RegisterNewUser(ElasticSearchVSSQLServer.RestApi.Models.InputModels.User.RegisterUserModel)">
+            <summary>
+            Creates a new user.
+            </summary>
+            <param name="inputModel">The input model containing the user data.</param>
+            <returns>The result of the user creation operation.</returns>
+        </member>
+        <member name="M:RBO.RestApi.Areas.Administration.Controllers.UserController.Get(System.String)">
+            <summary>
+            Retrieves a list of user with a specific user ID.
+            </summary>
+            <param name="id">The ID of the user for which user are being retrieved.</param>
+            <returns>A list of user associated with the specified user ID.</returns>
+        </member>
+        <member name="M:RBO.RestApi.Areas.Administration.Controllers.UserController.GetProfileImage(System.String)">
+            <summary>
+            Retrieves the profile image for a user with the specified ID.
+            </summary>
+            <param name="id">The ID of the user whose profile image is being retrieved.</param>
+            <returns>The base64-encoded profile image if found; otherwise, a not found response.</returns>
+        </member>
+        <member name="M:RBO.RestApi.Areas.Administration.Controllers.UserController.GetCurrentUser">
+            <summary>
+            Retrieves the profile of the currently logged-in user.
+            </summary>
+            <returns>Returns the profile data for the logged-in user.</returns>
+        </member>
+        <member name="M:RBO.RestApi.Areas.Administration.Controllers.UserController.UpdateUserLanguage(System.Int32)">
+            <summary>
+            To change language in the system for the logged user
+            </summary>
+            <param name="languageId">LanguageId that has to be set</param>
+            <returns>Returns OK or ErrorVM object </returns>
         </member>
         <member name="T:Program">
             <summary>
