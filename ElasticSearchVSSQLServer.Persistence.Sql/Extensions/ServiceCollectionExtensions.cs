@@ -10,6 +10,7 @@ using ElasticSearchVSSQLServer.Persistence.Sql.Configuration;
 using ElasticSearchVSSQLServer.Persistence.Sql.Context;
 using ElasticSearchVSSQLServer.Persistence.Sql.Identity;
 using ElasticSearchVSSQLServer.Persistence.Sql.Repositories;
+using ElasticSearchVSSQLServer.Persistence.SQLData;
 using ElasticSearchVSSQLServer.Persistence.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -66,7 +67,7 @@ using System.Text;
             services.AddScoped<IGenericRepository<ActionDTO, int>, GenericRepository<Context.Action, ActionDTO, int>>();
             services.AddScoped<IGenericRepository<LogDTO, int>, GenericRepository<Log, LogDTO, int>>();
             services.AddScoped<IGenericRepository<UserDto, string>, GenericRepository<AspNetUsers, UserDto, string>>();
-
+            services.AddScoped<IGenericRepository<BankDatasetDTO, int>, GenericRepository<Bankdataset, BankDatasetDTO, int>> ();
     }
 
     private static void SyncTestDatabase(this IServiceCollection services, DatabaseConfiguration databaseConfiguration)

@@ -1,8 +1,8 @@
 ﻿using ElasticSearchVSSQLServer.Domain.AutoMapper;
 using ElasticSearchVSSQLServer.Domain.Configuration;
-//using ElasticSearchVSSQLServer.Domain.Services.Administration.PrivilegeService;
 using ElasticSearchVSSQLServer.Domain.Services.Audit;
 using ElasticSearchVSSQLServer.Domain.Services.Auth;
+using ElasticSearchVSSQLServer.Domain.Services.SQLData;
 using ElasticSearchVSSQLServer.Domain.Services.Subscription;
 using ElasticSearchVSSQLServer.Domain.Services.User;
 using GraphQL.Client.Http;
@@ -66,6 +66,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ILogService, LogService>();
         services.AddScoped<RealtimeEventPublisher>();
+        services.AddScoped<ISQLDataService, SQLDataService>();
 
     }
 }

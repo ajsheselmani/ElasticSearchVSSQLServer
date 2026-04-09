@@ -4,6 +4,8 @@ using ElasticSearchVSSQLServer.Persistence.Auth;
 using ElasticSearchVSSQLServer.Persistence.Controller;
 using ElasticSearchVSSQLServer.Persistence.Domain;
 using ElasticSearchVSSQLServer.Persistence.Identity;
+using ElasticSearchVSSQLServer.Persistence.Sql.Context;
+using ElasticSearchVSSQLServer.Persistence.SQLData;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,6 +22,7 @@ namespace ElasticSearchVSSQLServer.Persistence.Sql.AutoMapper
             SetupControllerMapping();
             SetupLogMapping();
             SetupApplicationUser();
+            SetupBankDatasetMapping();
         }
 
         private void SetupDomainMapping()
@@ -43,6 +46,9 @@ namespace ElasticSearchVSSQLServer.Persistence.Sql.AutoMapper
                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName));
         }
 
-
+        private void SetupBankDatasetMapping()
+        {
+            CreateMap<Bankdataset, BankDatasetDTO>().ReverseMap();
+        }
     }
 }

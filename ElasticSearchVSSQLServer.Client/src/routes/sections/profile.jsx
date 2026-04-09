@@ -11,12 +11,8 @@ import { AuthGuard } from "src/auth/guard";
 
 const IndexPage = lazy(() => import("../../pages/account/index.jsx"));
 const Profile = lazy(() => import("src/pages/account/profile/Profile"));
-const TwoFA = lazy(() => import("src/pages/account/TwoFA/TwoFA"));
 const ChangePassword = lazy(
   () => import("src/pages/account/changePassword/changePassword"),
-);
-const UserLogsProfile = lazy(
-  () => import("src/pages/account/user-logs-profile"),
 );
 
 function SuspenseOutlet() {
@@ -48,16 +44,8 @@ export const profileRoutes = [
             element: <Profile />,
           },
           {
-            path: "twoFA",
-            element: <TwoFA />,
-          },
-          {
             path: "/password",
             element: <ChangePassword />,
-          },
-          {
-            path: "/logs",
-            element: <UserLogsProfile />,
           },
         ],
       },

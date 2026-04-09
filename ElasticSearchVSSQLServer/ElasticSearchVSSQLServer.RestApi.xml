@@ -17,6 +17,18 @@
             (No session/token invalidation is done here.)
             </summary>
         </member>
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.LogsController.GetLogsData">
+            <summary>
+            Retrieves datas from Log table.
+            </summary>
+            <returns>Returns logs of the system.</returns>
+        </member>
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.GetBankData">
+            <summary>
+            Retrieves datas from bank dataset.
+            </summary>
+            <returns>Returns the data of bank dataset.</returns>
+        </member>
         <member name="M:RBO.RestApi.Areas.Administration.Controllers.UserController.Post(ElasticSearchVSSQLServer.RestApi.Models.InputModels.User.UserInputModel)">
             <summary>
             Creates a new user.

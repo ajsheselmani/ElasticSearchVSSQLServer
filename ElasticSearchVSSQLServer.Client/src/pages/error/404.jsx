@@ -1,4 +1,4 @@
-import { NotFoundView } from "src/sections/error";
+// import { NotFoundView } from "src/sections/error";
 import { CONFIG } from "../../global-config";
 
 // ----------------------------------------------------------------------
@@ -10,7 +10,7 @@ export default function Page() {
     <>
       <title>{metadata.title}</title>
 
-      <NotFoundView />
+      {/* <NotFoundView /> */}
     </>
   );
 }
