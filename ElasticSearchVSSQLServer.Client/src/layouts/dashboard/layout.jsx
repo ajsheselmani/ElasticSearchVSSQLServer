@@ -30,6 +30,7 @@ import { Typography } from "@mui/material";
 import { Tooltip } from "@mui/material";
 import QueueWork from "../queue-work";
 import { navData } from "../nav-config-dashboard";
+import axiosInstance from "src/lib/axios";
 
 // ----------------------------------------------------------------------
 
@@ -52,8 +53,17 @@ export function DashboardLayout({
     settings.state.navLayout,
   );
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
-
+  console.log(user, "user");
   // const navData = menus;
+  const loadData = async () => {
+    const logsData = await axiosInstance.get("/Logs/GetAllLogsData");
+    console.log(logsData, "logsData");
+  };
+
+  useEffect(() => {
+    loadData();
+    console.log(user, "user");
+  }, [loadData, user]);
 
   const isNavMini = settings.state.navLayout === "mini";
   const isNavHorizontal = settings.state.navLayout === "horizontal";

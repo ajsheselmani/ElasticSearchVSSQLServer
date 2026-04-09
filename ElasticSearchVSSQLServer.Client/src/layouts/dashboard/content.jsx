@@ -6,8 +6,6 @@ import Container from "@mui/material/Container";
 import { useSettingsContext } from "src/components/settings";
 
 import { layoutClasses } from "../core/classes";
-import { useEffect } from "react";
-import axiosInstance from "src/lib/axios";
 
 // ----------------------------------------------------------------------
 
@@ -23,14 +21,7 @@ export function DashboardContent({
   const settings = useSettingsContext();
 
   const isNavHorizontal = settings.state.navLayout === "horizontal";
-  const loadData = async () => {
-    const logsData = await axiosInstance.get("/Logs/GetAllLogsData");
-    console.log(logsData, "logsData");
-  };
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
   return (
     <Container
       className={mergeClasses([layoutClasses.content, className])}

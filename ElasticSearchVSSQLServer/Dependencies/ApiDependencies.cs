@@ -25,12 +25,12 @@ public static class ApiDependencies
         {
             services.AddIndexing(configuration.ElasticConfiguration);
 
-        services.AddAutoMapper(cfg =>
-        {
-            cfg.AddMaps(typeof(InputMappings).Assembly);
-        });
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(InputMappings).Assembly);
+            });
 
-        services.AddSqlPersistence(configuration.DatabaseConfiguration);
+            services.AddSqlPersistence(configuration.DatabaseConfiguration);
 
             services.AddDomain(configuration.DomainConfiguration);
 
@@ -41,9 +41,9 @@ public static class ApiDependencies
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddSwagger();
-        services.ConfigureGraphQL();
+            services.ConfigureGraphQL();
 
-        return services;
+            return services;
         }
 
         private static void AddAuthentication(this IServiceCollection services, JWTConfiguration configuration)

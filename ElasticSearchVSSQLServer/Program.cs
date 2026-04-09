@@ -36,7 +36,6 @@ builder.Host.UseSerilog();
 
 var app = builder.Build();
 
-app.UseMiddleware<SerilogEnrichUserInfoMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -46,14 +45,15 @@ if (app.Environment.IsDevelopment())
         options.DocumentTitle = "ElasticSearchVSSQLServer";
     });
 }
-
-app.UseMiddleware<LogMiddleware>();
-app.UseCors();
-app.UseRouting();
-
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<SerilogEnrichUserInfoMiddleware>();
+app.UseMiddleware<LogMiddleware>();
 
 app.MapControllers();
 
