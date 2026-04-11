@@ -18,4 +18,5 @@ public interface IGenericRepository<TDto, Tid> where TDto : class {
     Task<IEnumerable<TDto>> AddRangeAsync(IEnumerable<TDto> dtoEntities);
     Task<IEnumerable<TDto>> GetByConditionAsync(Expression<Func<TDto, bool>> predicate);
 
+    Task<(IEnumerable<TDto> Items, long TotalCount)> GetPagedAsync(int page, int pageSize);
 }

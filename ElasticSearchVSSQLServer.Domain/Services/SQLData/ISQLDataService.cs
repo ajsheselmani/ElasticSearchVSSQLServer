@@ -8,4 +8,6 @@ public interface ISQLDataService
 {
     Task<IEnumerable<BankDatasetDTO>> GetAllBankData();
     Task<IEnumerable<ElectronicEventsDTO>> GetAllElectronicEvents();
+    Task<(IEnumerable<BankDatasetDTO> items, long TotalCount)> GetBankData(int page, int pageSize);
+    Task<(IEnumerable<ElectronicEventsDTO> Items, long TotalCount)> GetElectronicEvents(int page, int pageSize);
 }

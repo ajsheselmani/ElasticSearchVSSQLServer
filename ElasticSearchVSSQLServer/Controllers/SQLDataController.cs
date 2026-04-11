@@ -19,11 +19,11 @@ public class SQLDataController(IMapper mapper, ISQLDataService service, ILogger<
     ///</summary>
     ///<returns>Returns the data of bank dataset.</returns>
     [HttpGet("GetAllBankData")]
-    public async Task<IActionResult> GetBankData()
+    public async Task<IActionResult> GetBankData([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var bankData = await service.GetAllBankData();
-        var result = mapper.Map<BankDatasetOutputModel[]>(bankData);
-        return Ok(result);
+        var (items, totalCount) = await service.GetBankData(page, pageSize);
+        var result = mapper.Map<BankDatasetOutputModel[]>(items);
+        return Ok(new { items = result, totalCount });
 
     }
 
@@ -32,11 +32,11 @@ public class SQLDataController(IMapper mapper, ISQLDataService service, ILogger<
     ///</summary>
     ///<returns>Returns the data of electronicEvents dataset.</returns>
     [HttpGet("GetAllElectronicEvents")]
-    public async Task<IActionResult> ElectronicEvents()
+    public async Task<IActionResult> ElectronicEvents([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var electronicsData = await service.GetAllElectronicEvents();
-        var result = mapper.Map<ElectronicEventsOutputModel[]>(electronicsData);
-        return Ok(result);
+        var (items, totalCount) = await service.GetElectronicEvents(page, pageSize);
+        var result = mapper.Map<ElectronicEventsOutputModel[]>(items);
+        return Ok(new {items = result, totalCount});
 
     }
 

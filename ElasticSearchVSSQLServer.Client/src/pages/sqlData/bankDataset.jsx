@@ -4,7 +4,6 @@ import React, { useEffect, useMemo } from "react";
 import { useAuthContext } from "src/auth/hooks";
 import { getDataGridLocale } from "src/locales/custom components/datagrid/utils";
 import i18n from "src/locales";
-import { useLocation } from "react-router";
 import { debounce } from "lodash";
 import axiosInstance from "src/lib/axios";
 import { DataGrid } from "@mui/x-data-grid";
@@ -20,25 +19,37 @@ const SQLData = () => {
   const [logicType, setLogicalType] = React.useState(null);
   const [data, setData] = React.useState([]);
   const [totalCount, setTotalCount] = React.useState(null);
-  const location = useLocation();
+  const [loading, setLoading] = React.useState(false);
 
   useEffect(() => {
     const loadData = async () => {
-      const bankDatasetData = await axiosInstance.get(
-        "/SQLData/GetAllBankData",
-      );
-      // console.log(bankDatasetData, "bankDatasetData");
-      setData(bankDatasetData.data);
+      setLoading(true);
+      try {
+        const bankDatasetData = await axiosInstance.get(
+          "/SQLData/GetAllBankData",
+          {
+            params: {
+              page: page + 1,
+              pageSize,
+            },
+          },
+        );
+        // console.log(bankDatasetData, "bankDatasetData");
+        setTotalCount(bankDatasetData?.data?.totalCount ?? 0);
+        setData(bankDatasetData.data);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadData();
-  }, [user]);
+  }, [user, page, pageSize]);
 
   const rowsWithId =
     data &&
-    data?.map((row, index) => ({
+    data?.items?.map((row, index) => ({
       ...row,
-      id: index,
+      id: page * pageSize + index,
     }));
 
   const nameLocale = useMemo(() => {
@@ -67,6 +78,8 @@ const SQLData = () => {
         headerName: t("date"),
         flex: 1,
         minWidth: 180,
+        sortable: false,
+        filterable: false,
         renderCell: (params) => {
           return params?.row?.date;
         },
@@ -76,6 +89,8 @@ const SQLData = () => {
         headerName: t("domain"),
         flex: 1,
         minWidth: 180,
+        sortable: false,
+        filterable: false,
         renderCell: (params) => {
           return params?.row?.domain;
         },
@@ -85,6 +100,8 @@ const SQLData = () => {
         headerName: t("location"),
         flex: 1,
         minWidth: 180,
+        sortable: false,
+        filterable: false,
         renderCell: (params) => {
           return params?.row?.location;
         },
@@ -94,6 +111,8 @@ const SQLData = () => {
         headerName: t("value"),
         flex: 1,
         minWidth: 130,
+        sortable: false,
+        filterable: false,
         renderCell: (params) => {
           return params?.row?.value;
         },
@@ -103,19 +122,17 @@ const SQLData = () => {
         headerName: t("transaction"),
         flex: 1,
         minWidth: 120,
+        sortable: false,
+        filterable: false,
         renderCell: (params) => {
           return params?.row?.transactionCount;
         },
       },
     ],
-    [t, page, pageSize, nameLocale],
+    [t, page, pageSize],
   );
 
   const columns = allColumns;
-
-  if (location.pathname === "/user") {
-    setTotalCount(data.length);
-  }
 
   const onFilterChange = React.useCallback(
     () =>
@@ -144,13 +161,15 @@ const SQLData = () => {
 
   return (
     <DataGrid
+      autoHeight
       columns={columns}
       rows={rowsWithId}
       getRowId={(item) => item.id}
+      loading={loading}
       pinnedColumns={{ right: ["actions"] }}
       isRowSelectable={() => false}
       showToolbar
-      pageSizeOptions={[10, 20, 50, { value: 999999, label: t("all") }]}
+      pageSizeOptions={[10, 20, 50, 100]}
       paginationModel={{
         page: page,
         pageSize: pageSize,
@@ -161,7 +180,7 @@ const SQLData = () => {
       }}
       pagination
       //   slots={{ toolbar: CustomToolbar }}
-      rowCount={totalCount ?? 0}
+      rowCount={totalCount}
       localeText={getDataGridLocale(i18n.language)}
       sortingMode="server"
       paginationMode="server"

@@ -94,4 +94,21 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
         await _dbContext.SaveChangesAsync();
         return mapper.Map<IEnumerable<TDto>>(itemsToAdd);
     }
+
+    public async Task<(IEnumerable<TDto> Items, long TotalCount)> GetPagedAsync(int page, int pageSize)
+    {
+        dbset = _dbContext.Set<T>();
+
+        var safePage = page < 1 ? 1 : page;
+        var safePageSize = pageSize < 1 ? 10 : pageSize;
+
+        var totalCount = await dbset.LongCountAsync();
+        var entities = await dbset
+            .AsNoTracking()
+            .Skip((safePage - 1) * safePageSize)
+            .Take(safePageSize)
+            .ToListAsync();
+
+        return (mapper.Map<IEnumerable<TDto>>(entities), totalCount);
+    }
 }
