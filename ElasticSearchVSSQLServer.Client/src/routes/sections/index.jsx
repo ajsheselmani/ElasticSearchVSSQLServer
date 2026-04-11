@@ -6,6 +6,7 @@ import { dashboardRoutes } from "./dashboard";
 import { administrationRoutes } from "./administration";
 import { profileRoutes } from "./profile";
 import { CONFIG } from "../../global-config";
+import { sqlDataRoutes } from "./sqlData";
 
 // ----------------------------------------------------------------------
 
@@ -24,6 +25,7 @@ export const routesSection = [
   ...dashboardRoutes,
   ...administrationRoutes,
   ...profileRoutes,
+  ...sqlDataRoutes,
   // No match
   { path: "*", element: <Page404 /> },
 ];

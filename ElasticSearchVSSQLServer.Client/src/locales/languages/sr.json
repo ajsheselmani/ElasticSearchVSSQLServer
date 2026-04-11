@@ -1045,5 +1045,13 @@
       "warning": "Upozorenje: radnja sa upozorenjem.",
       "error": "Greška tokom radnje."
     }
-  }
+  },
+  "location": "Lokacija",
+  "transaction": "Broj transakcija",
+  "bankDataSQL": "Podaci za banke sa SQLServer-a",
+  "bankDataElastic": "Bankovni podaci iz ElasticSearch-a",
+  "electronicsDataSQL": "Podaci o elektronici iz SQLServer-a",
+  "electronicsDataElastic": "Podaci o elektronici iz ElasticSearch-a",
+  "sqlData": "Podaci sa SQLServer-a",
+  "elasticData": "Podaci iz ElasticSearch-a"
 }

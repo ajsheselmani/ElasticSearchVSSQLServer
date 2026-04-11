@@ -7,4 +7,5 @@ namespace ElasticSearchVSSQLServer.Domain.Services.SQLData;
 public interface ISQLDataService
 {
     Task<IEnumerable<BankDatasetDTO>> GetAllBankData();
+    Task<IEnumerable<ElectronicEventsDTO>> GetAllElectronicEvents();
 }

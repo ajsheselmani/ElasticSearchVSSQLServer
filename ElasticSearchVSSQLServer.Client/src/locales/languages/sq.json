@@ -1092,5 +1092,13 @@
       "warning": "Kujdes: veprim me paralajmërim.",
       "error": "Gabim gjatë veprimit."
     }
-  }
+  },
+  "location": "Lokacioni",
+  "transaction": "Numri i transaksioneve",
+  "bankDataSQL": "Të dhënat për bankat nga SQLServer",
+  "bankDataElastic": "Të dhënat për bankat nga ElasticSearch",
+  "electronicsDataSQL": "Të dhënat për elektronikën nga SQLServer",
+  "electronicsDataElastic": "Të dhënat për elektronikën nga ElasticSearch",
+  "sqlData": "Të dhënat nga SQLServer",
+  "elasticData": "Të dhënat nga ElasticSearch"
 }

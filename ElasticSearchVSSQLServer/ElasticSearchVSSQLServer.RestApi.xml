@@ -29,6 +29,12 @@
             </summary>
             <returns>Returns the data of bank dataset.</returns>
         </member>
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.ElectronicEvents">
+            <summary>
+            Retrieves datas from electronicEvents dataset.
+            </summary>
+            <returns>Returns the data of electronicEvents dataset.</returns>
+        </member>
         <member name="M:RBO.RestApi.Areas.Administration.Controllers.UserController.Post(ElasticSearchVSSQLServer.RestApi.Models.InputModels.User.UserInputModel)">
             <summary>
             Creates a new user.

@@ -27,4 +27,17 @@ public class SQLDataController(IMapper mapper, ISQLDataService service, ILogger<
 
     }
 
+    ///<summary>
+    ///Retrieves datas from electronicEvents dataset.
+    ///</summary>
+    ///<returns>Returns the data of electronicEvents dataset.</returns>
+    [HttpGet("GetAllElectronicEvents")]
+    public async Task<IActionResult> ElectronicEvents()
+    {
+        var electronicsData = await service.GetAllElectronicEvents();
+        var result = mapper.Map<ElectronicEventsOutputModel[]>(electronicsData);
+        return Ok(result);
+
+    }
+
 }

@@ -27,6 +27,8 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Domain> Domain { get; set; }
 
+    public virtual DbSet<ElectronicEvents> ElectronicEvents { get; set; }
+
     public virtual DbSet<Log> Log { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -108,6 +110,13 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .IsFixedLength();
+        });
+
+        modelBuilder.Entity<ElectronicEvents>(entity =>
+        {
+            entity.Property(e => e.EventTime).IsRequired();
+            entity.Property(e => e.EventType).IsRequired();
+            entity.Property(e => e.Price).IsRequired();
         });
 
         modelBuilder.Entity<Log>(entity =>

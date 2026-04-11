@@ -1058,5 +1058,13 @@
       "warning": "Warning: action with a warning.",
       "error": "Error during the action."
     }
-  }
+  },
+  "location": "Location",
+  "transaction": "Number of transactions",
+  "bankDataSQL": "Data for banks from SQLServer",
+  "bankDataElastic": "Bank data from ElasticSearch",
+  "electronicsDataSQL": "Electronics data from SQLServer",
+  "electronicsDataElastic": "Electronics data from ElasticSearch",
+  "sqlData": "Data from SQLServer",
+  "elasticData": "Data from ElasticSearch"
 }

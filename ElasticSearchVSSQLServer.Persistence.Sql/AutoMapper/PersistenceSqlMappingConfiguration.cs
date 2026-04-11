@@ -23,6 +23,7 @@ namespace ElasticSearchVSSQLServer.Persistence.Sql.AutoMapper
             SetupLogMapping();
             SetupApplicationUser();
             SetupBankDatasetMapping();
+            SetupElectronicsDatasetMapping();
         }
 
         private void SetupDomainMapping()
@@ -49,6 +50,11 @@ namespace ElasticSearchVSSQLServer.Persistence.Sql.AutoMapper
         private void SetupBankDatasetMapping()
         {
             CreateMap<Bankdataset, BankDatasetDTO>().ReverseMap();
+        }
+
+        private void SetupElectronicsDatasetMapping()
+        {
+            CreateMap<ElectronicEvents, ElectronicEventsDTO>().ReverseMap();
         }
     }
 }

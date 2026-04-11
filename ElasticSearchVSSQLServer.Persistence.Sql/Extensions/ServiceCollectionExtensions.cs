@@ -68,6 +68,7 @@ using System.Text;
             services.AddScoped<IGenericRepository<LogDTO, int>, GenericRepository<Log, LogDTO, int>>();
             services.AddScoped<IGenericRepository<UserDto, string>, GenericRepository<AspNetUsers, UserDto, string>>();
             services.AddScoped<IGenericRepository<BankDatasetDTO, int>, GenericRepository<Bankdataset, BankDatasetDTO, int>> ();
+            services.AddScoped<IGenericRepository<ElectronicEventsDTO, int>, GenericRepository<ElectronicEvents, ElectronicEventsDTO, int>>();
     }
 
     private static void SyncTestDatabase(this IServiceCollection services, DatabaseConfiguration databaseConfiguration)

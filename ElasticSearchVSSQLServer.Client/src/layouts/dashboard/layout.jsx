@@ -29,9 +29,63 @@ import { useSnackbar } from "notistack";
 import { Typography } from "@mui/material";
 import { Tooltip } from "@mui/material";
 import QueueWork from "../queue-work";
-import { navData } from "../nav-config-dashboard";
-import axiosInstance from "src/lib/axios";
+import { Iconify } from "src/components/iconify";
+import { useTranslation } from "react-i18next";
+import { paths } from "src/routes/paths";
+//-----------------------------------------------------------------------
+const icon = (name) => <Iconify icon={name} width={24} />;
+export const ICONS = {
+  dashboard: icon("solar:widget-3-bold-duotone"),
+  user: icon("solar:users-group-rounded-bold-duotone"),
+  elastic: icon("streamline-logos:elastic-logo-block"),
+  sql: icon("oui:vis-query-sql"),
+};
 
+export const useNavData = () => {
+  const { t } = useTranslation();
+
+  return [
+    {
+      items: [
+        {
+          title: "Dashboard",
+          path: paths.dashboard.root,
+          icon: ICONS.dashboard,
+        },
+      ],
+    },
+    {
+      subheader: t("sqlData"),
+      items: [
+        {
+          title: t("bankDataSQL"),
+          path: paths.sql.bankData,
+          icon: ICONS.sql,
+        },
+        {
+          title: t("electronicsDataSQL"),
+          path: paths.sql.electronicsData,
+          icon: ICONS.sql,
+        },
+      ],
+    },
+    {
+      subheader: t("elasticData"),
+      items: [
+        {
+          title: t("bankDataElastic"),
+          path: paths.elastic.bankData,
+          icon: ICONS.elastic,
+        },
+        {
+          title: t("electronicsDataElastic"),
+          path: paths.elastic.electronicsData,
+          icon: ICONS.elastic,
+        },
+      ],
+    },
+  ];
+};
 // ----------------------------------------------------------------------
 
 export function DashboardLayout({
@@ -53,17 +107,7 @@ export function DashboardLayout({
     settings.state.navLayout,
   );
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
-  console.log(user, "user");
-  // const navData = menus;
-  const loadData = async () => {
-    const logsData = await axiosInstance.get("/Logs/GetAllLogsData");
-    console.log(logsData, "logsData");
-  };
-
-  useEffect(() => {
-    loadData();
-    console.log(user, "user");
-  }, [loadData, user]);
+  const navData = useNavData();
 
   const isNavMini = settings.state.navLayout === "mini";
   const isNavHorizontal = settings.state.navLayout === "horizontal";
@@ -240,7 +284,7 @@ export function DashboardLayout({
           }}
         >
           <QueueWork />
-          <Searchbar data={navData} />
+          <Searchbar data={navData ?? []} />
           <LanguagePopover
             data={[
               { value: "sq", label: "Shqip", countryCode: "AL" },
