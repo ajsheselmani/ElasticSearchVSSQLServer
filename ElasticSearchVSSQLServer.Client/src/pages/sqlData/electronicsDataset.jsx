@@ -7,6 +7,7 @@ import i18n from "src/locales";
 import { debounce } from "lodash";
 import axiosInstance from "src/lib/axios";
 import { DataGrid } from "@mui/x-data-grid";
+import DataGridToolbar from "src/components/datagrid-toolbar/datagrid-toolbar";
 
 LicenseInfo.setLicenseKey(import.meta.env.VITE_DATAGRID_KEY);
 
@@ -202,7 +203,7 @@ const ElectronicsData = () => {
         setPageSize(model.pageSize);
       }}
       pagination
-      //   slots={{ toolbar: CustomToolbar }}
+      slots={{ toolbar: DataGridToolbar }}
       rowCount={totalCount}
       localeText={getDataGridLocale(i18n.language)}
       sortingMode="server"
