@@ -1061,5 +1061,15 @@
   "categoryCode": "Šifra kategorije",
   "brand": "Brend",
   "price": "Cena",
-  "userSession": "Korisnička sesija"
+  "userSession": "Korisnička sesija",
+  "logsDataElastic": "Podaci evidencije iz ElasticSearch-a",
+  "logsDataSql": "Podaci evidentiranja sa SQLServer-a",
+  "ip": "IP",
+  "httpMethod": "HTTP metod",
+  "controller": "Kontroler",
+  "fromContent": "Sadržaj",
+  "response": "Odgovor",
+  "exception": "Izuzetak",
+  "true": "Desilo se",
+  "false": "Nije se dogodilo"
 }

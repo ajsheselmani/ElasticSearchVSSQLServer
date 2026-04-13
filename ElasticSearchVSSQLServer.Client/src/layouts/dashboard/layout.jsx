@@ -8,7 +8,6 @@ import { iconButtonClasses } from "@mui/material/IconButton";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Logo } from "src/components/logo";
 import { useSettingsContext } from "src/components/settings";
-import { useAuthContext } from "src/auth/hooks";
 import { NavMobile } from "./nav-mobile";
 import { VerticalDivider } from "./content";
 import { NavVertical } from "./nav-vertical";
@@ -23,8 +22,6 @@ import { AccountDrawer } from "../components/account-drawer";
 import { LanguagePopover } from "../components/language-popover";
 import { dashboardLayoutVars, dashboardNavColorVars } from "./css-vars";
 import { useEffect } from "react";
-import { useNotifications } from "src/auth/hooks/useNotifications";
-import { useSnackbar } from "notistack";
 import { Typography } from "@mui/material";
 import { Tooltip } from "@mui/material";
 import QueueWork from "../queue-work";
@@ -38,6 +35,10 @@ export const ICONS = {
   user: icon("solar:users-group-rounded-bold-duotone"),
   elastic: icon("streamline-logos:elastic-logo-block"),
   sql: icon("oui:vis-query-sql"),
+  logs: icon("icon-park-outline:log"),
+  logsFilled: icon("icon-park-solid:log"),
+  bank: icon("ri:bank-line"),
+  electronics: icon("streamline-pixel:computers-devices-electronics-chipset"),
 };
 
 export const useNavData = () => {
@@ -55,31 +56,43 @@ export const useNavData = () => {
     },
     {
       subheader: t("sqlData"),
+      icon: ICONS.sql,
       items: [
-        {
-          title: t("bankDataSQL"),
-          path: paths.sql.bankData,
-          icon: ICONS.sql,
-        },
+        // {
+        //   title: t("bankDataSQL"),
+        //   path: paths.sql.bankData,
+        //   icon: ICONS.sql,
+        // },
         {
           title: t("electronicsDataSQL"),
           path: paths.sql.electronicsData,
-          icon: ICONS.sql,
+          icon: ICONS.electronics,
+        },
+        {
+          title: t("logsDataSql"),
+          path: paths.sql.logsData,
+          icon: ICONS.logsFilled,
         },
       ],
     },
     {
       subheader: t("elasticData"),
+      icon: ICONS.elastic,
       items: [
-        {
-          title: t("bankDataElastic"),
-          path: paths.elastic.bankData,
-          icon: ICONS.elastic,
-        },
+        // {
+        //   title: t("bankDataElastic"),
+        //   path: paths.elastic.bankData,
+        //   icon: ICONS.bank,
+        // },
         {
           title: t("electronicsDataElastic"),
           path: paths.elastic.electronicsData,
-          icon: ICONS.elastic,
+          icon: ICONS.electronics,
+        },
+        {
+          title: t("logsDataElastic"),
+          path: paths.elastic.logsData,
+          icon: ICONS.logs,
         },
       ],
     },
@@ -98,8 +111,6 @@ export function DashboardLayout({
   const APP_NAME = import.meta.env.VITE_APP_NAME;
 
   const settings = useSettingsContext();
-  const { user } = useAuthContext();
-  const { enqueueSnackbar } = useSnackbar();
   const navVars = dashboardNavColorVars(
     theme,
     settings.state.navColor,
@@ -113,44 +124,6 @@ export function DashboardLayout({
   const isNavVertical = isNavMini || settings.state.navLayout === "vertical";
   const isSmallScreen = !useMediaQuery(theme.breakpoints.up("sm"));
   const isDesktopNav = useMediaQuery(theme.breakpoints.up(layoutQuery));
-
-  const canDisplayItemByRole = (allowedRoles) =>
-    !allowedRoles?.includes(user?.role);
-
-  const notifications = useNotifications();
-
-  const getSeverity = (type) => {
-    switch (type) {
-      case 1:
-        return "info";
-      case 5:
-        return "warning";
-      case 8:
-        return "error";
-      case 6:
-        return "success";
-      default:
-        return "default";
-    }
-  };
-
-  useEffect(() => {
-    notifications.forEach((n) => {
-      enqueueSnackbar(
-        <div>
-          <strong>{n.title}</strong>
-          <div style={{ whiteSpace: "normal", maxWidth: "300px" }}>
-            {n.message}
-          </div>
-        </div>,
-        {
-          variant: getSeverity(n.type),
-          anchorOrigin: { vertical: "top", horizontal: "right" },
-          autoHideDuration: 4000,
-        },
-      );
-    });
-  }, [notifications]);
 
   useEffect(() => {
     if (isDesktopNav && open) {
@@ -186,7 +159,6 @@ export function DashboardLayout({
           data={navData}
           layoutQuery={layoutQuery}
           cssVars={navVars.section}
-          checkPermissions={canDisplayItemByRole}
         />
       ) : null,
       leftArea: (
@@ -229,7 +201,6 @@ export function DashboardLayout({
             open={open}
             onClose={onClose}
             cssVars={navVars.section}
-            checkPermissions={canDisplayItemByRole}
           />
 
           {/** @slot Logo */}
@@ -294,7 +265,6 @@ export function DashboardLayout({
       isNavMini={isNavMini}
       layoutQuery={layoutQuery}
       cssVars={navVars.section}
-      checkPermissions={canDisplayItemByRole}
       onToggleNav={() =>
         settings.setField(
           "navLayout",

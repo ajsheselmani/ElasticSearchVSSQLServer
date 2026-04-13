@@ -585,16 +585,6 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         return aggregationDictionary;
     }
 
-    public async Task ReIndex(int id)
-    {
-        await CreateIndex("elasticvssql_logs");
-
-        var logs = await logService.GetAllLogsData();
-        var mappedData = mapper.Map<LogsIndexDTO[]>(logs);
-        
-        await IndexData(mappedData, "claim_index");
-    }
-
     public async Task CreateIndex(string indexName)
     {
         var existsResponse = await ElasticsearchClient.Indices.ExistsAsync(indexName);

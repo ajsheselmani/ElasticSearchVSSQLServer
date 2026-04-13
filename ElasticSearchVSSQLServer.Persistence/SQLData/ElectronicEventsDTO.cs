@@ -8,22 +8,22 @@ namespace ElasticSearchVSSQLServer.Persistence.SQLData
     {
         public string Id { get; set; }
 
-        public string Event_time { get; set; }
+        public string EventTime { get; set; }
 
-        public string Event_type { get; set; }
+        public string EventType { get; set; }
 
-        public int Product_id { get; set; }
+        public int ProductId { get; set; }
 
-        public long Category_id { get; set; }
+        public long CategoryId { get; set; }
 
-        public string Category_code { get; set; }
+        public string CategoryCode { get; set; }
 
         public string Brand { get; set; }
 
         public string Price { get; set; }
 
-        public long User_id { get; set; }
+        public long UserId { get; set; }
 
-        public string User_session { get; set; }
+        public string UserSession { get; set; }
     }
 }

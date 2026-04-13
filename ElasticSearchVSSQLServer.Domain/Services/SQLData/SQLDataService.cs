@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace ElasticSearchVSSQLServer.Domain.Services.SQLData;
-public class SQLDataService(IGenericRepository<BankDatasetDTO, int> bankDataRepo, IGenericRepository<ElectronicEventsDTO, int> electronicsDataRepo, ILogger<SQLDataService> logger) : ISQLDataService
+public class SQLDataService(IGenericRepository<BankDatasetDTO, int> bankDataRepo, IGenericRepository<ElectronicEventsDTO, int> electronicsDataRepo, IRepository repository, ILogger<SQLDataService> logger) : ISQLDataService
 {
     public async Task<IEnumerable<BankDatasetDTO>> GetAllBankData()
     {
@@ -53,5 +53,9 @@ public class SQLDataService(IGenericRepository<BankDatasetDTO, int> bankDataRepo
             Domain = b.Domain,
             Value = b.Value,
         }).ToList();
+    }
+    public async Task<List<HMFashionDatasetDTO>> GetHMFashionFlatBatch(DateOnly? lastDate, string lastCustomerId, int? lastArticleId, int batchSize)
+    {
+        return await repository.GetHMFashionFlatBatch(lastDate, lastCustomerId, lastArticleId, batchSize);
     }
 }

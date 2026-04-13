@@ -403,7 +403,7 @@
   "reportGroup": "Grupi i raportit",
   "ConfiguringReports": "Konfigurimi i raporteve",
   "renameColumns": "Riemërto kolonat",
-  "error": "Gabim!",
+  "error": "Gabim",
   "warning": "Kujdes!",
   "reportSize": "Madhësia e raportit",
   "errorWhileSavingYourData": "Ka ndodhur një gabim gjatë ruajtjes së të dhënave.",
@@ -1099,6 +1099,7 @@
   "bankDataElastic": "Të dhënat për bankat nga ElasticSearch",
   "electronicsDataSQL": "Të dhënat për elektronikën nga SQLServer",
   "electronicsDataElastic": "Të dhënat për elektronikën nga ElasticSearch",
+  "electronicsData": "Të dhënat për elektronikën",
   "sqlData": "Të dhënat nga SQLServer",
   "elasticData": "Të dhënat nga ElasticSearch",
   "eventTime": "Koha e ngjarjes(UTC)",
@@ -1108,5 +1109,15 @@
   "categoryCode": "Kodi i kategorisë",
   "brand": "Brendi",
   "price": "Çmimi",
-  "userSession": "Sesioni i përdoruesit"
+  "userSession": "Sesioni i përdoruesit",
+  "logsDataElastic": "Të dhënat për loga nga ElasticSearch",
+  "logsDataSql": "Të dhënat për loga nga SQLServer",
+  "ip": "IP",
+  "httpMethod": "Metoda HTTP",
+  "controller": "Kontrolleri",
+  "fromContent": "Përmbajtja",
+  "response": "Përgjigjja",
+  "exception": "Përjashtimi/gabimi(Exception)",
+  "true": "Ka ndodhur",
+  "false": "Nuk ka ndodhur"
 }

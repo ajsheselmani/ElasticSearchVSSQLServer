@@ -36,6 +36,7 @@ export function NavSectionVertical({
           <Group
             key={group.subheader ?? group.items[0].title}
             subheader={group.subheader}
+            icon={group.icon}
             items={group.items}
             render={render}
             slotProps={slotProps}
@@ -54,6 +55,7 @@ function Group({
   items,
   render,
   subheader,
+  icon,
   slotProps,
   checkPermissions,
   enabledRootRedirect,
@@ -86,7 +88,20 @@ function Group({
             onClick={groupOpen.onToggle}
             sx={slotProps?.subheader}
           >
-            {subheader}
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              {icon && (
+                <span style={{ display: "flex", alignItems: "center" }}>
+                  {icon}
+                </span>
+              )}
+              <span>{subheader}</span>
+            </span>
           </NavSubheader>
 
           <Collapse in={groupOpen.value}>{renderContent()}</Collapse>

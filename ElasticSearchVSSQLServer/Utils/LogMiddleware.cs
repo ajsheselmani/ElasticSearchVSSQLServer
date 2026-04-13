@@ -44,7 +44,7 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 			var log = new LogDTO
 			{
 				UserId = userId,
-				IP = context.Connection.RemoteIpAddress?.ToString(),
+				Ip = context.Connection.RemoteIpAddress?.ToString(),
 				Url = context.Request.GetDisplayUrl(),
 				HttpMethod = context.Request.Method,
 				Controller = controller,
@@ -76,12 +76,12 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 				}
 
 				string newRequestBody = requestBodyObj?.ToString();
-				log.FromContent = newRequestBody;
+				log.FormContent = newRequestBody;
 				context.Request.Body.Position = 0;
 			}
 			catch (Exception ex)
 			{
-				log.FromContent = requestBody;
+				log.FormContent = requestBody;
 				context.Request.Body.Position = 0;
 			}
 

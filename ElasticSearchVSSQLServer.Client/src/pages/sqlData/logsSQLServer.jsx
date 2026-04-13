@@ -8,7 +8,7 @@ import { debounce } from "lodash";
 import axiosInstance from "src/lib/axios";
 import { DataGrid } from "@mui/x-data-grid";
 import DataGridToolbar from "src/components/datagrid-toolbar/datagrid-toolbar";
-import { Tooltip } from "@mui/material";
+import { Chip, Tooltip } from "@mui/material";
 import { CONFIG } from "src/global-config";
 import { DashboardContent } from "src/layouts/dashboard";
 import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
@@ -16,7 +16,7 @@ import { paths } from "src/routes/paths";
 
 LicenseInfo.setLicenseKey(import.meta.env.VITE_DATAGRID_KEY);
 
-const ElectronicsData = () => {
+const LogsElasticSearch = () => {
   const { t } = useTranslation();
   const { user } = useAuthContext();
   const [page, setPage] = React.useState(0);
@@ -24,29 +24,28 @@ const ElectronicsData = () => {
   const [filter, setFilter] = React.useState([]);
   const [logicType, setLogicalType] = React.useState(null);
   const [data, setData] = React.useState([]);
-  const [totalCount, setTotalCount] = React.useState(0);
+  const [totalCount, setTotalCount] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
 
   const metadata = {
-    title: `${t("electronicsDataElastic")} - ${CONFIG.appName}`,
+    title: `${t("logsDataSql")} - ${CONFIG.appName}`,
   };
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const electronicsDatasetData = await axiosInstance.get(
-          "/SQLData/GetAllElectronicEvents",
+        const bankDatasetData = await axiosInstance.get(
+          "/Logs/GetAllLogsData?page=" + page + "&pageSize=" + pageSize,
           {
-            params: {
-              page: page + 1,
-              pageSize,
-            },
+            filter: [],
+            sortOrders: [],
+            aggregations: [],
           },
         );
-        console.log(electronicsDatasetData, "electronicsDatasetData");
-        setData(electronicsDatasetData.data);
-        setTotalCount(electronicsDatasetData?.data?.totalCount ?? 0);
+        console.log(bankDatasetData, "bankDatasetData");
+        setTotalCount(bankDatasetData?.data?.totalCount ?? 0);
+        setData(bankDatasetData?.data?.items);
       } finally {
         setLoading(false);
       }
@@ -57,7 +56,7 @@ const ElectronicsData = () => {
 
   const rowsWithId =
     data &&
-    data?.items?.map((row, index) => ({
+    data?.map((row, index) => ({
       ...row,
       id: page * pageSize + index,
     }));
@@ -67,7 +66,7 @@ const ElectronicsData = () => {
     if (user.language === 3) return "nameSr";
     return "nameEn";
   }, [user.language]);
-
+  console.log(data, "data");
   const allColumns = useMemo(
     () => [
       {
@@ -77,16 +76,236 @@ const ElectronicsData = () => {
         sortable: false,
         filterable: false,
         renderCell: (params) => {
-          return params.row.id + 1;
+          const rowIndex = params.api.getRowIndexRelativeToVisibleRows(
+            params.id,
+          );
+          return rowIndex !== -1 ? page * pageSize + rowIndex + 1 : "";
         },
       },
       {
-        field: "eventTime",
-        headerName: t("eventTime"),
+        field: "ip",
+        headerName: t("ip"),
         flex: 1,
-        minWidth: 170,
+        minWidth: 180,
+        sortable: false,
+        filterable: false,
         renderCell: (params) => {
-          const rawDate = params?.row?.eventTime;
+          const ip = params?.row?.ip;
+          return (
+            <Tooltip title={ip} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {ip}
+              </span>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        field: "url",
+        headerName: t("url"),
+        flex: 1,
+        minWidth: 180,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const url = params?.row?.url;
+          return (
+            <Tooltip title={url} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {url}
+              </span>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        field: "httpMethod",
+        headerName: t("httpMethod"),
+        flex: 1,
+        minWidth: 130,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const httpMethod = params?.row?.httpMethod;
+          return (
+            <Tooltip title={httpMethod} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {httpMethod}
+              </span>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        field: "controller",
+        headerName: t("controller"),
+        flex: 1,
+        minWidth: 120,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const controller = params?.row?.controller;
+          return (
+            <Tooltip title={controller} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {controller}
+              </span>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        field: "action",
+        headerName: t("action"),
+        flex: 1,
+        minWidth: 120,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const action = params?.row?.action ?? "///";
+          return (
+            <Tooltip title={action} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {action}
+              </span>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        field: "error",
+        headerName: t("error"),
+        flex: 1,
+        minWidth: 120,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const error = params?.row?.error;
+          return (
+            <Tooltip title={error || ""} arrow>
+              <span>
+                <Chip
+                  label={error ? t("true") : t("false")}
+                  color={error ? "error" : "success"}
+                  size="small"
+                  variant={error ? "filled" : "outlined"}
+                />
+              </span>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        field: "formContent",
+        headerName: t("fromContent"),
+        flex: 1,
+        minWidth: 120,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const fromContent = params?.row?.formContent ?? "///";
+          return (
+            <Tooltip title={fromContent} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {fromContent}
+              </span>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        field: "response",
+        headerName: t("response"),
+        flex: 1,
+        minWidth: 120,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const response = params?.row?.response ?? "///";
+          return (
+            <Tooltip title={response} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {response}
+              </span>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        field: "exception",
+        headerName: t("exception"),
+        flex: 1,
+        minWidth: 120,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const exception = params?.row?.exception ?? "///";
+          return (
+            <Tooltip title={exception} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {exception}
+              </span>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        field: "insertedDate",
+        headerName: t("insertedDate"),
+        flex: 1,
+        minWidth: 150,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const rawDate = params?.row?.insertedDate;
           if (!rawDate) return "";
 
           const date = new Date(rawDate);
@@ -97,9 +316,9 @@ const ElectronicsData = () => {
             year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
-            hour12: false,
-            timeZone: "UTC",
+            second: "2-digit",
           }).format(date);
+
           return (
             <Tooltip title={dateFormated} arrow>
               <span
@@ -110,187 +329,6 @@ const ElectronicsData = () => {
                 }}
               >
                 {dateFormated}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: "eventType",
-        headerName: t("eventType"),
-        flex: 1,
-        minWidth: 150,
-        renderCell: (params) => {
-          const eventType = params?.row?.eventType;
-
-          return (
-            <Tooltip title={eventType} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {eventType}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: "productId",
-        headerName: t("productId"),
-        flex: 1,
-        minWidth: 150,
-        renderCell: (params) => {
-          const productId = params?.row?.productId;
-
-          return (
-            <Tooltip title={productId} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {productId}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: "categoryId",
-        headerName: t("categoryId"),
-        flex: 1,
-        minWidth: 130,
-        renderCell: (params) => {
-          const categoryId = params?.row?.categoryId;
-          return (
-            <Tooltip title={categoryId} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {categoryId}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: "categoryCode",
-        headerName: t("categoryCode"),
-        flex: 1,
-        minWidth: 120,
-        renderCell: (params) => {
-          const categoryCode = params?.row?.categoryCode;
-          return (
-            <Tooltip title={categoryCode} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {categoryCode}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: "brand",
-        headerName: t("brand"),
-        flex: 1,
-        minWidth: 120,
-        renderCell: (params) => {
-          const brand = params?.row?.brand;
-          const formattedBrand = brand
-            ? brand.charAt(0).toUpperCase() + brand.slice(1)
-            : "";
-          return (
-            <Tooltip title={formattedBrand} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {formattedBrand}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: "price",
-        headerName: t("price"),
-        flex: 1,
-        minWidth: 120,
-        renderCell: (params) => {
-          const price = params?.row?.price + " " + "$";
-          return (
-            <Tooltip title={price} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {price}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: "userId",
-        headerName: t("userId"),
-        flex: 1,
-        minWidth: 120,
-        renderCell: (params) => {
-          const userId = params?.row?.userId;
-          return (
-            <Tooltip title={userId} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {userId}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: "userSession",
-        headerName: t("userSession"),
-        flex: 1,
-        minWidth: 120,
-        renderCell: (params) => {
-          const userSession = params?.row?.userSession;
-          return (
-            <Tooltip title={userSession} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {userSession}
               </span>
             </Tooltip>
           );
@@ -334,14 +372,15 @@ const ElectronicsData = () => {
         sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
       >
         <CustomBreadcrumbs
-          heading={t("electronicsData")}
+          heading={t("userLogs")}
           links={[
             { name: t("homepage"), href: paths.dashboard.root },
-            { name: t("electronicsDataSQL"), href: paths.elastic.logsData },
+            { name: t("logsDataSql"), href: paths.sql.logsData },
           ]}
           sx={{ mb: { xs: 1, md: 1 } }}
         />
-        <div style={{ height: "100%" }}>
+        {/* <Card> */}
+        <div style={{ height: "100%", m: 5 }}>
           <DataGrid
             autoHeight
             columns={columns}
@@ -377,9 +416,10 @@ const ElectronicsData = () => {
             }}
           />
         </div>
+        {/* </Card> */}
       </DashboardContent>
     </>
   );
 };
 
-export default ElectronicsData;
+export default LogsElasticSearch;

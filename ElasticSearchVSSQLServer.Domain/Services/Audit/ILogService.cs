@@ -9,6 +9,6 @@ namespace ElasticSearchVSSQLServer.Domain.Services.Audit;
 public interface ILogService
 {
     Task<LogDTO> Save(LogDTO logDto);
-    Task<IEnumerable<LogDTO>> GetAllLogsData();
+    Task<(IEnumerable<LogDTO> items, long TotalCount)> GetAllLogsData(int page, int pageSize);
 }
 

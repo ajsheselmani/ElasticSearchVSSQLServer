@@ -1074,5 +1074,15 @@
   "categoryCode": "Category code",
   "brand": "Brand",
   "price": "Price",
-  "userSession": "User session"
+  "userSession": "User session",
+  "logsDataElastic": "Log data from ElasticSearch",
+  "logsDataSql": "Log data from SQLServer",
+  "ip": "IP",
+  "httpMethod": "HTTP method",
+  "controller": "Controller",
+  "fromContent": "Content",
+  "response": "Response",
+  "exception": "Exception",
+  "true": "Happened",
+  "false": "Didn't happen"
 }

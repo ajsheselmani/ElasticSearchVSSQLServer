@@ -41,9 +41,11 @@ export const paths = {
   sql: {
     bankData: "/sql/bankData",
     electronicsData: "/sql/electronicsData",
+    logsData: "/sql/logsData",
   },
   elastic: {
     bankData: "/elastic/bankData",
     electronicsData: "/elastic/electronicsData",
+    logsData: "/elastic/logsData",
   },
 };

@@ -26,6 +26,7 @@ namespace ElasticSearchVSSQLServer.Indexing.AutoMapper
             SetupLogsMapping();
             SetupBankMapping();
             SetupElectronicsMapping();
+            SetupHMFashionMapping();
         }
 
         private void SetupUserMapping()
@@ -48,6 +49,11 @@ namespace ElasticSearchVSSQLServer.Indexing.AutoMapper
         private void SetupElectronicsMapping()
         {
             CreateMap<ElectronicEventsDTO, ElectronicsDatasetIndexDTO>().ReverseMap();
+        }
+
+        private void SetupHMFashionMapping()
+        {
+            CreateMap<HMFashionDatasetDTO, H_MFashionFlatIndexDTO>().ReverseMap();
         }
     }
 }

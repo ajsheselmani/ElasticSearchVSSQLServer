@@ -29,6 +29,5 @@ public interface IIndexService
         )
             where TQueryModel : class;
 
-    Task ReIndex(int id);
     Task IndexData<T>(IEnumerable<T> data, string indexName) where T : class;
 }

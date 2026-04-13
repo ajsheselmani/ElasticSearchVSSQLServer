@@ -10,6 +10,13 @@ const SQLDataPage = lazy(() => import("../../pages/sqlData/bankDataset"));
 const ElectronicsDataPage = lazy(
   () => import("../../pages/sqlData/electronicsDataset"),
 );
+const ElectronicsElasticDataPage = lazy(
+  () => import("../../pages/elasticData/electronicsElasticData"),
+);
+const LogsElasticDataPage = lazy(
+  () => import("../../pages/elasticData/logsElasticSearch"),
+);
+const LogsSQLDataPage = lazy(() => import("../../pages/sqlData/logsSQLServer"));
 
 function SuspenseOutlet() {
   const pathname = usePathname();
@@ -43,6 +50,10 @@ export const sqlDataRoutes = [
             path: "electronicsData",
             element: <ElectronicsDataPage />,
           },
+          {
+            path: "logsData",
+            element: <LogsSQLDataPage />,
+          },
         ],
       },
       {
@@ -55,7 +66,11 @@ export const sqlDataRoutes = [
           },
           {
             path: "electronicsData",
-            element: <ElectronicsDataPage />,
+            element: <ElectronicsElasticDataPage />,
+          },
+          {
+            path: "logsData",
+            element: <LogsElasticDataPage />,
           },
         ],
       },

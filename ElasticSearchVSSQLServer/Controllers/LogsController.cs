@@ -18,11 +18,11 @@ public class LogsController(IMapper mapper, ILogger<LogsController> logger, User
     ///</summary>
     ///<returns>Returns logs of the system.</returns>
     [HttpGet("GetAllLogsData")]
-    public async Task<IActionResult> GetLogsData()
+    public async Task<IActionResult> GetLogsData([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var logsData = await logService.GetAllLogsData();
-        var result = mapper.Map<LogsOutputModel[]>(logsData);
-        return Ok(result);
+        var (items, totalCount) = await logService.GetAllLogsData(page, pageSize);
+        var result = mapper.Map<LogsOutputModel[]>(items);
+        return Ok(new { items = result, totalCount });
 
     }
 }

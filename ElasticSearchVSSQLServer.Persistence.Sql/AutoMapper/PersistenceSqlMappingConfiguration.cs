@@ -38,7 +38,7 @@ namespace ElasticSearchVSSQLServer.Persistence.Sql.AutoMapper
 
         private void SetupLogMapping()
         {
-            CreateMap<Context.Log, LogDTO>().ReverseMap();
+            CreateMap<Log, LogDTO>().ReverseMap();
         }
 
         private void SetupApplicationUser()

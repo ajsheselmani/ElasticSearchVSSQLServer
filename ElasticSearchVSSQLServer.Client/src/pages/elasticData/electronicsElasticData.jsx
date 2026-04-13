@@ -9,14 +9,14 @@ import axiosInstance from "src/lib/axios";
 import { DataGrid } from "@mui/x-data-grid";
 import DataGridToolbar from "src/components/datagrid-toolbar/datagrid-toolbar";
 import { Tooltip } from "@mui/material";
-import { CONFIG } from "src/global-config";
 import { DashboardContent } from "src/layouts/dashboard";
 import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
 import { paths } from "src/routes/paths";
+import { CONFIG } from "src/global-config";
 
 LicenseInfo.setLicenseKey(import.meta.env.VITE_DATAGRID_KEY);
 
-const ElectronicsData = () => {
+const ElectronicsElasticData = () => {
   const { t } = useTranslation();
   const { user } = useAuthContext();
   const [page, setPage] = React.useState(0);
@@ -35,8 +35,8 @@ const ElectronicsData = () => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const electronicsDatasetData = await axiosInstance.get(
-          "/SQLData/GetAllElectronicEvents",
+        const electronicsDatasetData = await axiosInstance.put(
+          "/ElasticData/ElectronicsDataSearch",
           {
             params: {
               page: page + 1,
@@ -337,7 +337,7 @@ const ElectronicsData = () => {
           heading={t("electronicsData")}
           links={[
             { name: t("homepage"), href: paths.dashboard.root },
-            { name: t("electronicsDataSQL"), href: paths.elastic.logsData },
+            { name: t("electronicsDataElastic"), href: paths.elastic.logsData },
           ]}
           sx={{ mb: { xs: 1, md: 1 } }}
         />
@@ -382,4 +382,4 @@ const ElectronicsData = () => {
   );
 };
 
-export default ElectronicsData;
+export default ElectronicsElasticData;

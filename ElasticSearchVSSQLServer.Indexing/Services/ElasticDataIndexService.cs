@@ -23,13 +23,4 @@ public class ElasticDataIndexService(IIndexService indexService, ISQLDataService
         await indexService.IndexData<BankDatasetIndexDTO>(mappedData, BankDatasetIndexName);
     }
 
-    public async Task IndexAllLogsDatas()
-    {
-        await indexService.CreateIndex(LogsIndexName);
-        var datasToIndex = await logsService.GetAllLogsData();
-        var mappedData = mapper.Map<IEnumerable<LogsIndexDTO>>(datasToIndex).ToArray();
-
-        await indexService.IndexData<LogsIndexDTO>(mappedData, LogsIndexName);
-    }
-
 }
