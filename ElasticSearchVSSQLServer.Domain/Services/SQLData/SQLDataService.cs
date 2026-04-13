@@ -39,4 +39,19 @@ public class SQLDataService(IGenericRepository<BankDatasetDTO, int> bankDataRepo
         logger.LogInformation("Marrja e te dhenave te datasetit per banka perfundoi. Rekorde ne faqe: {Count}, Total: {TotalCount}", electronicsData.Items?.Count() ?? 0, electronicsData.TotalCount);
         return electronicsData;
     }
+
+    public async Task<List<BankDatasetDTO>> GetBankBatch(string lastId, int batchSize)
+    {
+        var data = await bankDataRepo.GetBatchAsync(lastId, batchSize);
+
+        return data.Select(b => new BankDatasetDTO
+        {
+            Id = b.Id,
+            Date = b.Date,
+            Location = b.Location,
+            TransactionCount = b.TransactionCount,
+            Domain = b.Domain,
+            Value = b.Value,
+        }).ToList();
+    }
 }

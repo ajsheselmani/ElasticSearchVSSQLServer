@@ -5,7 +5,7 @@ namespace ElasticSearchVSSQLServer.Persistence.Sql.Context;
 
 public partial class ElectronicEvents
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     public string EventTime { get; set; }
 

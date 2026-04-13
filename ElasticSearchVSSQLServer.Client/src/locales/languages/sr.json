@@ -1053,5 +1053,13 @@
   "electronicsDataSQL": "Podaci o elektronici iz SQLServer-a",
   "electronicsDataElastic": "Podaci o elektronici iz ElasticSearch-a",
   "sqlData": "Podaci sa SQLServer-a",
-  "elasticData": "Podaci iz ElasticSearch-a"
+  "elasticData": "Podaci iz ElasticSearch-a",
+  "eventTime": "Vreme događaja",
+  "eventType": "Tip događaja",
+  "productId": "ID proizvoda",
+  "categoryId": "ID kategorije",
+  "categoryCode": "Šifra kategorije",
+  "brand": "Brend",
+  "price": "Cena",
+  "userSession": "Korisnička sesija"
 }

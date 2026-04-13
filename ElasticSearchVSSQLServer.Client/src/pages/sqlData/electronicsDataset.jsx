@@ -8,6 +8,7 @@ import { debounce } from "lodash";
 import axiosInstance from "src/lib/axios";
 import { DataGrid } from "@mui/x-data-grid";
 import DataGridToolbar from "src/components/datagrid-toolbar/datagrid-toolbar";
+import { Tooltip } from "@mui/material";
 
 LicenseInfo.setLicenseKey(import.meta.env.VITE_DATAGRID_KEY);
 
@@ -75,27 +76,81 @@ const ElectronicsData = () => {
         field: "eventTime",
         headerName: t("eventTime"),
         flex: 1,
-        minWidth: 180,
+        minWidth: 170,
         renderCell: (params) => {
-          return params?.row?.eventTime;
+          const rawDate = params?.row?.eventTime;
+          if (!rawDate) return "";
+
+          const date = new Date(rawDate);
+
+          const dateFormated = new Intl.DateTimeFormat("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZone: "UTC",
+          }).format(date);
+          return (
+            <Tooltip title={dateFormated} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {dateFormated}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
         field: "eventType",
         headerName: t("eventType"),
         flex: 1,
-        minWidth: 180,
+        minWidth: 150,
         renderCell: (params) => {
-          return params?.row?.eventType;
+          const eventType = params?.row?.eventType;
+
+          return (
+            <Tooltip title={eventType} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {eventType}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
         field: "productId",
         headerName: t("productId"),
         flex: 1,
-        minWidth: 180,
+        minWidth: 150,
         renderCell: (params) => {
-          return params?.row?.productId;
+          const productId = params?.row?.productId;
+
+          return (
+            <Tooltip title={productId} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {productId}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -104,7 +159,20 @@ const ElectronicsData = () => {
         flex: 1,
         minWidth: 130,
         renderCell: (params) => {
-          return params?.row?.categoryId;
+          const categoryId = params?.row?.categoryId;
+          return (
+            <Tooltip title={categoryId} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {categoryId}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -113,7 +181,20 @@ const ElectronicsData = () => {
         flex: 1,
         minWidth: 120,
         renderCell: (params) => {
-          return params?.row?.categoryCode;
+          const categoryCode = params?.row?.categoryCode;
+          return (
+            <Tooltip title={categoryCode} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {categoryCode}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -122,7 +203,23 @@ const ElectronicsData = () => {
         flex: 1,
         minWidth: 120,
         renderCell: (params) => {
-          return params?.row?.brand;
+          const brand = params?.row?.brand;
+          const formattedBrand = brand
+            ? brand.charAt(0).toUpperCase() + brand.slice(1)
+            : "";
+          return (
+            <Tooltip title={formattedBrand} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {formattedBrand}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -131,7 +228,20 @@ const ElectronicsData = () => {
         flex: 1,
         minWidth: 120,
         renderCell: (params) => {
-          return params?.row?.price;
+          const price = params?.row?.price + " " + "$";
+          return (
+            <Tooltip title={price} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {price}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -140,7 +250,20 @@ const ElectronicsData = () => {
         flex: 1,
         minWidth: 120,
         renderCell: (params) => {
-          return params?.row?.userId;
+          const userId = params?.row?.userId;
+          return (
+            <Tooltip title={userId} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {userId}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -149,7 +272,20 @@ const ElectronicsData = () => {
         flex: 1,
         minWidth: 120,
         renderCell: (params) => {
-          return params?.row?.userSession;
+          const userSession = params?.row?.userSession;
+          return (
+            <Tooltip title={userSession} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {userSession}
+              </span>
+            </Tooltip>
+          );
         },
       },
     ],
@@ -184,40 +320,42 @@ const ElectronicsData = () => {
   );
 
   return (
-    <DataGrid
-      autoHeight
-      columns={columns}
-      rows={rowsWithId}
-      getRowId={(item) => item.id}
-      loading={loading}
-      pinnedColumns={{ right: ["actions"] }}
-      isRowSelectable={() => false}
-      showToolbar
-      pageSizeOptions={[10, 20, 50, 100]}
-      paginationModel={{
-        page: page,
-        pageSize: pageSize,
-      }}
-      onPaginationModelChange={(model) => {
-        setPage(model.page);
-        setPageSize(model.pageSize);
-      }}
-      pagination
-      slots={{ toolbar: DataGridToolbar }}
-      rowCount={totalCount}
-      localeText={getDataGridLocale(i18n.language)}
-      sortingMode="server"
-      paginationMode="server"
-      filterMode="server"
-      onFilterModelChange={onFilterChange}
-      slotProps={{
-        toolbar: {
-          filter,
-          logicType,
-          columns,
-        },
-      }}
-    />
+    <div style={{ height: "100%" }}>
+      <DataGrid
+        autoHeight
+        columns={columns}
+        rows={rowsWithId}
+        getRowId={(item) => item.id}
+        loading={loading}
+        pinnedColumns={{ right: ["actions"] }}
+        isRowSelectable={() => false}
+        showToolbar
+        pageSizeOptions={[10, 20, 50, 100]}
+        paginationModel={{
+          page: page,
+          pageSize: pageSize,
+        }}
+        onPaginationModelChange={(model) => {
+          setPage(model.page);
+          setPageSize(model.pageSize);
+        }}
+        pagination
+        slots={{ toolbar: DataGridToolbar }}
+        rowCount={totalCount}
+        localeText={getDataGridLocale(i18n.language)}
+        sortingMode="server"
+        paginationMode="server"
+        filterMode="server"
+        onFilterModelChange={onFilterChange}
+        slotProps={{
+          toolbar: {
+            filter,
+            logicType,
+            columns,
+          },
+        }}
+      />
+    </div>
   );
 };
 

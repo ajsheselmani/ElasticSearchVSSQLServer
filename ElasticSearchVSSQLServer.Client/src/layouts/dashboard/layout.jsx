@@ -16,14 +16,13 @@ import { layoutClasses } from "../core/classes";
 import { NavHorizontal } from "./nav-horizontal";
 import { _account } from "../nav-config-account";
 import { MainSection } from "../core/main-section";
-import { Searchbar } from "../components/searchbar";
 import { MenuButton } from "../components/menu-button";
 import { HeaderSection } from "../core/header-section";
 import { LayoutSection } from "../core/layout-section";
 import { AccountDrawer } from "../components/account-drawer";
 import { LanguagePopover } from "../components/language-popover";
 import { dashboardLayoutVars, dashboardNavColorVars } from "./css-vars";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useNotifications } from "src/auth/hooks/useNotifications";
 import { useSnackbar } from "notistack";
 import { Typography } from "@mui/material";
@@ -119,14 +118,6 @@ export function DashboardLayout({
     !allowedRoles?.includes(user?.role);
 
   const notifications = useNotifications();
-  const roleName = useMemo(() => {
-    if (user?.language === 1) return "nameSq";
-    if (user?.language === 3) return "nameSr";
-    return "nameEn";
-  }, [user?.language]);
-
-  const userRoleObj = user?.roles?.[0] ?? null;
-  const userRole = userRoleObj ? userRoleObj[roleName] : "";
 
   const getSeverity = (type) => {
     switch (type) {
@@ -231,22 +222,6 @@ export function DashboardLayout({
             >
               {isSmallScreen ? APP_NAME : APP_NAME}
             </Typography>
-            <Typography
-              variant="caption"
-              noWrap
-              sx={{
-                fontWeight: 500,
-                opacity: 0.8,
-                marginLeft: 1,
-                fontSize: { xs: 11, sm: 12 },
-                maxWidth: 200,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {userRole}
-            </Typography>
           </Tooltip>
 
           <NavMobile
@@ -284,7 +259,6 @@ export function DashboardLayout({
           }}
         >
           <QueueWork />
-          <Searchbar data={navData ?? []} />
           <LanguagePopover
             data={[
               { value: "sq", label: "Shqip", countryCode: "AL" },

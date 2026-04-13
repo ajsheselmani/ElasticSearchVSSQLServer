@@ -5,6 +5,8 @@ using System.Text;
 namespace ElasticSearchVSSQLServer.Persistence.SQLData;
 public class BankDatasetDTO
 {
+    public string Id { get; set; }
+
     public DateTime? Date { get; set; }
 
     public string Domain { get; set; }

@@ -111,4 +111,14 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
 
         return (mapper.Map<IEnumerable<TDto>>(entities), totalCount);
     }
+    public async Task<List<TDto>> GetBatchAsync(string lastId, int batchSize)
+    {
+        return await _dbContext.Set<T>()
+            .AsNoTracking()
+            .Where(b => string.Compare(EF.Property<string>(b, "Id"), lastId) > 0)
+            .OrderBy(b => EF.Property<string>(b, "Id"))
+            .Take(batchSize)
+            .ProjectTo<TDto>(mapper.ConfigurationProvider) 
+            .ToListAsync();
+    }
 }

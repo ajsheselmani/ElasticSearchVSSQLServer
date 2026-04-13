@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
-namespace ElasticSearchVSSQLServer.Persistence.Sql.Context;
-
-public partial class Bankdataset
+namespace ElasticSearchVSSQLServer.Indexing.Models.BankDataset;
+public class BankDatasetIndexDTO
 {
-    public string Id { get; set; }
-
     public DateTime? Date { get; set; }
 
     public string Domain { get; set; }

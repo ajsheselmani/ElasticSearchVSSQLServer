@@ -1,4 +1,5 @@
 ﻿using ElasticSearchVSSQLServer.Domain.Services.Audit;
+using ElasticSearchVSSQLServer.Indexing.Services;
 using ElasticSearchVSSQLServer.Persistence.Audit;
 using ElasticSearchVSSQLServer.RestApi.Utils.General;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -11,7 +12,9 @@ namespace ElasticSearchVSSQLServer.RestApi.Utils.Middlewares;
 #pragma warning disable 1591
 public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate next, ILogger<LogMiddleware> logger)
 {
-	public async Task Invoke(HttpContext context)
+	private const string LogsIndexName = "elasticvssql_logs";
+
+    public async Task Invoke(HttpContext context)
 	{
         var userName = UserClaimHelper.GetFullName(context.User);
 
@@ -52,6 +55,7 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 
 			using var scope = serviceProvider.CreateScope();
 			var logService = scope.ServiceProvider.GetService<ILogService>();
+			var indexService = scope.ServiceProvider.GetRequiredService<IIndexService>();
 			context.Request.EnableBuffering();
 
 			using var stramReader = new StreamReader(context.Request.Body, leaveOpen: true);
@@ -99,8 +103,7 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 					memoryStream.Seek(0, SeekOrigin.Begin);
 					await memoryStream.CopyToAsync(originalResponseBody);
 					context.Response.Body = originalResponseBody;
-                    
-					await logService.Save(log);
+					await SaveAndIndexLog(logService, indexService, log);
 					return;
 				}
 
@@ -122,7 +125,7 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 					context.Response.Body = originalResponseBody;
 				}
 
-				await logService.Save(log);
+				await SaveAndIndexLog(logService, indexService, log);
 			}
 			catch (Exception ex)
 			{
@@ -130,14 +133,28 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 				log.Exception = JsonConvert.SerializeObject(ex);
 				context.Response.StatusCode = 500;
 				await context.Response.WriteAsync("An error occurred.");
-				await logService.Save(log);
+				await SaveAndIndexLog(logService, indexService, log);
 				logger.LogInformation("Ka ndodhur nje gabim: {ExMessage} nga perdoruesit {userName}", ex.Message, userName);
 				throw;
 			}
 		}
 	}
 
-	public static bool StatisFileRequest(string path)
+    private async Task SaveAndIndexLog(ILogService logService, IIndexService indexService, LogDTO log)
+    {
+        var savedLog = await logService.Save(log);
+
+        try
+        {
+            await indexService.IndexData(new[] { savedLog }, LogsIndexName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Log was saved to SQL but failed to index in Elasticsearch.");
+        }
+    }
+
+    public static bool StatisFileRequest(string path)
 	{
 		var staticFileExtensions = new[] { ".css", ".js", ".ico", ".png", ".jpg", ".svg", ".html", ".txt" };
 		return staticFileExtensions.Any(a => path.EndsWith(a, StringComparison.OrdinalIgnoreCase));

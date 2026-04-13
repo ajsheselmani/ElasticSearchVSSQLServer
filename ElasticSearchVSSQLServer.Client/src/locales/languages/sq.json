@@ -1100,5 +1100,13 @@
   "electronicsDataSQL": "Të dhënat për elektronikën nga SQLServer",
   "electronicsDataElastic": "Të dhënat për elektronikën nga ElasticSearch",
   "sqlData": "Të dhënat nga SQLServer",
-  "elasticData": "Të dhënat nga ElasticSearch"
+  "elasticData": "Të dhënat nga ElasticSearch",
+  "eventTime": "Koha e ngjarjes(UTC)",
+  "eventType": "Lloji i ngjarjes",
+  "productId": "ID e produktit",
+  "categoryId": "ID e kategorisë",
+  "categoryCode": "Kodi i kategorisë",
+  "brand": "Brendi",
+  "price": "Çmimi",
+  "userSession": "Sesioni i përdoruesit"
 }

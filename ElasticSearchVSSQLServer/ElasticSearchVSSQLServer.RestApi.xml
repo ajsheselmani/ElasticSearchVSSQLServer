@@ -23,13 +23,13 @@
             </summary>
             <returns>Returns logs of the system.</returns>
         </member>
-        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.GetBankData">
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.GetBankData(System.Int32,System.Int32)">
             <summary>
             Retrieves datas from bank dataset.
             </summary>
             <returns>Returns the data of bank dataset.</returns>
         </member>
-        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.ElectronicEvents">
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.ElectronicEvents(System.Int32,System.Int32)">
             <summary>
             Retrieves datas from electronicEvents dataset.
             </summary>

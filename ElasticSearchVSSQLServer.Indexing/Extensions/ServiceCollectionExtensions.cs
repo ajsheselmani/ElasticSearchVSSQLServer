@@ -24,10 +24,21 @@ public static class ServiceCollectionExtensions
         });
 
         var settings = new ElasticsearchClientSettings(new Uri(configuration.Uri))
-            .CertificateFingerprint(configuration.CertificateFingerprint)
-            .Authentication(new BasicAuthentication(configuration.Username, configuration.Password));
+            .CertificateFingerprint(configuration.CertificateFingerprint);
+
+        if (!string.IsNullOrWhiteSpace(configuration.ApiKey))
+        {
+            settings = settings.Authentication(new ApiKey(configuration.ApiKey));
+        }
+        else if (!string.IsNullOrWhiteSpace(configuration.Username) && !string.IsNullOrWhiteSpace(configuration.Password))
+        {
+            settings = settings.Authentication(new BasicAuthentication(configuration.Username, configuration.Password));
+        }
+
+        serviceCollection.AddSingleton(new ElasticsearchClient(settings));
 
         serviceCollection.AddScoped<IIndexService, IndexService>();
+        serviceCollection.AddScoped<IElasticDataIndexService, ElasticDataIndexService>();
         return serviceCollection;
     }
 }

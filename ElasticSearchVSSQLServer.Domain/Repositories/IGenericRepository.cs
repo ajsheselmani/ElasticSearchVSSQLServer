@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using ElasticSearchVSSQLServer.Persistence.SQLData;
+using System.Linq.Expressions;
 
 namespace ElasticSearchVSSQLServer.Domain.Repositories;
 
@@ -19,4 +20,5 @@ public interface IGenericRepository<TDto, Tid> where TDto : class {
     Task<IEnumerable<TDto>> GetByConditionAsync(Expression<Func<TDto, bool>> predicate);
 
     Task<(IEnumerable<TDto> Items, long TotalCount)> GetPagedAsync(int page, int pageSize);
+    Task<List<TDto>> GetBatchAsync(string lastId, int batchSize);
 }

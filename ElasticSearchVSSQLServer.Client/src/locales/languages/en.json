@@ -1066,5 +1066,13 @@
   "electronicsDataSQL": "Electronics data from SQLServer",
   "electronicsDataElastic": "Electronics data from ElasticSearch",
   "sqlData": "Data from SQLServer",
-  "elasticData": "Data from ElasticSearch"
+  "elasticData": "Data from ElasticSearch",
+  "eventTime": "Time of event",
+  "eventType": "Event type",
+  "productId": "Product ID",
+  "categoryId": "Category ID",
+  "categoryCode": "Category code",
+  "brand": "Brand",
+  "price": "Price",
+  "userSession": "User session"
 }

@@ -17,8 +17,6 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Action> Action { get; set; }
 
-    public virtual DbSet<AmazonReviews> AmazonReviews { get; set; }
-
     public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
 
     public virtual DbSet<Bankdataset> Bankdataset { get; set; }
@@ -28,6 +26,12 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<Domain> Domain { get; set; }
 
     public virtual DbSet<ElectronicEvents> ElectronicEvents { get; set; }
+
+    public virtual DbSet<HMdatasetArticles> HMdatasetArticles { get; set; }
+
+    public virtual DbSet<HMdatasetCustomers> HMdatasetCustomers { get; set; }
+
+    public virtual DbSet<HMdatasetTransactionsTrain> HMdatasetTransactionsTrain { get; set; }
 
     public virtual DbSet<Log> Log { get; set; }
 
@@ -48,20 +52,6 @@ public partial class ApplicationDbContext : DbContext
                 .HasConstraintName("FK_Action_Action");
         });
 
-        modelBuilder.Entity<AmazonReviews>(entity =>
-        {
-            entity.HasNoKey();
-
-            entity.Property(e => e.Brand).HasMaxLength(255);
-            entity.Property(e => e.Category).HasMaxLength(255);
-            entity.Property(e => e.ItemName).HasMaxLength(1000);
-            entity.Property(e => e.Price).HasMaxLength(50);
-            entity.Property(e => e.Rating).HasColumnType("decimal(3, 1)");
-            entity.Property(e => e.Summary).HasMaxLength(1000);
-            entity.Property(e => e.UserName).HasMaxLength(255);
-            entity.Property(e => e.Verified).HasMaxLength(10);
-        });
-
         modelBuilder.Entity<AspNetUsers>(entity =>
         {
             entity.Property(e => e.Id).HasMaxLength(256);
@@ -80,10 +70,9 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Bankdataset>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("bankdataset$");
+            entity.ToTable("bankdataset$");
 
+            entity.Property(e => e.Id).HasMaxLength(150);
             entity.Property(e => e.Date).HasColumnType("datetime");
             entity.Property(e => e.Domain).HasMaxLength(255);
             entity.Property(e => e.Location).HasMaxLength(255);
@@ -117,6 +106,86 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.EventTime).IsRequired();
             entity.Property(e => e.EventType).IsRequired();
             entity.Property(e => e.Price).IsRequired();
+        });
+
+        modelBuilder.Entity<HMdatasetArticles>(entity =>
+        {
+            entity.ToTable("H&MDataset_Articles");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.ColourGroupName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.DepartmentName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.GarmentGroupName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.GraphicalAppearanceName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.IndexCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.IndexGroupName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.IndexName).IsRequired();
+            entity.Property(e => e.PerceivedColourMasterName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.PerceivedColourValueName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.ProdName).IsRequired();
+            entity.Property(e => e.ProductGroupName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.ProductTypeName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.SectionName)
+                .IsRequired()
+                .HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<HMdatasetCustomers>(entity =>
+        {
+            entity.ToTable("H&MDataset_Customers");
+
+            entity.Property(e => e.Id).HasMaxLength(100);
+            entity.Property(e => e.Active).HasMaxLength(10);
+            entity.Property(e => e.Age).HasMaxLength(10);
+            entity.Property(e => e.ClubMemberStatus).HasMaxLength(50);
+            entity.Property(e => e.FashionNewsFrequency).HasMaxLength(50);
+            entity.Property(e => e.Fn)
+                .HasMaxLength(10)
+                .HasColumnName("FN");
+            entity.Property(e => e.PostalCode)
+                .IsRequired()
+                .HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<HMdatasetTransactionsTrain>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("H&MDataset_TransactionsTrain");
+
+            entity.Property(e => e.CustomerId)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.HasOne(d => d.Article).WithMany()
+                .HasForeignKey(d => d.ArticleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_H&MDataset_TransactionsTrain_H&MDataset_Articles");
+
+            entity.HasOne(d => d.Customer).WithMany()
+                .HasForeignKey(d => d.CustomerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_H&MDataset_TransactionsTrain_H&MDataset_Customers");
         });
 
         modelBuilder.Entity<Log>(entity =>

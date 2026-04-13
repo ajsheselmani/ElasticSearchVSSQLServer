@@ -8,6 +8,7 @@ import { debounce } from "lodash";
 import axiosInstance from "src/lib/axios";
 import { DataGrid } from "@mui/x-data-grid";
 import DataGridToolbar from "src/components/datagrid-toolbar/datagrid-toolbar";
+import { Tooltip } from "@mui/material";
 
 LicenseInfo.setLicenseKey(import.meta.env.VITE_DATAGRID_KEY);
 
@@ -78,11 +79,34 @@ const SQLData = () => {
         field: "date",
         headerName: t("date"),
         flex: 1,
-        minWidth: 180,
+        minWidth: 150,
         sortable: false,
         filterable: false,
         renderCell: (params) => {
-          return params?.row?.date;
+          const rawDate = params?.row?.date;
+          if (!rawDate) return "";
+
+          const date = new Date(rawDate);
+
+          const dateFormated = new Intl.DateTimeFormat("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          }).format(date);
+
+          return (
+            <Tooltip title={dateFormated} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {dateFormated}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -93,7 +117,20 @@ const SQLData = () => {
         sortable: false,
         filterable: false,
         renderCell: (params) => {
-          return params?.row?.domain;
+          const domain = params?.row?.domain;
+          return (
+            <Tooltip title={domain} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {domain}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -104,7 +141,20 @@ const SQLData = () => {
         sortable: false,
         filterable: false,
         renderCell: (params) => {
-          return params?.row?.location;
+          const location = params?.row?.location;
+          return (
+            <Tooltip title={location} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {location}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -115,7 +165,20 @@ const SQLData = () => {
         sortable: false,
         filterable: false,
         renderCell: (params) => {
-          return params?.row?.value;
+          const value = params?.row?.value + " " + "$";
+          return (
+            <Tooltip title={value} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {value}
+              </span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -126,7 +189,20 @@ const SQLData = () => {
         sortable: false,
         filterable: false,
         renderCell: (params) => {
-          return params?.row?.transactionCount;
+          const transactionCount = params?.row?.transactionCount;
+          return (
+            <Tooltip title={transactionCount} arrow>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {transactionCount}
+              </span>
+            </Tooltip>
+          );
         },
       },
     ],
@@ -161,40 +237,42 @@ const SQLData = () => {
   );
 
   return (
-    <DataGrid
-      autoHeight
-      columns={columns}
-      rows={rowsWithId}
-      getRowId={(item) => item.id}
-      loading={loading}
-      pinnedColumns={{ right: ["actions"] }}
-      isRowSelectable={() => false}
-      showToolbar
-      pageSizeOptions={[10, 20, 50, 100]}
-      paginationModel={{
-        page: page,
-        pageSize: pageSize,
-      }}
-      onPaginationModelChange={(model) => {
-        setPage(model.page);
-        setPageSize(model.pageSize);
-      }}
-      pagination
-      slots={{ toolbar: DataGridToolbar }}
-      rowCount={totalCount}
-      localeText={getDataGridLocale(i18n.language)}
-      sortingMode="server"
-      paginationMode="server"
-      filterMode="server"
-      onFilterModelChange={onFilterChange}
-      slotProps={{
-        toolbar: {
-          filter,
-          logicType,
-          columns,
-        },
-      }}
-    />
+    <div style={{ height: "100%" }}>
+      <DataGrid
+        autoHeight
+        columns={columns}
+        rows={rowsWithId}
+        getRowId={(item) => item.id}
+        loading={loading}
+        pinnedColumns={{ right: ["actions"] }}
+        isRowSelectable={() => false}
+        showToolbar
+        pageSizeOptions={[10, 20, 50, 100]}
+        paginationModel={{
+          page: page,
+          pageSize: pageSize,
+        }}
+        onPaginationModelChange={(model) => {
+          setPage(model.page);
+          setPageSize(model.pageSize);
+        }}
+        pagination
+        slots={{ toolbar: DataGridToolbar }}
+        rowCount={totalCount}
+        localeText={getDataGridLocale(i18n.language)}
+        sortingMode="server"
+        paginationMode="server"
+        filterMode="server"
+        onFilterModelChange={onFilterChange}
+        slotProps={{
+          toolbar: {
+            filter,
+            logicType,
+            columns,
+          },
+        }}
+      />
+    </div>
   );
 };
 

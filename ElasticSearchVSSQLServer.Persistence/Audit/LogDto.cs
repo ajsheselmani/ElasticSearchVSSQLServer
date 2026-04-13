@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ElasticSearchVSSQLServer.Persistence.Audit;
 public class LogDTO
 {
-    public int LogId { get; set; }
+    public string Id { get; set; }
     public string UserId { get; set; }
 
     public string IP { get; set; }
