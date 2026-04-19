@@ -1,4 +1,5 @@
 ﻿using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Serialization;
 using Elastic.Transport;
 using ElasticSearchVSSQLServer.Indexing.Configuration;
 using Microsoft.Extensions.Options;
@@ -6,6 +7,7 @@ using Nest;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace ElasticSearchVSSQLServer.Indexing.Services
 {
@@ -24,10 +26,18 @@ namespace ElasticSearchVSSQLServer.Indexing.Services
 
         protected ElasticsearchClient getElasticClient(string indexName)
         {
-            var settings = new ElasticsearchClientSettings(new Uri(config.Uri))
-                .Authentication(new BasicAuthentication(config.Username, config.Password))
+            var nodePool = new SingleNodePool(new Uri(config.Uri));
+
+            var settings = new ElasticsearchClientSettings(
+           nodePool,
+           sourceSerializer: (defaultSerializer, settings) =>
+               new DefaultSourceSerializer(settings, opt =>
+                   opt.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+               )
+       )
+               .Authentication(new BasicAuthentication(config.Username, config.Password))
                 .ServerCertificateValidationCallback((o, certificate, chain, errors) => true)
-                .DefaultIndex(indexName)
+                .DefaultIndex(indexName) 
                 .DisableDirectStreaming();
 
             var client = new ElasticsearchClient(settings);

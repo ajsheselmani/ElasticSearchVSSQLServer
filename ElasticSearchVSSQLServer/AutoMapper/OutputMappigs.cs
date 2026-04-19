@@ -16,7 +16,7 @@ namespace ElasticSearchVSSQLServer.RestApi.AutoMapper
         {
             CreateMap<UserDto, UserOutputModel>();
             CreateMap<UserDto, CurrentUserOutputModel>();
-            CreateMap<BankDatasetDTO, BankDatasetOutputModel>();
+            CreateMap<HMFashionDatasetDTO, HMDatasetOutputModel>();
             CreateMap<LogDTO, LogsOutputModel>();
             CreateMap<ElectronicEventsDTO, ElectronicEventsOutputModel>().ReverseMap();
         }

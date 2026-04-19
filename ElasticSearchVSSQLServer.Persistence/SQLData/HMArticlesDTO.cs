@@ -3,29 +3,55 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace ElasticSearchVSSQLServer.Persistence.SQLData;
-public class HMFashionDatasetDTO
+public class HMArticlesDTO
 {
-    public int ArticleId { get; set; }
+    public int Id { get; set; }
+
     public int ProductCode { get; set; }
+
     public string ProdName { get; set; }
+
+    public short ProductTypeNo { get; set; }
+
     public string ProductTypeName { get; set; }
+
     public string ProductGroupName { get; set; }
+
+    public int? GraphicalAppearanceNo { get; set; }
+
     public string GraphicalAppearanceName { get; set; }
+
+    public byte? ColourGroupCode { get; set; }
+
     public string ColourGroupName { get; set; }
+
+    public byte? PerceivedColourValueId { get; set; }
+
     public string PerceivedColourValueName { get; set; }
+
+    public byte? PerceivedColourMasterId { get; set; }
+
+    public string PerceivedColourMasterName { get; set; }
+
+    public short DepartmentNo { get; set; }
+
     public string DepartmentName { get; set; }
+
+    public string IndexCode { get; set; }
+
     public string IndexName { get; set; }
+
+    public byte IndexGroupNo { get; set; }
+
     public string IndexGroupName { get; set; }
+
+    public byte SectionNo { get; set; }
+
     public string SectionName { get; set; }
+
+    public short GarmentGroupNo { get; set; }
+
     public string GarmentGroupName { get; set; }
+
     public string DetailDesc { get; set; }
-
-    public string CustomerId { get; set; }
-    public string ClubMemberStatus { get; set; }
-    public string FashionNewsFrequency { get; set; }
-    public string Age { get; set; }
-    public string PostalCode { get; set; }
-
-    public double? Price { get; set; }
-    public DateOnly Date { get; set; }
 }

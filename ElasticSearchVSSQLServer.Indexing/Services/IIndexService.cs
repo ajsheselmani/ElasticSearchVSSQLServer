@@ -11,6 +11,9 @@ public interface IIndexService
     Task IndexData<T>(T[] data, string index)
       where T : class;
 
+    Task IndexDataBulk<T>(T[] data, string index)
+  where T : class;
+
     Task<PaginatedSearchResponse<TQueryModel>> Search<TQueryModel>(
     int? page,
     int? pageSize,

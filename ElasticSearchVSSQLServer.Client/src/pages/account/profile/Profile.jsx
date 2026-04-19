@@ -258,9 +258,6 @@ const Profile = () => {
                 <Typography variant="h6" sx={{ color: "text.primary", mt: 2 }}>
                   {user.firstname + " " + user.lastname}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                  {user.roles[0]?.[nameLocale] ?? "User"}
-                </Typography>
               </Card>
             </Grid>
             <Grid size={{ xs: 12, md: 8 }}>

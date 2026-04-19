@@ -16,16 +16,85 @@ import { paths } from "src/routes/paths";
 
 LicenseInfo.setLicenseKey(import.meta.env.VITE_DATAGRID_KEY);
 
+const MUI_OPERATOR_MAP = {
+  contains: { operator: "Like", negate: false },
+  doesNotContain: { operator: "Nlike", negate: false },
+  equals: { operator: "Eq", negate: false },
+  startsWith: { operator: "Like", negate: false, prefix: true },
+  endsWith: { operator: "Like", negate: false, suffix: true },
+  isEmpty: { operator: "Nex", negate: false },
+  isNotEmpty: { operator: "Ex", negate: false },
+  is: { operator: "Eq", negate: false },
+  not: { operator: "Neq", negate: false },
+  after: { operator: "Gt", negate: false },
+  onOrAfter: { operator: "Ge", negate: false },
+  before: { operator: "Lt", negate: false },
+  onOrBefore: { operator: "Le", negate: false },
+  isAnyOf: { operator: "In", negate: false },
+  "=": { operator: "Eq", negate: false },
+  "!=": { operator: "Neq", negate: false },
+  ">": { operator: "Gt", negate: false },
+  ">=": { operator: "Ge", negate: false },
+  "<": { operator: "Lt", negate: false },
+  "<=": { operator: "Le", negate: false },
+};
+
+function mapMuiFiltersToBackend(items) {
+  return (items ?? [])
+    .filter((item) => {
+      if (!item?.field || !item?.operator) return false;
+      if (item.operator === "isEmpty" || item.operator === "isNotEmpty")
+        return true;
+      if (Array.isArray(item.value)) return item.value.length > 0;
+      return (
+        item.value !== undefined && item.value !== "" && item.value !== null
+      );
+    })
+    .map(({ field, operator, value }) => {
+      const mapping = MUI_OPERATOR_MAP[operator];
+      if (!mapping) return null;
+
+      if (operator === "isEmpty" || operator === "isNotEmpty") {
+        return {
+          propertyName: field,
+          operator: mapping.operator,
+          value: "",
+          negate: false,
+          caseSensitive: false,
+        };
+      }
+
+      let backendValue = value;
+      if (Array.isArray(backendValue))
+        backendValue = JSON.stringify(backendValue);
+      else if (backendValue instanceof Date)
+        backendValue = backendValue.toISOString();
+
+      if (mapping.prefix) backendValue = `${backendValue}*`;
+      if (mapping.suffix) backendValue = `*${backendValue}`;
+
+      return {
+        propertyName: field,
+        operator: mapping.operator,
+        value: `${backendValue ?? ""}`,
+        negate: false,
+        caseSensitive: false,
+      };
+    })
+    .filter(Boolean);
+}
+
 const LogsElasticSearch = () => {
   const { t } = useTranslation();
   const { user } = useAuthContext();
   const [page, setPage] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [filter, setFilter] = React.useState([]);
-  const [logicType, setLogicalType] = React.useState(null);
+  const [logicType, setLogicType] = React.useState(null);
   const [data, setData] = React.useState([]);
   const [totalCount, setTotalCount] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
+  const [searchText, setSearchText] = React.useState("");
 
   const metadata = {
     title: `${t("logsDataSql")} - ${CONFIG.appName}`,
@@ -35,15 +104,28 @@ const LogsElasticSearch = () => {
     const loadData = async () => {
       setLoading(true);
       try {
+        const requestFilters = [...filter];
+
+        if (searchText?.trim()) {
+          requestFilters.push({
+            propertyName: "globalSearch",
+            operator: 2,
+            value: searchText.trim(),
+            caseSensitive: false,
+          });
+        }
+
+        console.log("Sending filters to backend:", requestFilters); // ✅ debug
+
         const bankDatasetData = await axiosInstance.put(
           "/ElasticData/LogsDataSearch?page=" + page + "&pageSize=" + pageSize,
           {
-            filter: [],
+            filter: requestFilters,
             sortOrders: [],
             aggregations: [],
+            logicType: logicType || "and",
           },
         );
-        console.log(bankDatasetData, "bankDatasetData");
         setTotalCount(bankDatasetData?.data?.metadata?.totalCount ?? 0);
         setData(bankDatasetData?.data?.hits);
       } finally {
@@ -52,7 +134,7 @@ const LogsElasticSearch = () => {
     };
 
     loadData();
-  }, [user, page, pageSize]);
+  }, [user, page, pageSize, filter, logicType, searchText]);
 
   const rowsWithId =
     data &&
@@ -60,12 +142,6 @@ const LogsElasticSearch = () => {
       ...row,
       id: page * pageSize + index,
     }));
-
-  const nameLocale = useMemo(() => {
-    if (user.language === 1) return "nameSq";
-    if (user.language === 3) return "nameSr";
-    return "nameEn";
-  }, [user.language]);
 
   const allColumns = useMemo(
     () => [
@@ -88,7 +164,7 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 180,
         sortable: false,
-        filterable: false,
+        filterable: true,
         renderCell: (params) => {
           const ip = params?.row?.ip;
           return (
@@ -112,7 +188,7 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 180,
         sortable: false,
-        filterable: false,
+        filterable: true,
         renderCell: (params) => {
           const url = params?.row?.url;
           return (
@@ -136,7 +212,7 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 130,
         sortable: false,
-        filterable: false,
+        filterable: true,
         renderCell: (params) => {
           const httpMethod = params?.row?.httpMethod;
           return (
@@ -160,7 +236,7 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
+        filterable: true,
         renderCell: (params) => {
           const controller = params?.row?.controller;
           return (
@@ -184,7 +260,7 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
+        filterable: true,
         renderCell: (params) => {
           const action = params?.row?.action ?? "///";
           return (
@@ -208,7 +284,8 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
+        filterable: true,
+        type: "boolean",
         renderCell: (params) => {
           const error = params?.row?.error;
           return (
@@ -231,7 +308,7 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
+        filterable: true,
         renderCell: (params) => {
           const fromContent = params?.row?.formContent ?? "///";
           return (
@@ -255,7 +332,7 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
+        filterable: true,
         renderCell: (params) => {
           const response = params?.row?.response ?? "///";
           return (
@@ -279,7 +356,7 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
+        filterable: true,
         renderCell: (params) => {
           const exception = params?.row?.exception ?? "///";
           return (
@@ -303,13 +380,13 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 150,
         sortable: false,
-        filterable: false,
+        filterable: true,
+        type: "dateTime",
+        valueGetter: (value) => (value ? new Date(value) : null),
         renderCell: (params) => {
           const rawDate = params?.row?.insertedDate;
           if (!rawDate) return "";
-
           const date = new Date(rawDate);
-
           const dateFormated = new Intl.DateTimeFormat("en-GB", {
             day: "2-digit",
             month: "2-digit",
@@ -318,7 +395,6 @@ const LogsElasticSearch = () => {
             minute: "2-digit",
             second: "2-digit",
           }).format(date);
-
           return (
             <Tooltip title={dateFormated} arrow>
               <span
@@ -338,32 +414,21 @@ const LogsElasticSearch = () => {
     [t, page, pageSize],
   );
 
-  const columns = allColumns;
-
-  const onFilterChange = React.useCallback(
+  const debouncedFilterChange = React.useMemo(
     () =>
-      debounce((filterModel) => {
-        setPage(0);
-        if (filterModel.items.length > 0) {
-          const validFilters = filterModel.items.filter((item) => {
-            if (["isEmpty", "isNotEmpty"].includes(item.operator)) return true;
-            if (Array.isArray(item.value)) return item.value.length > 0;
-            return (
-              item.value !== undefined &&
-              item.value !== null &&
-              item.value !== ""
-            );
-          });
+      debounce((model) => {
+        const backendFilters = mapMuiFiltersToBackend(model.items ?? []);
 
-          setFilter(validFilters);
-          setLogicalType(filterModel.logicOperator);
-        } else {
-          setFilter([]);
-          setLogicalType(null);
-        }
-      }, 1000),
-    [nameLocale],
+        setLogicType(model.logicOperator ?? "and");
+        setFilter(backendFilters);
+        setPage(0);
+      }, 400),
+    [],
   );
+
+  React.useEffect(() => {
+    return () => debouncedFilterChange.cancel();
+  }, [debouncedFilterChange]);
 
   return (
     <>
@@ -382,7 +447,7 @@ const LogsElasticSearch = () => {
         <div style={{ height: "100%" }}>
           <DataGrid
             autoHeight
-            columns={columns}
+            columns={allColumns}
             rows={rowsWithId}
             getRowId={(item) => item.id}
             loading={loading}
@@ -390,27 +455,25 @@ const LogsElasticSearch = () => {
             isRowSelectable={() => false}
             showToolbar
             pageSizeOptions={[10, 20, 50, 100]}
-            paginationModel={{
-              page: page,
-              pageSize: pageSize,
-            }}
+            paginationModel={{ page, pageSize }}
             onPaginationModelChange={(model) => {
               setPage(model.page);
               setPageSize(model.pageSize);
             }}
             pagination
             slots={{ toolbar: DataGridToolbar }}
-            rowCount={totalCount}
+            rowCount={totalCount ?? 0}
             localeText={getDataGridLocale(i18n.language)}
             sortingMode="server"
             paginationMode="server"
             filterMode="server"
-            onFilterModelChange={onFilterChange}
+            onFilterModelChange={debouncedFilterChange}
             slotProps={{
               toolbar: {
-                filter,
-                logicType,
-                columns,
+                onSearchChange: (value) => {
+                  setPage(0);
+                  setSearchText(value);
+                },
               },
             }}
           />

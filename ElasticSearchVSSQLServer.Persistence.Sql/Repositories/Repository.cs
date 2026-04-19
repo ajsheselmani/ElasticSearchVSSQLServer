@@ -28,12 +28,11 @@ public class Repository(ApplicationDBService dbContextService) : IRepository
                     orderby t.Date, t.CustomerId, t.ArticleId
                     select new HMFashionFlatSqlRow
                     {
-                        Id = $"{t.Date:yyyy-MM-dd}_{t.CustomerId}_{t.ArticleId}_{t.SalesChannelId}_{t.Price}",
-                        TransactionDate = t.Date.ToDateTime(TimeOnly.MinValue),
-                        Price = (decimal)(t.Price ?? 0),
-                        SalesChannelId = t.SalesChannelId ?? 0,
+                        //Id = $"{t.Date:yyyy-MM-dd}_{t.CustomerId}_{t.ArticleId}_{t.SalesChannelId}_{t.Price}",
+                        Date = t.Date,
+                        Price = t.Price ?? 0,
                         CustomerId = t.CustomerId,
-                        AgeRaw = c.Age,
+                        Age = c.Age,
                         ClubMemberStatus = c.ClubMemberStatus,
                         FashionNewsFrequency = c.FashionNewsFrequency,
                         PostalCode = c.PostalCode,
@@ -47,19 +46,21 @@ public class Repository(ApplicationDBService dbContextService) : IRepository
                         IndexGroupName = a.IndexGroupName,
                         SectionName = a.SectionName,
                         GarmentGroupName = a.GarmentGroupName,
-                        DetailDesc = a.DetailDesc
+                        DetailDesc = a.DetailDesc,
+                        ProductCode = a.ProductCode,
+                        GraphicalAppearanceName = a.GraphicalAppearanceName,
+                        PerceivedColourValueName = a.PerceivedColourValueName,
                     };
 
         var records = await EntityFrameworkQueryableExtensions.ToListAsync(query.Take(batchSize));
 
         return records.Select(x => new HMFashionDatasetDTO
         {
-            Id = x.Id,
-            TransactionDate = x.TransactionDate,
+            //Id = x.Id,
+            Date = x.Date,
             Price = x.Price,
-            SalesChannelId = x.SalesChannelId,
             CustomerId = x.CustomerId,
-            Age = int.TryParse(x.AgeRaw, out var parsedAge) ? parsedAge : null,
+            Age = x.Age ?? "0",
             ClubMemberStatus = x.ClubMemberStatus,
             FashionNewsFrequency = x.FashionNewsFrequency,
             PostalCode = x.PostalCode,
@@ -73,31 +74,37 @@ public class Repository(ApplicationDBService dbContextService) : IRepository
             IndexGroupName = x.IndexGroupName,
             SectionName = x.SectionName,
             GarmentGroupName = x.GarmentGroupName,
-            DetailDesc = x.DetailDesc
+            DetailDesc = x.DetailDesc,
+            ProductCode = x.ProductCode,
+            PerceivedColourValueName = x.PerceivedColourValueName,
+            GraphicalAppearanceName = x.GraphicalAppearanceName
         }).ToList();
     }
 
     private class HMFashionFlatSqlRow
     {
-        public string Id { get; set; }
-        public DateTime TransactionDate { get; set; }
-        public decimal Price { get; set; }
-        public int SalesChannelId { get; set; }
-        public string CustomerId { get; set; }
-        public string AgeRaw { get; set; }
-        public string ClubMemberStatus { get; set; }
-        public string FashionNewsFrequency { get; set; }
-        public string PostalCode { get; set; }
         public int ArticleId { get; set; }
+        public int ProductCode { get; set; }
         public string ProdName { get; set; }
         public string ProductTypeName { get; set; }
         public string ProductGroupName { get; set; }
+        public string GraphicalAppearanceName { get; set; }
         public string ColourGroupName { get; set; }
+        public string PerceivedColourValueName { get; set; }
         public string DepartmentName { get; set; }
         public string IndexName { get; set; }
         public string IndexGroupName { get; set; }
         public string SectionName { get; set; }
         public string GarmentGroupName { get; set; }
         public string DetailDesc { get; set; }
+
+        public string CustomerId { get; set; }
+        public string ClubMemberStatus { get; set; }
+        public string FashionNewsFrequency { get; set; }
+        public string Age { get; set; }
+        public string PostalCode { get; set; }
+
+        public double? Price { get; set; }
+        public DateOnly Date { get; set; }
     }
 }

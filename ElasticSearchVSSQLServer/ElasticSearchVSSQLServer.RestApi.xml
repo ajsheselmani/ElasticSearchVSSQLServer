@@ -17,19 +17,14 @@
             (No session/token invalidation is done here.)
             </summary>
         </member>
-        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.LogsController.GetLogsData(System.Int32,System.Int32)">
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.LogsController.GetLogsData(System.Int32,System.Int32,System.String,System.String)">
             <summary>
             Retrieves datas from Log table.
             </summary>
             <returns>Returns logs of the system.</returns>
         </member>
-        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.GetBankData(System.Int32,System.Int32)">
-            <summary>
-            Retrieves datas from bank dataset.
-            </summary>
-            <returns>Returns the data of bank dataset.</returns>
-        </member>
-        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.ElectronicEvents(System.Int32,System.Int32)">
+        <!-- Badly formed XML comment ignored for member "M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.GetAllHMData(System.Int32,System.Int32,System.String,System.String)" -->
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.ElectronicEvents(System.Int32,System.Int32,System.String,System.String)">
             <summary>
             Retrieves datas from electronicEvents dataset.
             </summary>

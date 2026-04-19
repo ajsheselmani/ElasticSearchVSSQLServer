@@ -1,28 +1,50 @@
-﻿using System;
+﻿using Nest;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace ElasticSearchVSSQLServer.Indexing.Models.Datasets;
 
 public class ElectronicsDatasetIndexDTO
 {
-    public string Id { get; set; }
+    [JsonPropertyName("id")]
+    public long? Id { get; set; }
 
-    public string Event_time { get; set; }
+    [PropertyName("event_time")]          // ← kjo e lexon Elastic
+    [JsonPropertyName("event_time")]      // ← kjo për JSON të zakonshëm
+    public string? EventTime { get; set; }
 
-    public string Event_type { get; set; }
+    [PropertyName("event_type")]
+    [JsonPropertyName("event_type")]
+    public string? EventType { get; set; }
 
-    public int Product_id { get; set; }
+    [PropertyName("product_id")]
+    [JsonPropertyName("product_id")]
+    public int? ProductId { get; set; }
 
-    public long Category_id { get; set; }
+    [PropertyName("category_id")]
+    [JsonPropertyName("category_id")]
+    public long? CategoryId { get; set; }
 
-    public string Category_code { get; set; }
+    [PropertyName("category_code")]
+    [JsonPropertyName("category_code")]
+    public string? CategoryCode { get; set; }
 
-    public string Brand { get; set; }
+    [PropertyName("brand")]
+    [JsonPropertyName("brand")]
+    public string? Brand { get; set; }
 
-    public string Price { get; set; }
+    [PropertyName("price")]
+    [JsonPropertyName("price")]
+    public string? Price { get; set; }
 
-    public long User_id { get; set; }
+    [PropertyName("user_id")]
+    [JsonPropertyName("user_id")]
+    public long? UserId { get; set; }
 
-    public string User_session { get; set; }
-};
+    [PropertyName("user_session")]
+    [JsonPropertyName("user_session")]
+    public string? UserSession { get; set; }
+}

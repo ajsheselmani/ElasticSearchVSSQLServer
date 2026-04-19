@@ -16,16 +16,88 @@ import { paths } from "src/routes/paths";
 
 LicenseInfo.setLicenseKey(import.meta.env.VITE_DATAGRID_KEY);
 
+const MUI_OPERATOR_MAP = {
+  contains: { operator: "like", negate: false },
+  doesNotContain: { operator: "like", negate: true },
+  equals: { operator: "eq", negate: false },
+  startsWith: { operator: "like", negate: false, prefix: true },
+  endsWith: { operator: "like", negate: false, suffix: true },
+  isEmpty: { operator: "nex", negate: false },
+  isNotEmpty: { operator: "ex", negate: false },
+  is: { operator: "eq", negate: false },
+  not: { operator: "eq", negate: true },
+  after: { operator: "gt", negate: false },
+  onOrAfter: { operator: "ge", negate: false },
+  before: { operator: "lt", negate: false },
+  onOrBefore: { operator: "le", negate: false },
+  "=": { operator: "eq", negate: false },
+  "!=": { operator: "eq", negate: true },
+  ">": { operator: "gt", negate: false },
+  ">=": { operator: "ge", negate: false },
+  "<": { operator: "lt", negate: false },
+  "<=": { operator: "le", negate: false },
+};
+
+function mapMuiFiltersToBackend(items) {
+  const mapped = items
+    .filter(
+      (item) =>
+        item.value !== undefined &&
+        item.value !== "" &&
+        item.value !== null &&
+        item.operator !== "isEmpty" &&
+        item.operator !== "isNotEmpty",
+    )
+    .map(({ field, operator, value }) => {
+      const mapping = MUI_OPERATOR_MAP[operator];
+      if (!mapping) return null;
+
+      let backendValue = value;
+
+      if (value instanceof Date) {
+        backendValue = value.toISOString();
+      }
+
+      let backendOperator = mapping.operator;
+      if (mapping.prefix) backendValue = `${backendValue}*`;
+      if (mapping.suffix) backendValue = `*${backendValue}`;
+
+      return {
+        propertyName: field,
+        operator: backendOperator,
+        value: backendValue,
+        negate: mapping.negate ?? false,
+        caseSensitive: false,
+      };
+    })
+    .filter(Boolean);
+
+  const noValueFilters = items
+    .filter(
+      (item) => item.operator === "isEmpty" || item.operator === "isNotEmpty",
+    )
+    .map(({ field, operator }) => ({
+      propertyName: field,
+      operator: operator === "isEmpty" ? "nex" : "ex",
+      value: null,
+      negate: false,
+      caseSensitive: false,
+    }));
+
+  return [...mapped, ...noValueFilters];
+}
+
 const LogsElasticSearch = () => {
   const { t } = useTranslation();
   const { user } = useAuthContext();
   const [page, setPage] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [filter, setFilter] = React.useState([]);
-  const [logicType, setLogicalType] = React.useState(null);
+  const [logicType, setLogicType] = React.useState(null);
   const [data, setData] = React.useState([]);
   const [totalCount, setTotalCount] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
+  const [searchText, setSearchText] = React.useState("");
 
   const metadata = {
     title: `${t("logsDataSql")} - ${CONFIG.appName}`,
@@ -35,39 +107,48 @@ const LogsElasticSearch = () => {
     const loadData = async () => {
       setLoading(true);
       try {
+        const requestFilters = [...filter];
+
+        if (searchText?.trim()) {
+          requestFilters.push({
+            propertyName: "globalSearch",
+            operator: "like",
+            value: searchText.trim(),
+            caseSensitive: false,
+          });
+        }
+
         const bankDatasetData = await axiosInstance.get(
-          "/Logs/GetAllLogsData?page=" + page + "&pageSize=" + pageSize,
+          "/Logs/GetAllLogsData",
           {
-            filter: [],
-            sortOrders: [],
-            aggregations: [],
+            params: {
+              page: page + 1,
+              pageSize,
+              filters: JSON.stringify(requestFilters),
+              logicType: logicType ?? "and",
+            },
           },
         );
         console.log(bankDatasetData, "bankDatasetData");
         setTotalCount(bankDatasetData?.data?.totalCount ?? 0);
-        setData(bankDatasetData?.data?.items);
+        setData(bankDatasetData?.data);
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [user, page, pageSize]);
+  }, [user, page, pageSize, filter, logicType, searchText]);
 
   const rowsWithId =
     data &&
-    data?.map((row, index) => ({
+    data?.items?.map((row, index) => ({
       ...row,
       id: page * pageSize + index,
     }));
 
-  const nameLocale = useMemo(() => {
-    if (user.language === 1) return "nameSq";
-    if (user.language === 3) return "nameSr";
-    return "nameEn";
-  }, [user.language]);
   console.log(data, "data");
-  const allColumns = useMemo(
+  const columns = useMemo(
     () => [
       {
         field: "rowNumber",
@@ -88,7 +169,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 180,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const ip = params?.row?.ip;
           return (
@@ -112,7 +192,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 180,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const url = params?.row?.url;
           return (
@@ -136,7 +215,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 130,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const httpMethod = params?.row?.httpMethod;
           return (
@@ -160,7 +238,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const controller = params?.row?.controller;
           return (
@@ -184,7 +261,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const action = params?.row?.action ?? "///";
           return (
@@ -208,7 +284,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const error = params?.row?.error;
           return (
@@ -231,7 +306,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const fromContent = params?.row?.formContent ?? "///";
           return (
@@ -255,7 +329,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const response = params?.row?.response ?? "///";
           return (
@@ -279,7 +352,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const exception = params?.row?.exception ?? "///";
           return (
@@ -303,7 +375,6 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 150,
         sortable: false,
-        filterable: false,
         renderCell: (params) => {
           const rawDate = params?.row?.insertedDate;
           if (!rawDate) return "";
@@ -338,32 +409,23 @@ const LogsElasticSearch = () => {
     [t, page, pageSize],
   );
 
-  const columns = allColumns;
+  // const columns = allColumns;
 
-  const onFilterChange = React.useCallback(
+  const debouncedFilterChange = React.useMemo(
     () =>
-      debounce((filterModel) => {
-        setPage(0);
-        if (filterModel.items.length > 0) {
-          const validFilters = filterModel.items.filter((item) => {
-            if (["isEmpty", "isNotEmpty"].includes(item.operator)) return true;
-            if (Array.isArray(item.value)) return item.value.length > 0;
-            return (
-              item.value !== undefined &&
-              item.value !== null &&
-              item.value !== ""
-            );
-          });
+      debounce((model) => {
+        const backendFilters = mapMuiFiltersToBackend(model.items ?? []);
 
-          setFilter(validFilters);
-          setLogicalType(filterModel.logicOperator);
-        } else {
-          setFilter([]);
-          setLogicalType(null);
-        }
-      }, 1000),
-    [nameLocale],
+        setLogicType(model.logicOperator ?? "and");
+        setFilter(backendFilters);
+        setPage(0);
+      }, 400),
+    [],
   );
+
+  React.useEffect(() => {
+    return () => debouncedFilterChange.cancel();
+  }, [debouncedFilterChange]);
 
   return (
     <>
@@ -391,10 +453,7 @@ const LogsElasticSearch = () => {
             isRowSelectable={() => false}
             showToolbar
             pageSizeOptions={[10, 20, 50, 100]}
-            paginationModel={{
-              page: page,
-              pageSize: pageSize,
-            }}
+            paginationModel={{ page, pageSize }}
             onPaginationModelChange={(model) => {
               setPage(model.page);
               setPageSize(model.pageSize);
@@ -406,12 +465,13 @@ const LogsElasticSearch = () => {
             sortingMode="server"
             paginationMode="server"
             filterMode="server"
-            onFilterModelChange={onFilterChange}
+            onFilterModelChange={debouncedFilterChange}
             slotProps={{
               toolbar: {
-                filter,
-                logicType,
-                columns,
+                onSearchChange: (value) => {
+                  setPage(0);
+                  setSearchText(value);
+                },
               },
             }}
           />

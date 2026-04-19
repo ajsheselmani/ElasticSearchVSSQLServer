@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:perf:sql": "k6 run tests/k6/scenarios/sqlserver-fetch.js",
+    "test:perf:es": "k6 run tests/k6/scenarios/elasticsearch-search.js",
+    "test:perf:all": "k6 run tests/k6/scenarios/sqlserver-fetch.js && k6 run tests/k6/scenarios/elasticsearch-search.js"
   },
   "dependencies": {
     "@apollo/client": "^4.1.6",

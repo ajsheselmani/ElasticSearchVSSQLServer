@@ -6,4 +6,5 @@ namespace ElasticSearchVSSQLServer.Indexing.Services;
 public interface IElasticDataIndexService
 {
     Task IndexAllBankDatas();
+    Task IndexAllElectronicsDatas();
 }

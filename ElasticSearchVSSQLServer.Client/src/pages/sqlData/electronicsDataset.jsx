@@ -16,16 +16,88 @@ import { paths } from "src/routes/paths";
 
 LicenseInfo.setLicenseKey(import.meta.env.VITE_DATAGRID_KEY);
 
+const MUI_OPERATOR_MAP = {
+  contains: { operator: "like", negate: false },
+  doesNotContain: { operator: "like", negate: true },
+  equals: { operator: "eq", negate: false },
+  startsWith: { operator: "like", negate: false, prefix: true },
+  endsWith: { operator: "like", negate: false, suffix: true },
+  isEmpty: { operator: "nex", negate: false },
+  isNotEmpty: { operator: "ex", negate: false },
+  is: { operator: "eq", negate: false },
+  not: { operator: "eq", negate: true },
+  after: { operator: "gt", negate: false },
+  onOrAfter: { operator: "ge", negate: false },
+  before: { operator: "lt", negate: false },
+  onOrBefore: { operator: "le", negate: false },
+  "=": { operator: "eq", negate: false },
+  "!=": { operator: "eq", negate: true },
+  ">": { operator: "gt", negate: false },
+  ">=": { operator: "ge", negate: false },
+  "<": { operator: "lt", negate: false },
+  "<=": { operator: "le", negate: false },
+};
+
+function mapMuiFiltersToBackend(items /*, logicOperator*/) {
+  const mapped = items
+    .filter(
+      (item) =>
+        item.value !== undefined &&
+        item.value !== "" &&
+        item.value !== null &&
+        item.operator !== "isEmpty" &&
+        item.operator !== "isNotEmpty",
+    )
+    .map(({ field, operator, value }) => {
+      const mapping = MUI_OPERATOR_MAP[operator];
+      if (!mapping) return null;
+
+      let backendValue = value;
+
+      if (value instanceof Date) {
+        backendValue = value.toISOString();
+      }
+
+      let backendOperator = mapping.operator;
+      if (mapping.prefix) backendValue = `${backendValue}*`;
+      if (mapping.suffix) backendValue = `*${backendValue}`;
+
+      return {
+        propertyName: field,
+        operator: backendOperator,
+        value: backendValue,
+        negate: mapping.negate ?? false,
+        caseSensitive: false,
+      };
+    })
+    .filter(Boolean);
+
+  const noValueFilters = items
+    .filter(
+      (item) => item.operator === "isEmpty" || item.operator === "isNotEmpty",
+    )
+    .map(({ field, operator }) => ({
+      propertyName: field,
+      operator: operator === "isEmpty" ? "nex" : "ex",
+      value: null,
+      negate: false,
+      caseSensitive: false,
+    }));
+
+  return [...mapped, ...noValueFilters];
+}
+
 const ElectronicsData = () => {
   const { t } = useTranslation();
   const { user } = useAuthContext();
   const [page, setPage] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [filter, setFilter] = React.useState([]);
-  const [logicType, setLogicalType] = React.useState(null);
+  const [logicType, setLogicType] = React.useState(null);
   const [data, setData] = React.useState([]);
   const [totalCount, setTotalCount] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
+  const [searchText, setSearchText] = React.useState("");
 
   const metadata = {
     title: `${t("electronicsDataElastic")} - ${CONFIG.appName}`,
@@ -35,12 +107,25 @@ const ElectronicsData = () => {
     const loadData = async () => {
       setLoading(true);
       try {
+        const requestFilters = [...filter];
+
+        if (searchText?.trim()) {
+          requestFilters.push({
+            propertyName: "globalSearch",
+            operator: "like",
+            value: searchText.trim(),
+            caseSensitive: false,
+          });
+        }
+
         const electronicsDatasetData = await axiosInstance.get(
           "/SQLData/GetAllElectronicEvents",
           {
             params: {
               page: page + 1,
               pageSize,
+              filters: JSON.stringify(requestFilters),
+              logicType: logicType ?? "and",
             },
           },
         );
@@ -53,7 +138,7 @@ const ElectronicsData = () => {
     };
 
     loadData();
-  }, [user, page, pageSize]);
+  }, [user, page, pageSize, filter, logicType, searchText]);
 
   const rowsWithId =
     data &&
@@ -61,12 +146,6 @@ const ElectronicsData = () => {
       ...row,
       id: page * pageSize + index,
     }));
-
-  const nameLocale = useMemo(() => {
-    if (user.language === 1) return "nameSq";
-    if (user.language === 3) return "nameSr";
-    return "nameEn";
-  }, [user.language]);
 
   const allColumns = useMemo(
     () => [
@@ -87,7 +166,7 @@ const ElectronicsData = () => {
         minWidth: 170,
         renderCell: (params) => {
           const rawDate = params?.row?.eventTime;
-          if (!rawDate) return "";
+          if (!rawDate) return "///";
 
           const date = new Date(rawDate);
 
@@ -190,6 +269,7 @@ const ElectronicsData = () => {
         minWidth: 120,
         renderCell: (params) => {
           const categoryCode = params?.row?.categoryCode;
+          if (!categoryCode) return "///";
           return (
             <Tooltip title={categoryCode} arrow>
               <span
@@ -214,7 +294,7 @@ const ElectronicsData = () => {
           const brand = params?.row?.brand;
           const formattedBrand = brand
             ? brand.charAt(0).toUpperCase() + brand.slice(1)
-            : "";
+            : "///";
           return (
             <Tooltip title={formattedBrand} arrow>
               <span
@@ -300,32 +380,23 @@ const ElectronicsData = () => {
     [t, page, pageSize],
   );
 
-  const columns = allColumns;
+  // const columns = allColumns;
 
-  const onFilterChange = React.useCallback(
+  const debouncedFilterChange = React.useMemo(
     () =>
-      debounce((filterModel) => {
-        setPage(0);
-        if (filterModel.items.length > 0) {
-          const validFilters = filterModel.items.filter((item) => {
-            if (["isEmpty", "isNotEmpty"].includes(item.operator)) return true;
-            if (Array.isArray(item.value)) return item.value.length > 0;
-            return (
-              item.value !== undefined &&
-              item.value !== null &&
-              item.value !== ""
-            );
-          });
+      debounce((model) => {
+        const backendFilters = mapMuiFiltersToBackend(model.items ?? []);
 
-          setFilter(validFilters);
-          setLogicalType(filterModel.logicOperator);
-        } else {
-          setFilter([]);
-          setLogicalType(null);
-        }
-      }, 1000),
-    [nameLocale],
+        setLogicType(model.logicOperator ?? "and");
+        setFilter(backendFilters);
+        setPage(0);
+      }, 400),
+    [],
   );
+
+  React.useEffect(() => {
+    return () => debouncedFilterChange.cancel();
+  }, [debouncedFilterChange]);
 
   return (
     <>
@@ -344,7 +415,7 @@ const ElectronicsData = () => {
         <div style={{ height: "100%" }}>
           <DataGrid
             autoHeight
-            columns={columns}
+            columns={allColumns}
             rows={rowsWithId}
             getRowId={(item) => item.id}
             loading={loading}
@@ -352,10 +423,7 @@ const ElectronicsData = () => {
             isRowSelectable={() => false}
             showToolbar
             pageSizeOptions={[10, 20, 50, 100]}
-            paginationModel={{
-              page: page,
-              pageSize: pageSize,
-            }}
+            paginationModel={{ page, pageSize }}
             onPaginationModelChange={(model) => {
               setPage(model.page);
               setPageSize(model.pageSize);
@@ -367,12 +435,13 @@ const ElectronicsData = () => {
             sortingMode="server"
             paginationMode="server"
             filterMode="server"
-            onFilterModelChange={onFilterChange}
+            onFilterModelChange={debouncedFilterChange}
             slotProps={{
               toolbar: {
-                filter,
-                logicType,
-                columns,
+                onSearchChange: (value) => {
+                  setPage(0);
+                  setSearchText(value);
+                },
               },
             }}
           />

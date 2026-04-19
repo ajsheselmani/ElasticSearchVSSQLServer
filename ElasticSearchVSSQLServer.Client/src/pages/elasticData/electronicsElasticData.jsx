@@ -16,16 +16,85 @@ import { CONFIG } from "src/global-config";
 
 LicenseInfo.setLicenseKey(import.meta.env.VITE_DATAGRID_KEY);
 
+const MUI_OPERATOR_MAP = {
+  contains: { operator: "Like", negate: false },
+  doesNotContain: { operator: "Nlike", negate: false },
+  equals: { operator: "Eq", negate: false },
+  startsWith: { operator: "Like", negate: false, prefix: true },
+  endsWith: { operator: "Like", negate: false, suffix: true },
+  isEmpty: { operator: "Nex", negate: false },
+  isNotEmpty: { operator: "Ex", negate: false },
+  is: { operator: "Eq", negate: false },
+  not: { operator: "Neq", negate: false },
+  after: { operator: "Gt", negate: false },
+  onOrAfter: { operator: "Ge", negate: false },
+  before: { operator: "Lt", negate: false },
+  onOrBefore: { operator: "Le", negate: false },
+  isAnyOf: { operator: "In", negate: false },
+  "=": { operator: "Eq", negate: false },
+  "!=": { operator: "Neq", negate: false },
+  ">": { operator: "Gt", negate: false },
+  ">=": { operator: "Ge", negate: false },
+  "<": { operator: "Lt", negate: false },
+  "<=": { operator: "Le", negate: false },
+};
+
+function mapMuiFiltersToBackend(items) {
+  return (items ?? [])
+    .filter((item) => {
+      if (!item?.field || !item?.operator) return false;
+      if (item.operator === "isEmpty" || item.operator === "isNotEmpty")
+        return true;
+      if (Array.isArray(item.value)) return item.value.length > 0;
+      return (
+        item.value !== undefined && item.value !== "" && item.value !== null
+      );
+    })
+    .map(({ field, operator, value }) => {
+      const mapping = MUI_OPERATOR_MAP[operator];
+      if (!mapping) return null;
+
+      if (operator === "isEmpty" || operator === "isNotEmpty") {
+        return {
+          propertyName: field,
+          operator: mapping.operator,
+          value: "",
+          negate: false,
+          caseSensitive: false,
+        };
+      }
+
+      let backendValue = value;
+      if (Array.isArray(backendValue))
+        backendValue = JSON.stringify(backendValue);
+      else if (backendValue instanceof Date)
+        backendValue = backendValue.toISOString();
+
+      if (mapping.prefix) backendValue = `${backendValue}*`;
+      if (mapping.suffix) backendValue = `*${backendValue}`;
+
+      return {
+        propertyName: field,
+        operator: mapping.operator,
+        value: `${backendValue ?? ""}`,
+        negate: false,
+        caseSensitive: false,
+      };
+    })
+    .filter(Boolean);
+}
+
 const ElectronicsElasticData = () => {
   const { t } = useTranslation();
   const { user } = useAuthContext();
   const [page, setPage] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [filter, setFilter] = React.useState([]);
-  const [logicType, setLogicalType] = React.useState(null);
+  const [logicType, setLogicType] = React.useState(null);
   const [data, setData] = React.useState([]);
   const [totalCount, setTotalCount] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
+  const [searchText, setSearchText] = React.useState("");
 
   const metadata = {
     title: `${t("electronicsDataElastic")} - ${CONFIG.appName}`,
@@ -35,38 +104,47 @@ const ElectronicsElasticData = () => {
     const loadData = async () => {
       setLoading(true);
       try {
+        const requestFilters = [...filter];
+
+        if (searchText?.trim()) {
+          requestFilters.push({
+            propertyName: "globalSearch",
+            operator: 2,
+            value: searchText.trim(),
+            caseSensitive: false,
+          });
+        }
+
         const electronicsDatasetData = await axiosInstance.put(
-          "/ElasticData/ElectronicsDataSearch",
+          "/ElasticData/ElectronicsDataSearch?page=" +
+            page +
+            "&pageSize=" +
+            pageSize,
           {
-            params: {
-              page: page + 1,
-              pageSize,
-            },
+            filter: requestFilters,
+            sortOrders: [],
+            aggregations: [],
+            logicType: logicType || "and",
           },
         );
+        debugger;
         console.log(electronicsDatasetData, "electronicsDatasetData");
-        setData(electronicsDatasetData.data);
-        setTotalCount(electronicsDatasetData?.data?.totalCount ?? 0);
+        setData(electronicsDatasetData.data?.hits);
+        setTotalCount(electronicsDatasetData?.data?.metadata?.totalCount ?? 0);
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [user, page, pageSize]);
-
+  }, [user, page, pageSize, filter, logicType, searchText]);
+  console.log(data, "data");
   const rowsWithId =
     data &&
-    data?.items?.map((row, index) => ({
+    data?.map((row, index) => ({
       ...row,
       id: page * pageSize + index,
     }));
-
-  const nameLocale = useMemo(() => {
-    if (user.language === 1) return "nameSq";
-    if (user.language === 3) return "nameSr";
-    return "nameEn";
-  }, [user.language]);
 
   const allColumns = useMemo(
     () => [
@@ -87,7 +165,7 @@ const ElectronicsElasticData = () => {
         minWidth: 170,
         renderCell: (params) => {
           const rawDate = params?.row?.eventTime;
-          if (!rawDate) return "";
+          if (!rawDate) return "///";
 
           const date = new Date(rawDate);
 
@@ -122,6 +200,7 @@ const ElectronicsElasticData = () => {
         minWidth: 150,
         renderCell: (params) => {
           const eventType = params?.row?.eventType;
+          if (!eventType) return "///";
 
           return (
             <Tooltip title={eventType} arrow>
@@ -214,7 +293,7 @@ const ElectronicsElasticData = () => {
           const brand = params?.row?.brand;
           const formattedBrand = brand
             ? brand.charAt(0).toUpperCase() + brand.slice(1)
-            : "";
+            : "///";
           return (
             <Tooltip title={formattedBrand} arrow>
               <span
@@ -237,6 +316,8 @@ const ElectronicsElasticData = () => {
         minWidth: 120,
         renderCell: (params) => {
           const price = params?.row?.price + " " + "$";
+          if (!price) return "///";
+
           return (
             <Tooltip title={price} arrow>
               <span
@@ -281,6 +362,8 @@ const ElectronicsElasticData = () => {
         minWidth: 120,
         renderCell: (params) => {
           const userSession = params?.row?.userSession;
+          if (!userSession) return "///";
+
           return (
             <Tooltip title={userSession} arrow>
               <span
@@ -300,32 +383,21 @@ const ElectronicsElasticData = () => {
     [t, page, pageSize],
   );
 
-  const columns = allColumns;
-
-  const onFilterChange = React.useCallback(
+  const debouncedFilterChange = React.useMemo(
     () =>
-      debounce((filterModel) => {
-        setPage(0);
-        if (filterModel.items.length > 0) {
-          const validFilters = filterModel.items.filter((item) => {
-            if (["isEmpty", "isNotEmpty"].includes(item.operator)) return true;
-            if (Array.isArray(item.value)) return item.value.length > 0;
-            return (
-              item.value !== undefined &&
-              item.value !== null &&
-              item.value !== ""
-            );
-          });
+      debounce((model) => {
+        const backendFilters = mapMuiFiltersToBackend(model.items ?? []);
 
-          setFilter(validFilters);
-          setLogicalType(filterModel.logicOperator);
-        } else {
-          setFilter([]);
-          setLogicalType(null);
-        }
-      }, 1000),
-    [nameLocale],
+        setLogicType(model.logicOperator ?? "and");
+        setFilter(backendFilters);
+        setPage(0);
+      }, 400),
+    [],
   );
+
+  React.useEffect(() => {
+    return () => debouncedFilterChange.cancel();
+  }, [debouncedFilterChange]);
 
   return (
     <>
@@ -344,7 +416,7 @@ const ElectronicsElasticData = () => {
         <div style={{ height: "100%" }}>
           <DataGrid
             autoHeight
-            columns={columns}
+            columns={allColumns}
             rows={rowsWithId}
             getRowId={(item) => item.id}
             loading={loading}
@@ -352,27 +424,25 @@ const ElectronicsElasticData = () => {
             isRowSelectable={() => false}
             showToolbar
             pageSizeOptions={[10, 20, 50, 100]}
-            paginationModel={{
-              page: page,
-              pageSize: pageSize,
-            }}
+            paginationModel={{ page, pageSize }}
             onPaginationModelChange={(model) => {
               setPage(model.page);
               setPageSize(model.pageSize);
             }}
             pagination
             slots={{ toolbar: DataGridToolbar }}
-            rowCount={totalCount}
+            rowCount={totalCount ?? 0}
             localeText={getDataGridLocale(i18n.language)}
             sortingMode="server"
             paginationMode="server"
             filterMode="server"
-            onFilterModelChange={onFilterChange}
+            onFilterModelChange={debouncedFilterChange}
             slotProps={{
               toolbar: {
-                filter,
-                logicType,
-                columns,
+                onSearchChange: (value) => {
+                  setPage(0);
+                  setSearchText(value);
+                },
               },
             }}
           />

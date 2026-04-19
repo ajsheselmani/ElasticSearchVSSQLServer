@@ -5,6 +5,7 @@ using ElasticSearchVSSQLServer.RestApi.Models.OutputModels.Logs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace ElasticSearchVSSQLServer.RestApi.Controllers;
 
@@ -18,9 +19,19 @@ public class LogsController(IMapper mapper, ILogger<LogsController> logger, User
     ///</summary>
     ///<returns>Returns logs of the system.</returns>
     [HttpGet("GetAllLogsData")]
-    public async Task<IActionResult> GetLogsData([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
-    {
-        var (items, totalCount) = await logService.GetAllLogsData(page, pageSize);
+    public async Task<IActionResult> GetLogsData(
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
+        [FromQuery] string? filters,
+        [FromQuery] string logicType
+    ){
+        var parsedFilters = string.IsNullOrWhiteSpace(filters)
+        ? new List<ElasticSearchVSSQLServer.Domain.FilterItemDto>()
+        : JsonSerializer.Deserialize<List<ElasticSearchVSSQLServer.Domain.FilterItemDto>>(filters,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+          ?? new List<ElasticSearchVSSQLServer.Domain.FilterItemDto>();
+
+        var (items, totalCount) = await logService.GetAllLogsData(page, pageSize, parsedFilters, logicType);
         var result = mapper.Map<LogsOutputModel[]>(items);
         return Ok(new { items = result, totalCount });
 

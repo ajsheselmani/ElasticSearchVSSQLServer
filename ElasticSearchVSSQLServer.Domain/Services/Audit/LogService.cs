@@ -22,10 +22,14 @@ public class LogService(IGenericRepository<LogDTO, string> logRepository, ILogge
         return logToReturn;
     }
 
-    public async Task<(IEnumerable<LogDTO> items, long TotalCount)> GetAllLogsData(int page, int pageSize)
-    {
+    public async Task<(IEnumerable<LogDTO> items, long TotalCount)> GetAllLogsData(
+        int page,
+        int pageSize,
+        List<FilterItemDto> filters,
+        string logicType
+    ){
         logger.LogInformation("Kerkese per marrje te te gjithe llogave te sistemit nga SQLServer");
-        var logsData = await logRepository.GetPagedAsync(page, pageSize);
+        var logsData = await logRepository.GetPagedAsync(page, pageSize, filters, logicType);
         logger.LogInformation("Marrja e te gjithe llogave te sistemit. Numri i rekordeve: {Count}", logsData.Items?.Count() ?? 0, logsData.TotalCount);
         return logsData;
     }

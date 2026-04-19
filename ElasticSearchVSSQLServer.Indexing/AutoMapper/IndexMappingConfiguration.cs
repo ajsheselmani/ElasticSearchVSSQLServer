@@ -48,7 +48,18 @@ namespace ElasticSearchVSSQLServer.Indexing.AutoMapper
 
         private void SetupElectronicsMapping()
         {
-            CreateMap<ElectronicEventsDTO, ElectronicsDatasetIndexDTO>().ReverseMap();
+            CreateMap<ElectronicEventsDTO, ElectronicsDatasetIndexDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.EventTime, opt => opt.MapFrom(src => src.EventTime))
+            .ForMember(dest => dest.EventType, opt => opt.MapFrom(src => src.EventType))
+            .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+            .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
+            .ForMember(dest => dest.CategoryCode, opt => opt.MapFrom(src => src.CategoryCode))
+            .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Brand))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+            .ForMember(dest => dest.UserSession, opt => opt.MapFrom(src => src.UserSession))
+            .ReverseMap();
         }
 
         private void SetupHMFashionMapping()

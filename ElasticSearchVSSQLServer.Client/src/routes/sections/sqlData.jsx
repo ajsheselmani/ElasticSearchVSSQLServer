@@ -16,6 +16,9 @@ const ElectronicsElasticDataPage = lazy(
 const LogsElasticDataPage = lazy(
   () => import("../../pages/elasticData/logsElasticSearch"),
 );
+const TestResultsPage = lazy(
+  () => import("../../pages/testResults/testResults"),
+);
 const LogsSQLDataPage = lazy(() => import("../../pages/sqlData/logsSQLServer"));
 
 function SuspenseOutlet() {
@@ -71,6 +74,10 @@ export const sqlDataRoutes = [
           {
             path: "logsData",
             element: <LogsElasticDataPage />,
+          },
+          {
+            path: "testResults",
+            element: <TestResultsPage />,
           },
         ],
       },

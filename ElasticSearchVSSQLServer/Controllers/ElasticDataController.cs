@@ -5,6 +5,7 @@ using ElasticSearchVSSQLServer.Indexing.Models.Datasets;
 using ElasticSearchVSSQLServer.Indexing.Services;
 using ElasticSearchVSSQLServer.Persistence.Audit;
 using ElasticSearchVSSQLServer.Persistence.SQLData;
+using ElasticSearchVSSQLServer.RestApi.Models.OutputModels.SQLData;
 using ElasticSearchVSSQLServer.RestApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ namespace ElasticSearchVSSQLServer.RestApi.Controllers;
 public class ElasticDataController(IMapper mapper, ILogger<ElasticDataController> logger, IElasticDataIndexService elasticDataService, IIndexService indexService, ISQLDataService sqlDataService, IElasticDataIndexService elasticDataIndexService) : ControllerBase
 {
     private const string BankDatasetIndexName = "elasticvssql_bank";
+    private const string ElectronicsDatasetIndexName = "elasticvssql_electronics";
     private const string HMFashionDatasetIndexName = "elasticvssql_hmfashion";
 
     [HttpPost("BankDatasetElastic")]
@@ -54,11 +56,27 @@ public class ElasticDataController(IMapper mapper, ILogger<ElasticDataController
         return Accepted("Background synchronization started.");
     }
 
+    [HttpPost("ElectronicsDatasetElasticIndexing")]
+    public async Task<IActionResult> ElectronicsDatasetElastic()
+    {
+        try
+        {
+         await elasticDataIndexService.IndexAllElectronicsDatas();
+        //var mappedData = mapper.Map<ElectronicEventsOutputModel[]>(electronicsDataElastic);
+        return Ok();
+        }
+        catch (Exception ex)
+        {
+            logger.LogInformation(ex.ToString());
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpPut("ElectronicsDataSearch")]
-    public async Task<IActionResult> ElectronicsDataSearch(int page, int pageSize, string? query, SearchParamsNew search)
+    public async Task<IActionResult> ElectronicsDataSearch([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? query, [FromBody] SearchParamsNew search)
     {
         var userId = UserClaimHelper.GetUserId(User);
-        var result = await indexService.SearchNew<ElectronicEventsDTO>(page, pageSize, query, search, "elasticvssql");
+        var result = await indexService.SearchNew<ElectronicEventsDTO>(page, pageSize, query, search, ElectronicsDatasetIndexName);
         logger.LogInformation("Kerkimi në indeksim me parametrat: Page={Page}, PageSize={PageSize}, Query={Query} u krye me sukses nga perdoruesi me ID: {UserId}.", page, pageSize, query, userId);
         return Ok(result);
     }
@@ -95,7 +113,7 @@ public class ElasticDataController(IMapper mapper, ILogger<ElasticDataController
                     await indexService.IndexData(mappedData, HMFashionDatasetIndexName);
 
                     var lastRecord = batch.Last();
-                    lastDate = DateOnly.FromDateTime(lastRecord.TransactionDate);
+                    lastDate = lastRecord.Date;
                     lastCustomerId = lastRecord.CustomerId;
                     lastArticleId = (int)lastRecord.ArticleId;
                     totalIndexed += batch.Count;

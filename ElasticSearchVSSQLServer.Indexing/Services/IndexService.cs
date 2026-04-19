@@ -11,6 +11,7 @@ using ElasticSearchVSSQLServer.Indexing.Models.Enums;
 using ElasticSearchVSSQLServer.Indexing.Models.LogsIndexed;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -26,13 +27,13 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         var existsResponse = await client.Indices.ExistsAsync(index);
         if (!existsResponse.Exists)
         {
-            var createResponse = await client.Indices.CreateAsync(index, x => x.Settings(s => s.MaxResultWindow(1000000)));
+            var createResponse = await client.Indices.CreateAsync(index, x => x.Settings(s => s.MaxResultWindow(10000000)));
             if (!createResponse.IsValidResponse)
             {
                 throw new Exception($"Failed to create index '{index}'. Error: {createResponse.ElasticsearchServerError?.Error?.Reason}");
             }
         }
-        if(data != null && data.Any())
+        if (data != null && data.Any())
         {
             var bulkResponse = await client.BulkAsync(b => b
                 .Index(index)
@@ -40,10 +41,71 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             );
 
             if (!bulkResponse.IsValidResponse || bulkResponse.Errors)
+            {
+                var itemErrors = bulkResponse.ItemsWithErrors?
+                    .Select(x => $"Id: {x.Id}, Error: {x.Error?.Reason}")
+                    .ToList();
+
+                var errorMessage = itemErrors != null && itemErrors.Any()
+                    ? string.Join(" | ", itemErrors)
+                    : bulkResponse.ElasticsearchServerError?.Error?.Reason ?? "Unknown bulk error";
+
+                throw new Exception($"Bulk indexing failed. Details: {errorMessage}");
+            }
+
+            if (!bulkResponse.IsValidResponse || bulkResponse.Errors)
                 throw new Exception("Bulk indexing failed.");
 
             await client.Indices.RefreshAsync(index);
         }
+    }
+
+    public async Task IndexDataBulk<T>(T[] data, string index) where T : class
+    {
+        var client = getElasticClient(index);
+
+        var existsResponse = await client.Indices.ExistsAsync(index);
+        if (!existsResponse.Exists)
+        {
+            var createResponse = await client.Indices.CreateAsync(index, x => x
+                .Settings(s => s.MaxResultWindow(1000000))
+            );
+
+            if (!createResponse.IsValidResponse)
+            {
+                throw new Exception($"Failed to create index '{index}'. Error: {createResponse.ElasticsearchServerError?.Error?.Reason}");
+            }
+        }
+
+        if (data == null || !data.Any())
+            return;
+
+        const int batchSize = 500;
+
+        for (int i = 0; i < data.Length; i += batchSize)
+        {
+            var batch = data.Skip(i).Take(batchSize).ToArray();
+
+            var bulkResponse = await client.BulkAsync(b => b
+                .Index(index)
+                .IndexMany(batch)
+            );
+
+            if (!bulkResponse.IsValidResponse || bulkResponse.Errors)
+            {
+                var itemErrors = bulkResponse.ItemsWithErrors?
+                    .Select(x => $"Id: {x.Id}, Type: {x.Error?.Type}, Reason: {x.Error?.Reason}")
+                    .ToList();
+
+                var details = itemErrors != null && itemErrors.Any()
+                    ? string.Join(Environment.NewLine, itemErrors)
+                    : bulkResponse.ElasticsearchServerError?.Error?.Reason ?? "Unknown bulk error";
+
+                throw new Exception($"Bulk indexing failed in batch starting at {i}. Details: {details}");
+            }
+        }
+
+        await client.Indices.RefreshAsync(index);
     }
 
     public async Task<PaginatedSearchResponse<TQueryModel>> Search<TQueryModel>(int? page,
@@ -110,6 +172,10 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
     {
         if (query == "null")
             query = null;
+
+        var currentPage = page ?? 0;
+        var currentPageSize = pageSize ?? 10;
+
         var client = getElasticClient(indexName);
 
         var mappingsResponse = client.Indices.GetMapping();
@@ -119,26 +185,28 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
 
         Query queryFilter = setFilteringNew(query, searchParams?.filter ?? [], properties);
 
-        var search = new SearchRequest
-        {
-            From = page * pageSize,
-            Size = pageSize,
-            Sort = fieldsSort,
-            Query = queryFilter,
-            Aggregations = setAggregationsNew(searchParams?.aggregations ?? [], searchParams?.filter ?? [], properties, query),
-            TrackTotalHits = new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true)
-        };
+         
+        var response = await client.SearchAsync<TQueryModel>(x => x
+            .Index(indexName)
+            .From(currentPage * currentPageSize)
+            .Size(currentPageSize)
+            .Sort(fieldsSort)
+            .Query(queryFilter)
+            .Aggregations(setAggregationsNew(
+                searchParams?.aggregations ?? [],
+                searchParams?.filter ?? [],
+                properties,
+                query))
+            .TrackTotalHits(new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true))
+        );
 
-        var response = await client.SearchAsync<dynamic>(x =>
+        var firstHit = response.Hits.FirstOrDefault();
+        if (firstHit != null)
         {
-            x.Index(indexName);
-            x.From(search.From);
-            x.Size(search.Size);
-            x.Sort(search.Sort);
-            x.Query(search.Query);
-            x.Aggregations(search.Aggregations);
-            x.TrackTotalHits(new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true));
-        });
+            // Shiko JSON-in e plotë që vjen nga Elastic
+            var rawSource = System.Text.Json.JsonSerializer.Serialize(firstHit.Source);
+            Console.WriteLine("RAW JSON: " + rawSource);
+        }
 
         if (!response.IsValidResponse)
         {
@@ -149,14 +217,11 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                 $"ES error: {err?.Type} - {err?.Reason}. Root: {root?.Type} - {root?.Reason}"
             );
         }
-        var totalPages = (int)Math.Ceiling((double)response.Total / pageSize ?? 1);
+        var totalPages = (int)Math.Ceiling((double)response.Total / currentPageSize);
+ 
 
-        var deserializedObjects = response.Hits.Select(hit =>
-        {
-            var doc = JsonConvert.DeserializeObject<TQueryModel>(hit.Source.ToString());
-            doc.Id = hit.Id;
-            return doc;
-        }).Cast<TQueryModel>().ToList();
+        var deserializedObjects = response.Documents.ToList();
+
         return new PaginatedSearchResponse<TQueryModel>()
         {
             Hits = deserializedObjects,
@@ -166,8 +231,8 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                 PageSize = response.Documents.Count,
                 TotalCount = response.Total,
                 TotalPages = totalPages,
-                NextPage = page < totalPages && totalPages > 1,
-                PreviousPage = page > 1,
+                NextPage = currentPage + 1 < totalPages,
+                PreviousPage = currentPage > 0,
             },
             IsError = response.ElasticsearchServerError != null,
             ErrorDetails = response?.ElasticsearchServerError?.Error?.ToString(),
@@ -389,7 +454,17 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         if (!string.IsNullOrEmpty(searchQuery))
             mustConditions.Add(Query.QueryString(new QueryStringQuery { Query = $"*{searchQuery}*" }));
 
-        foreach (var filter in filters)
+        var globalSearchFilter = filters.FirstOrDefault(f => f.PropertyName == "globalSearch");
+        if (globalSearchFilter != null)
+        {
+            mustConditions.Add(Query.QueryString(new QueryStringQuery
+            {
+                Query = $"*{globalSearchFilter.Value}*"
+            }));
+        }
+
+        //foreach (var filter in filters)
+        foreach (var filter in filters.Where(f => f.PropertyName != "globalSearch"))
         {
             if (filter.PropertyName == "_id")
             {
