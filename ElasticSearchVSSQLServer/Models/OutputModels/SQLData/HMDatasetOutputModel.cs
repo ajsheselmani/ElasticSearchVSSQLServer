@@ -4,6 +4,7 @@
     {
         public int ArticleId { get; set; }
         public int ProductCode { get; set; }
+        public byte? SalesChannelId { get; set; }
         public string ProdName { get; set; }
         public string ProductTypeName { get; set; }
         public string ProductGroupName { get; set; }
@@ -18,6 +19,8 @@
         public string DetailDesc { get; set; }
 
         public string CustomerId { get; set; }
+        public string Fn { get; set; }
+        public string Active { get; set; }
         public string ClubMemberStatus { get; set; }
         public string FashionNewsFrequency { get; set; }
         public string Age { get; set; }

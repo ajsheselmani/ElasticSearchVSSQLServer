@@ -221,6 +221,7 @@ const ElectronicsData = () => {
         headerName: t("productId"),
         flex: 1,
         minWidth: 150,
+        type: "number",
         renderCell: (params) => {
           const productId = params?.row?.productId;
 
@@ -314,6 +315,7 @@ const ElectronicsData = () => {
         headerName: t("userId"),
         flex: 1,
         minWidth: 120,
+        type: "number",
         renderCell: (params) => {
           const userId = params?.row?.userId;
           return (
@@ -362,7 +364,7 @@ const ElectronicsData = () => {
         <CustomBreadcrumbs
           heading={t("electronicsData")}
           links={[
-            { name: t("homepage"), href: paths.dashboard.root },
+            { name: t("dashboard"), href: paths.dashboard.root },
             { name: t("electronicsDataSQL"), href: paths.elastic.logsData },
           ]}
           sx={{ mb: { xs: 1, md: 1 } }}

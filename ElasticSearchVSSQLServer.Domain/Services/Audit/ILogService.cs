@@ -10,5 +10,5 @@ public interface ILogService
 {
     Task<LogDTO> Save(LogDTO logDto);
     Task<(IEnumerable<LogDTO> items, long TotalCount)> GetAllLogsData(int page, int pageSize, List<FilterItemDto> filters, string logicType);
+    Task<List<LogDTO>> GetLogsBatchAfterIdAsync(long lastId, int batchSize);
 }
-

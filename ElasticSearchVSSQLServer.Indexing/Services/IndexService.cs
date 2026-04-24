@@ -14,12 +14,19 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
 using System.Text;
 
 namespace ElasticSearchVSSQLServer.Indexing.Services;
 
 public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper, ILogService logService, ElasticsearchClient elasticsearchClient) : ElasticClient(config, elasticsearchClient), IIndexService
 {
+    private static readonly Dictionary<string, string> FieldAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["formContent"] = "fromContent"
+    };
+
     public async Task IndexData<T>(T[] data, string index) where T : class
     {
         var client = getElasticClient(index);
@@ -200,14 +207,6 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             .TrackTotalHits(new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true))
         );
 
-        var firstHit = response.Hits.FirstOrDefault();
-        if (firstHit != null)
-        {
-            // Shiko JSON-in e plotë që vjen nga Elastic
-            var rawSource = System.Text.Json.JsonSerializer.Serialize(firstHit.Source);
-            Console.WriteLine("RAW JSON: " + rawSource);
-        }
-
         if (!response.IsValidResponse)
         {
             var err = response.ElasticsearchServerError?.Error;
@@ -217,10 +216,18 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                 $"ES error: {err?.Type} - {err?.Reason}. Root: {root?.Type} - {root?.Reason}"
             );
         }
-        var totalPages = (int)Math.Ceiling((double)response.Total / currentPageSize);
- 
 
-        var deserializedObjects = response.Documents.ToList();
+        var firstHit = response.Hits?.FirstOrDefault();
+        if (firstHit != null)
+        {
+            // Debug aid for inspecting the raw ES document shape.
+            var rawSource = System.Text.Json.JsonSerializer.Serialize(firstHit.Source);
+            Console.WriteLine("RAW JSON: " + rawSource);
+        }
+
+        var totalPages = (int)Math.Ceiling((double)response.Total / currentPageSize);
+
+        var deserializedObjects = response.Documents?.ToList() ?? new List<TQueryModel>();
 
         return new PaginatedSearchResponse<TQueryModel>()
         {
@@ -260,9 +267,10 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         var mustNotConditions = new List<Query>();
         var shouldConditions = new List<Query>();
 
-        if (!string.IsNullOrEmpty(searchQuery))
+        var safeSearchQuery = BuildQueryStringQueryValue(searchQuery, wrapWithWildcards: false);
+        if (!string.IsNullOrWhiteSpace(safeSearchQuery))
         {
-            mustConditions.Add(Query.QueryString(new QueryStringQuery() { Query = searchQuery }));
+            mustConditions.Add(Query.QueryString(new QueryStringQuery() { Query = safeSearchQuery }));
         }
 
         foreach (var filter in filters)
@@ -398,7 +406,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
 
     private string getCorrectFieldName(string fieldName, Properties properties)
     {
-        if (fieldName == "_id")
+        if (string.IsNullOrWhiteSpace(fieldName) || fieldName == "_id")
         {
             return fieldName;
         }
@@ -406,26 +414,18 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         {
             return fieldName;
         }
-        if (fieldName.Contains("."))
-        {
-            return fieldName;
-        }
 
-        if (fieldName.Contains("."))
-        {
-            properties = ((ObjectProperty)properties.FirstOrDefault(x => x.Key == fieldName.Split(".")[0]).Value).Properties;
-            if (properties.Any(x => x.Key == fieldName.Split(".")[1] && x.Value.Type == "text"))
-                fieldName += ".raw";
-            return fieldName;
-        }
-        if (properties.Any(x => x.Key == fieldName && x.Value.Type == "text"))
-            fieldName += ".raw";
-        return fieldName;
+        var resolvedFieldName = resolveFieldName(fieldName, properties);
+        var propertyType = getPropertyType(resolvedFieldName, properties);
+
+        return propertyType == "text"
+            ? $"{resolvedFieldName}.raw"
+            : resolvedFieldName;
     }
 
     private string getPropertyType(string fieldName, Properties properties)
     {
-        if (fieldName == "_id")
+        if (string.IsNullOrWhiteSpace(fieldName) || fieldName == "_id")
         {
             return fieldName;
         }
@@ -434,16 +434,214 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             return fieldName;
         }
 
-        if (fieldName.Contains("."))
+        var resolvedFieldName = resolveFieldName(fieldName, properties);
+        var fieldSegments = resolvedFieldName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        var currentProperties = properties;
+
+        for (var index = 0; index < fieldSegments.Length; index++)
         {
-            return fieldName;
+            var resolvedSegment = resolveSegmentName(fieldSegments[index], currentProperties);
+            if (resolvedSegment == null)
+            {
+                return string.Empty;
+            }
+
+            var property = currentProperties
+                .FirstOrDefault(x => string.Equals(x.Key.ToString(), resolvedSegment, StringComparison.Ordinal))
+                .Value;
+
+            if (property == null)
+            {
+                return string.Empty;
+            }
+
+            if (index == fieldSegments.Length - 1)
+            {
+                return property.Type ?? string.Empty;
+            }
+
+            if (property is not ObjectProperty objectProperty || objectProperty.Properties == null)
+            {
+                return string.Empty;
+            }
+
+            currentProperties = objectProperty.Properties;
         }
-        if (fieldName.Contains("."))
+
+        return string.Empty;
+    }
+
+    private string resolveFieldName(string fieldName, Properties properties)
+    {
+        var aliasedFieldName = applyFieldAlias(fieldName);
+        var fieldSegments = aliasedFieldName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+
+        if (fieldSegments.Length == 0)
         {
-            properties = ((ObjectProperty)properties.FirstOrDefault(x => x.Key == fieldName.Split(".")[0]).Value).Properties;
-            return properties.FirstOrDefault(x => x.Key == fieldName.Split(".")[1]).Value.Type;
+            return aliasedFieldName;
         }
-        return properties.FirstOrDefault(x => x.Key == fieldName).Value.Type;
+
+        var currentProperties = properties;
+        var resolvedSegments = new List<string>();
+
+        for (var index = 0; index < fieldSegments.Length; index++)
+        {
+            var resolvedSegment = resolveSegmentName(fieldSegments[index], currentProperties);
+            if (resolvedSegment == null)
+            {
+                return aliasedFieldName;
+            }
+
+            resolvedSegments.Add(resolvedSegment);
+
+            if (index == fieldSegments.Length - 1)
+            {
+                break;
+            }
+
+            var property = currentProperties
+                .FirstOrDefault(x => string.Equals(x.Key.ToString(), resolvedSegment, StringComparison.Ordinal))
+                .Value;
+
+            if (property is not ObjectProperty objectProperty || objectProperty.Properties == null)
+            {
+                return aliasedFieldName;
+            }
+
+            currentProperties = objectProperty.Properties;
+        }
+
+        return string.Join(".", resolvedSegments);
+    }
+
+    private string? resolveSegmentName(string fieldSegment, Properties properties)
+    {
+        var aliasedSegment = applyFieldAlias(fieldSegment);
+
+        var exactMatch = properties
+            .FirstOrDefault(x => string.Equals(x.Key.ToString(), aliasedSegment, StringComparison.Ordinal));
+        if (exactMatch.Value != null)
+        {
+            return exactMatch.Key.ToString();
+        }
+
+        var caseInsensitiveMatch = properties
+            .FirstOrDefault(x => string.Equals(x.Key.ToString(), aliasedSegment, StringComparison.OrdinalIgnoreCase));
+        if (caseInsensitiveMatch.Value != null)
+        {
+            return caseInsensitiveMatch.Key.ToString();
+        }
+
+        var normalizedSegment = normalizeFieldName(aliasedSegment);
+        var normalizedMatch = properties
+            .FirstOrDefault(x => normalizeFieldName(x.Key.ToString()) == normalizedSegment);
+
+        return normalizedMatch.Value != null
+            ? normalizedMatch.Key.ToString()
+            : null;
+    }
+
+    private static string applyFieldAlias(string fieldName)
+        => FieldAliases.TryGetValue(fieldName, out var aliasedFieldName)
+            ? aliasedFieldName
+            : fieldName;
+
+    private static string normalizeFieldName(string fieldName)
+        => new(fieldName
+            .Where(char.IsLetterOrDigit)
+            .Select(char.ToLowerInvariant)
+            .ToArray());
+
+    private static string EscapeQueryStringValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var escapedValue = new StringBuilder(value.Length * 2);
+        for (var index = 0; index < value.Length; index++)
+        {
+            var current = value[index];
+
+            if (current == '\\')
+            {
+                escapedValue.Append(@"\\");
+                continue;
+            }
+
+            if ("+-=&|><!(){}[]^\"~*?:/".Contains(current))
+            {
+                escapedValue.Append('\\');
+            }
+
+            escapedValue.Append(current);
+        }
+
+        return escapedValue.ToString();
+    }
+
+    private static string BuildQueryStringQueryValue(string? value, bool wrapWithWildcards)
+    {
+        var escapedValue = EscapeQueryStringValue(value);
+        if (string.IsNullOrWhiteSpace(escapedValue))
+        {
+            return string.Empty;
+        }
+
+        return wrapWithWildcards
+            ? $"*{escapedValue}*"
+            : escapedValue;
+    }
+
+    private static bool IsDatePropertyType(string? propertyType)
+        => propertyType is "date" or "date_nanos";
+
+    private static bool IsNumericPropertyType(string? propertyType)
+        => propertyType is "byte"
+            or "short"
+            or "integer"
+            or "long"
+            or "unsigned_long"
+            or "half_float"
+            or "float"
+            or "double"
+            or "scaled_float";
+
+    private static double ParseNumericFilterValue(string? rawValue)
+    {
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            throw new ArgumentException("Numeric filter value cannot be empty.");
+        }
+
+        if (double.TryParse(rawValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var invariantValue))
+        {
+            return invariantValue;
+        }
+
+        if (double.TryParse(rawValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out var currentCultureValue))
+        {
+            return currentCultureValue;
+        }
+
+        var normalizedValue = rawValue.Replace(',', '.');
+        if (double.TryParse(normalizedValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var normalizedParsedValue))
+        {
+            return normalizedParsedValue;
+        }
+
+        throw new ArgumentException($"Could not parse numeric filter value '{rawValue}'.");
+    }
+
+    private static FieldValue BuildTermFilterValue(string? rawValue, string? propertyType)
+    {
+        if (IsNumericPropertyType(propertyType))
+        {
+            return ParseNumericFilterValue(rawValue);
+        }
+
+        return rawValue ?? string.Empty;
     }
 
     private Query setFilteringNew(string searchQuery, IEnumerable<DataFilter> filters, Properties properties, string logicType = "and")
@@ -451,16 +649,21 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         var mustConditions = new List<Query>();
         var mustNotConditions = new List<Query>();
 
-        if (!string.IsNullOrEmpty(searchQuery))
-            mustConditions.Add(Query.QueryString(new QueryStringQuery { Query = $"*{searchQuery}*" }));
+        var safeSearchQuery = BuildQueryStringQueryValue(searchQuery, wrapWithWildcards: true);
+        if (!string.IsNullOrWhiteSpace(safeSearchQuery))
+            mustConditions.Add(Query.QueryString(new QueryStringQuery { Query = safeSearchQuery }));
 
         var globalSearchFilter = filters.FirstOrDefault(f => f.PropertyName == "globalSearch");
         if (globalSearchFilter != null)
         {
+            var safeGlobalSearchValue = BuildQueryStringQueryValue(globalSearchFilter.Value?.ToString(), wrapWithWildcards: true);
+            if (!string.IsNullOrWhiteSpace(safeGlobalSearchValue))
+            {
             mustConditions.Add(Query.QueryString(new QueryStringQuery
             {
-                Query = $"*{globalSearchFilter.Value}*"
+                Query = safeGlobalSearchValue
             }));
+            }
         }
 
         //foreach (var filter in filters)
@@ -562,7 +765,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             case Models.Enums.DataFilterOperator.Eq:
                 return Query.Term(new TermQuery(fieldName)
                 {
-                    Value = filter.Value?.ToString(),
+                    Value = BuildTermFilterValue(filter.Value?.ToString(), propertyType),
                     CaseInsensitive = !filter.CaseSensitive
                 });
 
@@ -573,7 +776,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                     {
                     Query.Term(new TermQuery(fieldName)
                     {
-                        Value = filter.Value?.ToString(),
+                        Value = BuildTermFilterValue(filter.Value?.ToString(), propertyType),
                         CaseInsensitive = !filter.CaseSensitive
                     })
                 }
@@ -608,24 +811,24 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                 }
 
             case Models.Enums.DataFilterOperator.Lt:
-                return (propertyType is "date" or "date_nanos")
+                return IsDatePropertyType(propertyType)
                     ? Query.Range(new DateRangeQuery(fieldName) { Format = "strict_date_time", Lt = filter.Value?.ToString() })
-                    : Query.Range(new NumberRangeQuery(fieldName) { Lt = double.Parse(filter.Value!.ToString()) });
+                    : Query.Range(new NumberRangeQuery(fieldName) { Lt = ParseNumericFilterValue(filter.Value?.ToString()) });
 
             case Models.Enums.DataFilterOperator.Gt:
-                return (propertyType is "date" or "date_nanos")
+                return IsDatePropertyType(propertyType)
                     ? Query.Range(new DateRangeQuery(fieldName) { Format = "strict_date_time", Gt = filter.Value?.ToString() })
-                    : Query.Range(new NumberRangeQuery(fieldName) { Gt = double.Parse(filter.Value!.ToString()) });
+                    : Query.Range(new NumberRangeQuery(fieldName) { Gt = ParseNumericFilterValue(filter.Value?.ToString()) });
 
             case Models.Enums.DataFilterOperator.Le:
-                return (propertyType is "date" or "date_nanos")
+                return IsDatePropertyType(propertyType)
                     ? Query.Range(new DateRangeQuery(fieldName) { Format = "strict_date_time", Lte = filter.Value?.ToString() })
-                    : Query.Range(new NumberRangeQuery(fieldName) { Lte = double.Parse(filter.Value!.ToString()) });
+                    : Query.Range(new NumberRangeQuery(fieldName) { Lte = ParseNumericFilterValue(filter.Value?.ToString()) });
 
             case Models.Enums.DataFilterOperator.Ge:
-                return (propertyType is "date" or "date_nanos")
+                return IsDatePropertyType(propertyType)
                     ? Query.Range(new DateRangeQuery(fieldName) { Format = "strict_date_time", Gte = filter.Value?.ToString() })
-                    : Query.Range(new NumberRangeQuery(fieldName) { Gte = double.Parse(filter.Value!.ToString()) });
+                    : Query.Range(new NumberRangeQuery(fieldName) { Gte = ParseNumericFilterValue(filter.Value?.ToString()) });
 
             case Models.Enums.DataFilterOperator.Ex:
                 return Query.Exists(new ExistsQuery { Field = fieldName });
@@ -710,5 +913,55 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         {
             throw new InvalidOperationException($"Failed to index data to '{indexName}'.");
         }
+    }
+
+    public async Task<HashSet<string>> GetExistingIdsAsync<TDocument>(string indexName, IEnumerable<string> ids) where TDocument : class
+    {
+        var normalizedIds = ids?
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .Select(id => (FieldValue)id)
+            .ToArray() ?? [];
+
+        if (normalizedIds.Length == 0)
+        {
+            return [];
+        }
+
+        var client = getElasticClient(indexName);
+        var existsResponse = await client.Indices.ExistsAsync(indexName);
+        if (!existsResponse.Exists)
+        {
+            return [];
+        }
+
+        var response = await client.SearchAsync<TDocument>(x => x
+            .Index(indexName)
+            .Size(normalizedIds.Length)
+            .Query(Query.Terms(new TermsQuery
+            {
+                Field = "id",
+                Terms = new TermsQueryField(normalizedIds)
+            }))
+        );
+
+        if (!response.IsValidResponse)
+        {
+            var err = response.ElasticsearchServerError?.Error;
+            throw new InvalidOperationException(
+                $"Failed to fetch existing Elasticsearch document ids from '{indexName}'. Reason: {err?.Reason ?? response.DebugInformation}");
+        }
+
+        var idProperty = typeof(TDocument).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+        if (idProperty == null)
+        {
+            throw new InvalidOperationException($"Type '{typeof(TDocument).Name}' does not contain an Id property.");
+        }
+
+        return response.Documents
+            .Select(document => idProperty.GetValue(document)?.ToString())
+            .OfType<string>()
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .ToHashSet(StringComparer.Ordinal);
     }
 }

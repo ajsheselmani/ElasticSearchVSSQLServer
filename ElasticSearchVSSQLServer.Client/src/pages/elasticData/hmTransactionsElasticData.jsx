@@ -197,6 +197,8 @@ const HMTransactionsElasticData = () => {
         headerName: t("date"),
         minWidth: 130,
         flex: 1,
+        type: "date",
+        valueGetter: (value) => (value ? new Date(value) : null),
         renderCell: (params) => renderDateValue(params?.row?.transactionDate),
       },
       {
@@ -402,7 +404,7 @@ const HMTransactionsElasticData = () => {
         <CustomBreadcrumbs
           heading={pageTitle}
           links={[
-            { name: t("homepage"), href: paths.dashboard.root },
+            { name: t("dashboard"), href: paths.dashboard.root },
             {
               name: pageTitle,
               href: paths.elastic.hmTransactionsData,

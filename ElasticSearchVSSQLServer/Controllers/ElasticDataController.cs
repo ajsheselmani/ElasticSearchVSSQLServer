@@ -14,6 +14,7 @@ namespace ElasticSearchVSSQLServer.RestApi.Controllers;
 [Route("api/[controller]")]
 [ApiController, Authorize]
 public class ElasticDataController(
+    IMapper mapper,
     ILogger<ElasticDataController> logger,
     IServiceScopeFactory serviceScopeFactory,
     IElasticDataIndexService elasticDataIndexService,
@@ -51,9 +52,38 @@ public class ElasticDataController(
     public async Task<IActionResult> LogsDataSearch([FromQuery]int page, [FromQuery] int pageSize, [FromQuery] string? query, [FromBody] SearchParamsNew search)
     {
         var userId = UserClaimHelper.GetUserId(User);
-        var result = await indexService.SearchNew<LogDTO>(page, pageSize, query, search, "elasticvssql_logs");
+        var result = await indexService.SearchNew<LogsIndexDTO>(page, pageSize, query, search, "elasticvssql_logs");
+        var mappedResult = new PaginatedSearchResponse<LogDTO>
+        {
+            Hits = mapper.Map<IEnumerable<LogDTO>>(result.Hits),
+            Metadata = result.Metadata,
+            IsError = result.IsError,
+            ErrorDetails = result.ErrorDetails,
+            aggregations = result.aggregations,
+            globalAggregations = result.globalAggregations
+        };
         logger.LogInformation("Kerkimi në indeksim me parametrat: Page={Page}, PageSize={PageSize}, Query={Query} u krye me sukses nga perdoruesi me ID: {UserId}.", page, pageSize, query, userId);
-        return Ok(result);
+        return Ok(mappedResult);
+    }
+
+    [HttpPost("ReindexMissingLogs")]
+    public async Task<IActionResult> ReindexMissingLogs([FromQuery] int batchSize = 500)
+    {
+        try
+        {
+            var result = await elasticDataIndexService.ReindexMissingLogsAsync(batchSize);
+            logger.LogInformation(
+                "Missing logs reindex completed. BatchSize={BatchSize}, Scanned={ScannedCount}, Indexed={IndexedCount}",
+                result.BatchSize,
+                result.ScannedCount,
+                result.IndexedCount);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Missing logs reindex failed.");
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("HMFashionFlatSearch")]

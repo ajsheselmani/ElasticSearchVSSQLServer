@@ -282,6 +282,7 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 120,
         sortable: false,
+        type: "boolean",
         renderCell: (params) => {
           const error = params?.row?.error;
           return (
@@ -373,6 +374,8 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 150,
         sortable: false,
+        type: "dateTime",
+        valueGetter: (value) => (value ? new Date(value) : null),
         renderCell: (params) => {
           const rawDate = params?.row?.insertedDate;
           if (!rawDate) return "";
@@ -434,7 +437,7 @@ const LogsElasticSearch = () => {
         <CustomBreadcrumbs
           heading={t("userLogs")}
           links={[
-            { name: t("homepage"), href: paths.dashboard.root },
+            { name: t("dashboard"), href: paths.dashboard.root },
             { name: t("logsDataSql"), href: paths.sql.logsData },
           ]}
           sx={{ mb: { xs: 1, md: 1 } }}

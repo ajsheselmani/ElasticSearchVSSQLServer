@@ -71,6 +71,7 @@ using System.Text;
             services.AddScoped<IRepository, Repository>();
             services.AddScoped<IGenericRepository<ActionDTO, int>, GenericRepository<Context.Action, ActionDTO, int>>();
             services.AddScoped<IGenericRepository<LogDTO, string>, GenericRepository<Log, LogDTO, string>>();
+            services.AddScoped<ILogRepository, LogRepository>();
             services.AddScoped<IGenericRepository<UserDto, string>, GenericRepository<AspNetUsers, UserDto, string>>();
             services.AddScoped<IGenericRepository<ElectronicEventsDTO, int>, GenericRepository<ElectronicEvents, ElectronicEventsDTO, int>>();
             services.AddScoped<IGenericRepository<HMTransactionsTrainDTO, int>, GenericRepository<HMdatasetTransactionsTrain, HMTransactionsTrainDTO, int>>();

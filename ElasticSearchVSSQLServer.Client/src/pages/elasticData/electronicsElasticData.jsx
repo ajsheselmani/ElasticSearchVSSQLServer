@@ -109,7 +109,7 @@ const ElectronicsElasticData = () => {
         if (searchText?.trim()) {
           requestFilters.push({
             propertyName: "globalSearch",
-            operator: 2,
+            operator: "Like",
             value: searchText.trim(),
             caseSensitive: false,
           });
@@ -220,6 +220,7 @@ const ElectronicsElasticData = () => {
         headerName: t("productId"),
         flex: 1,
         minWidth: 150,
+        type: "number",
         renderCell: (params) => {
           const productId = params?.row?.productId;
 
@@ -243,6 +244,7 @@ const ElectronicsElasticData = () => {
         headerName: t("categoryId"),
         flex: 1,
         minWidth: 130,
+        type: "number",
         renderCell: (params) => {
           const categoryId = params?.row?.categoryId;
           return (
@@ -336,6 +338,7 @@ const ElectronicsElasticData = () => {
         headerName: t("userId"),
         flex: 1,
         minWidth: 120,
+        type: "number",
         renderCell: (params) => {
           const userId = params?.row?.userId;
           return (
@@ -406,7 +409,7 @@ const ElectronicsElasticData = () => {
         <CustomBreadcrumbs
           heading={t("electronicsData")}
           links={[
-            { name: t("homepage"), href: paths.dashboard.root },
+            { name: t("dashboard"), href: paths.dashboard.root },
             { name: t("electronicsDataElastic"), href: paths.elastic.logsData },
           ]}
           sx={{ mb: { xs: 1, md: 1 } }}

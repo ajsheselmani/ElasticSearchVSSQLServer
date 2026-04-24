@@ -510,12 +510,13 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
         var baseTransactionsQuery = _dbContext.Set<HMdatasetTransactionsTrain>().AsNoTracking();
         if (!HasActiveFilters(filters))
         {
+            var totalCount = await baseTransactionsQuery.LongCountAsync();
             var pageTransactions = await baseTransactionsQuery
                 .OrderBy(t => t.Date)
                 .ThenBy(t => t.CustomerId)
                 .ThenBy(t => t.ArticleId)
                 .Skip((safePage - 1) * safePageSize)
-                .Take(safePageSize + 1)
+                .Take(safePageSize)
                 .Select(t => new
                 {
                     t.Date,
@@ -526,17 +527,12 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
                 })
                 .ToListAsync();
 
-            var hasMoreItems = pageTransactions.Count > safePageSize;
-            var visibleTransactions = hasMoreItems
-                ? pageTransactions.Take(safePageSize).ToList()
-                : pageTransactions;
-
-            var articleIds = visibleTransactions
+            var articleIds = pageTransactions
                 .Select(t => t.ArticleId)
                 .Distinct()
                 .ToList();
 
-            var customerIds = visibleTransactions
+            var customerIds = pageTransactions
                 .Select(t => t.CustomerId)
                 .Where(id => !string.IsNullOrWhiteSpace(id))
                 .Distinct()
@@ -552,7 +548,7 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
                 .Where(customer => customerIds.Contains(customer.Id))
                 .ToDictionaryAsync(customer => customer.Id);
 
-            var items = visibleTransactions.Select(transaction =>
+            var items = pageTransactions.Select(transaction =>
             {
                 articles.TryGetValue(transaction.ArticleId, out var article);
                 customers.TryGetValue(transaction.CustomerId, out var customer);
@@ -586,7 +582,7 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
                 };
             }).ToList();
 
-            return (items, CalculateProgressiveTotalCount(safePage, safePageSize, items.Count, hasMoreItems));
+            return (items, totalCount);
         }
 
         var query = BuildHMFashionProjection(baseTransactionsQuery);
@@ -595,20 +591,16 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
             query = ApplyDynamicFilters(query, filters, logicType);
         }
 
+        var filteredTotalCount = await query.LongCountAsync();
         var pageItems = await query
             .OrderBy(x => x.Date)
             .ThenBy(x => x.CustomerId)
             .ThenBy(x => x.ArticleId)
             .Skip((safePage - 1) * safePageSize)
-            .Take(safePageSize + 1)
+            .Take(safePageSize)
             .ToListAsync();
 
-        var filteredHasMoreItems = pageItems.Count > safePageSize;
-        var filteredItems = filteredHasMoreItems
-            ? pageItems.Take(safePageSize).ToList()
-            : pageItems;
-
-        return (filteredItems, CalculateProgressiveTotalCount(safePage, safePageSize, filteredItems.Count, filteredHasMoreItems));
+        return (pageItems, filteredTotalCount);
     }
 
     private IQueryable<HMFashionDatasetDTO> BuildHMFashionProjection(IQueryable<HMdatasetTransactionsTrain> transactionsQuery)
@@ -655,14 +647,4 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
                && (filter.PropertyName.Equals("globalSearch", StringComparison.OrdinalIgnoreCase)
                    || filter.Operator is "ex" or "nex"
                    || !string.IsNullOrWhiteSpace(filter.Value)));
-
-    private static long CalculateProgressiveTotalCount(
-        int safePage,
-        int safePageSize,
-        int currentPageItemCount,
-        bool hasMore)
-    {
-        var loadedUntil = ((long)safePage - 1) * safePageSize + currentPageItemCount;
-        return hasMore ? loadedUntil + 1 : loadedUntil;
-    }
 }

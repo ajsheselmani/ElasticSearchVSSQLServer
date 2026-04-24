@@ -33,4 +33,5 @@ public interface IIndexService
             where TQueryModel : class;
 
     Task IndexData<T>(IEnumerable<T> data, string indexName) where T : class;
+    Task<HashSet<string>> GetExistingIdsAsync<TDocument>(string indexName, IEnumerable<string> ids) where TDocument : class;
 }

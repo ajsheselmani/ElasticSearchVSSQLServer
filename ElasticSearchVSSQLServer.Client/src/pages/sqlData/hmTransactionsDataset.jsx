@@ -54,7 +54,10 @@ function mapMuiFiltersToBackend(items) {
 
       let backendValue = value;
       if (value instanceof Date) {
-        backendValue = value.toISOString();
+        backendValue =
+          field === "date"
+            ? value.toISOString().split("T")[0]
+            : value.toISOString();
       }
 
       if (mapping.prefix) backendValue = `${backendValue}*`;
@@ -123,6 +126,20 @@ const HMTransactionsDataset = () => {
     title: `${pageTitle} - ${CONFIG.appName}`,
   };
 
+  function renderDateValue(value) {
+    if (!value) return "///";
+
+    const date = new Date(value);
+    const formattedValue = new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(date);
+
+    return renderTooltipValue(formattedValue);
+  }
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -181,7 +198,9 @@ const HMTransactionsDataset = () => {
         headerName: t("date"),
         minWidth: 130,
         flex: 1,
-        renderCell: (params) => renderTooltipValue(params?.row?.date),
+        type: "date",
+        valueGetter: (value) => (value ? new Date(value) : null),
+        renderCell: (params) => renderDateValue(params?.row?.date),
       },
       {
         field: "customerId",
@@ -385,7 +404,7 @@ const HMTransactionsDataset = () => {
         <CustomBreadcrumbs
           heading={pageTitle}
           links={[
-            { name: t("homepage"), href: paths.dashboard.root },
+            { name: t("dashboard"), href: paths.dashboard.root },
             {
               name: pageTitle,
               href: paths.sql.hmTransactionsData,

@@ -14,6 +14,7 @@ public class ElasticDataIndexService(IIndexService indexService, ISQLDataService
 {
     private const string ElectronicsDatasetIndexName = "elasticvssql_electronics";
     private const string HMFashionDatasetIndexName = "elasticvssql_hmfashion";
+    private const string LogsIndexName = "elasticvssql_logs";
 
     public async Task IndexAllElectronicsDatas()
     {
@@ -92,6 +93,84 @@ public class ElasticDataIndexService(IIndexService indexService, ISQLDataService
                 lastPrice,
                 lastSalesChannelId);
         }
+    }
+
+    public async Task<LogsReindexResult> ReindexMissingLogsAsync(int batchSize = 500)
+    {
+        if (batchSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(batchSize), "Batch size must be greater than zero.");
+        }
+
+        var startedAtUtc = DateTime.UtcNow;
+        long lastProcessedSqlId = 0;
+        long scannedCount = 0;
+        long indexedCount = 0;
+        int processedBatches = 0;
+
+        logger.LogInformation(
+            "Starting missing logs reindex from SQL Server to Elasticsearch. Index={IndexName}, BatchSize={BatchSize}",
+            LogsIndexName,
+            batchSize);
+
+        await indexService.CreateIndex(LogsIndexName);
+
+        while (true)
+        {
+            var logsBatch = await logsService.GetLogsBatchAfterIdAsync(lastProcessedSqlId, batchSize);
+            if (logsBatch.Count == 0)
+            {
+                break;
+            }
+
+            processedBatches++;
+            scannedCount += logsBatch.Count;
+
+            var mappedBatch = mapper.Map<LogsIndexDTO[]>(logsBatch);
+            var existingIds = await indexService.GetExistingIdsAsync<LogsIndexDTO>(
+                LogsIndexName,
+                mappedBatch.Select(log => log.Id));
+
+            var missingLogs = mappedBatch
+                .Where(log => !string.IsNullOrWhiteSpace(log.Id) && !existingIds.Contains(log.Id))
+                .ToArray();
+
+            if (missingLogs.Length > 0)
+            {
+                await indexService.IndexData(missingLogs, LogsIndexName);
+                indexedCount += missingLogs.Length;
+            }
+
+            if (!long.TryParse(logsBatch[^1].Id, out lastProcessedSqlId))
+            {
+                throw new InvalidOperationException($"Could not parse SQL log id '{logsBatch[^1].Id}' during logs reindex.");
+            }
+
+            logger.LogInformation(
+                "Processed logs reindex batch {BatchNumber}. Scanned={ScannedCount}, IndexedMissing={IndexedCount}, LastSqlId={LastSqlId}",
+                processedBatches,
+                scannedCount,
+                indexedCount,
+                lastProcessedSqlId);
+        }
+
+        var completedAtUtc = DateTime.UtcNow;
+
+        logger.LogInformation(
+            "Finished missing logs reindex. Scanned={ScannedCount}, IndexedMissing={IndexedCount}, SkippedExisting={SkippedCount}",
+            scannedCount,
+            indexedCount,
+            scannedCount - indexedCount);
+
+        return new LogsReindexResult(
+            LogsIndexName,
+            batchSize,
+            scannedCount,
+            indexedCount,
+            scannedCount - indexedCount,
+            processedBatches,
+            startedAtUtc,
+            completedAtUtc);
     }
 
 }

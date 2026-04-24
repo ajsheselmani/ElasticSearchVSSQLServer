@@ -14,7 +14,7 @@ export default function Index() {
         <CustomBreadcrumbs
           heading={t("profile")}
           links={[
-            { name: t("homepage"), href: paths.dashboard.root },
+            { name: t("dashboard"), href: paths.dashboard.root },
             { name: t("profile") },
           ]}
           sx={{ mb: { xs: 1, md: 3 } }}

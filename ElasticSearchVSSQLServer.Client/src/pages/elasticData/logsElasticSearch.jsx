@@ -109,7 +109,7 @@ const LogsElasticSearch = () => {
         if (searchText?.trim()) {
           requestFilters.push({
             propertyName: "globalSearch",
-            operator: 2,
+            operator: "Like",
             value: searchText.trim(),
             caseSensitive: false,
           });
@@ -378,13 +378,14 @@ const LogsElasticSearch = () => {
         flex: 1,
         minWidth: 150,
         sortable: false,
-        filterable: true,
         type: "dateTime",
         valueGetter: (value) => (value ? new Date(value) : null),
         renderCell: (params) => {
           const rawDate = params?.row?.insertedDate;
           if (!rawDate) return "";
+
           const date = new Date(rawDate);
+
           const dateFormated = new Intl.DateTimeFormat("en-GB", {
             day: "2-digit",
             month: "2-digit",
@@ -393,6 +394,7 @@ const LogsElasticSearch = () => {
             minute: "2-digit",
             second: "2-digit",
           }).format(date);
+
           return (
             <Tooltip title={dateFormated} arrow>
               <span
@@ -437,7 +439,7 @@ const LogsElasticSearch = () => {
         <CustomBreadcrumbs
           heading={t("userLogs")}
           links={[
-            { name: t("homepage"), href: paths.dashboard.root },
+            { name: t("dashboard"), href: paths.dashboard.root },
             { name: t("logsDataSql"), href: paths.elastic.logsData },
           ]}
           sx={{ mb: { xs: 1, md: 1 } }}
