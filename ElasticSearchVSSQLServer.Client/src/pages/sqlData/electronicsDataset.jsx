@@ -129,7 +129,6 @@ const ElectronicsData = () => {
             },
           },
         );
-        console.log(electronicsDatasetData, "electronicsDatasetData");
         setData(electronicsDatasetData.data);
         setTotalCount(electronicsDatasetData?.data?.totalCount ?? 0);
       } finally {
@@ -241,28 +240,6 @@ const ElectronicsData = () => {
         },
       },
       {
-        field: "categoryId",
-        headerName: t("categoryId"),
-        flex: 1,
-        minWidth: 130,
-        renderCell: (params) => {
-          const categoryId = params?.row?.categoryId;
-          return (
-            <Tooltip title={categoryId} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {categoryId}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
         field: "categoryCode",
         headerName: t("categoryCode"),
         flex: 1,
@@ -349,28 +326,6 @@ const ElectronicsData = () => {
                 }}
               >
                 {userId}
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: "userSession",
-        headerName: t("userSession"),
-        flex: 1,
-        minWidth: 120,
-        renderCell: (params) => {
-          const userSession = params?.row?.userSession;
-          return (
-            <Tooltip title={userSession} arrow>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {userSession}
               </span>
             </Tooltip>
           );

@@ -19,8 +19,6 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
 
-    public virtual DbSet<Bankdataset> Bankdataset { get; set; }
-
     public virtual DbSet<Controller> Controller { get; set; }
 
     public virtual DbSet<Domain> Domain { get; set; }
@@ -66,17 +64,6 @@ public partial class ApplicationDbContext : DbContext
             entity.HasOne(d => d.Domain).WithMany(p => p.AspNetUsers)
                 .HasForeignKey(d => d.DomainId)
                 .HasConstraintName("FK_AspNetUsers_Domain");
-        });
-
-        modelBuilder.Entity<Bankdataset>(entity =>
-        {
-            entity.ToTable("bankdataset$");
-
-            entity.Property(e => e.Id).HasMaxLength(150);
-            entity.Property(e => e.Date).HasColumnType("datetime");
-            entity.Property(e => e.Domain).HasMaxLength(255);
-            entity.Property(e => e.Location).HasMaxLength(255);
-            entity.Property(e => e.TransactionCount).HasColumnName("Transaction_count");
         });
 
         modelBuilder.Entity<Controller>(entity =>
@@ -169,23 +156,11 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<HMdatasetTransactionsTrain>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("H&MDataset_TransactionsTrain");
+            entity.ToTable("H&MDataset_TransactionsTrain");
 
             entity.Property(e => e.CustomerId)
                 .IsRequired()
                 .HasMaxLength(100);
-
-            entity.HasOne(d => d.Article).WithMany()
-                .HasForeignKey(d => d.ArticleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_H&MDataset_TransactionsTrain_H&MDataset_Articles");
-
-            entity.HasOne(d => d.Customer).WithMany()
-                .HasForeignKey(d => d.CustomerId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_H&MDataset_TransactionsTrain_H&MDataset_Customers");
         });
 
         modelBuilder.Entity<Log>(entity =>

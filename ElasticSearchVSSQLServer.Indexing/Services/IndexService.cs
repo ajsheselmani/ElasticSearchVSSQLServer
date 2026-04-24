@@ -183,7 +183,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
 
         SortOptions[] fieldsSort = setSorting(searchParams?.sortOrders, properties);
 
-        Query queryFilter = setFilteringNew(query, searchParams?.filter ?? [], properties);
+        Query queryFilter = setFilteringNew(query, searchParams?.filter ?? [], properties, searchParams?.logicType ?? "and");
 
          
         var response = await client.SearchAsync<TQueryModel>(x => x
@@ -446,7 +446,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         return properties.FirstOrDefault(x => x.Key == fieldName).Value.Type;
     }
 
-    private Query setFilteringNew(string searchQuery, IEnumerable<DataFilter> filters, Properties properties)
+    private Query setFilteringNew(string searchQuery, IEnumerable<DataFilter> filters, Properties properties, string logicType = "and")
     {
         var mustConditions = new List<Query>();
         var mustNotConditions = new List<Query>();
@@ -464,11 +464,13 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         }
 
         //foreach (var filter in filters)
+        var topLevelFilterQueries = new List<Query>();
+
         foreach (var filter in filters.Where(f => f.PropertyName != "globalSearch"))
         {
             if (filter.PropertyName == "_id")
             {
-                mustConditions.Add(getQuery(filter, properties));
+                topLevelFilterQueries.Add(getQuery(filter, properties));
                 continue;
             }
 
@@ -510,7 +512,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                     shouldGroups.Add(Query.Bool(new BoolQuery { Must = groupMust }));
                 }
 
-                mustConditions.Add(Query.Bool(new BoolQuery
+                topLevelFilterQueries.Add(Query.Bool(new BoolQuery
                 {
                     Should = shouldGroups,
                     MinimumShouldMatch = 1
@@ -519,7 +521,23 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                 continue;
             }
 
-            mustConditions.Add(getQuery(filter, properties));
+            topLevelFilterQueries.Add(getQuery(filter, properties));
+        }
+
+        if (topLevelFilterQueries.Count > 0)
+        {
+            if (string.Equals(logicType, "or", StringComparison.OrdinalIgnoreCase))
+            {
+                mustConditions.Add(Query.Bool(new BoolQuery
+                {
+                    Should = topLevelFilterQueries,
+                    MinimumShouldMatch = 1
+                }));
+            }
+            else
+            {
+                mustConditions.AddRange(topLevelFilterQueries);
+            }
         }
 
         return Query.Bool(new BoolQuery
@@ -668,10 +686,13 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             return;
         }
 
-        var createResponse = await ElasticsearchClient.Indices.CreateAsync(indexName);
+        var createResponse = await ElasticsearchClient.Indices.CreateAsync(indexName, x => x
+            .Settings(s => s.MaxResultWindow(1000000)));
         if (!createResponse.IsValidResponse)
         {
-            throw new InvalidOperationException($"Failed to create index '{indexName}'.");
+            var error = createResponse.ElasticsearchServerError?.Error;
+            var reason = error?.Reason ?? createResponse.DebugInformation;
+            throw new InvalidOperationException($"Failed to create index '{indexName}'. Reason: {reason}");
         }
     }
 

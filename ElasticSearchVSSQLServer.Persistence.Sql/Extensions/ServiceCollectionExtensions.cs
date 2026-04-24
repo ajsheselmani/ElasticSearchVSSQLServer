@@ -32,12 +32,16 @@ using System.Text;
         services.AddPooledDbContextFactory<ApplicationDbContext>(options =>
             {
                 options.EnableSensitiveDataLogging();
-                options.UseSqlServer(databaseConfiguration.ConnectionString);
+                options.UseSqlServer(
+                    databaseConfiguration.ConnectionString,
+                    sqlOptions => sqlOptions.CommandTimeout(180));
             });
 
             services.AddDbContextPool<IdentityContext>(options =>
             {
-                options.UseSqlServer(databaseConfiguration.ConnectionString);
+                options.UseSqlServer(
+                    databaseConfiguration.ConnectionString,
+                    sqlOptions => sqlOptions.CommandTimeout(180));
             });
 
             services.AddIdentitySupport(databaseConfiguration.SecurityConfig);
@@ -68,7 +72,6 @@ using System.Text;
             services.AddScoped<IGenericRepository<ActionDTO, int>, GenericRepository<Context.Action, ActionDTO, int>>();
             services.AddScoped<IGenericRepository<LogDTO, string>, GenericRepository<Log, LogDTO, string>>();
             services.AddScoped<IGenericRepository<UserDto, string>, GenericRepository<AspNetUsers, UserDto, string>>();
-            services.AddScoped<IGenericRepository<BankDatasetDTO, int>, GenericRepository<Bankdataset, BankDatasetDTO, int>> ();
             services.AddScoped<IGenericRepository<ElectronicEventsDTO, int>, GenericRepository<ElectronicEvents, ElectronicEventsDTO, int>>();
             services.AddScoped<IGenericRepository<HMTransactionsTrainDTO, int>, GenericRepository<HMdatasetTransactionsTrain, HMTransactionsTrainDTO, int>>();
     }

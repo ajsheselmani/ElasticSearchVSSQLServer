@@ -34,11 +34,12 @@ export const ICONS = {
   dashboard: icon("solar:widget-3-bold-duotone"),
   user: icon("solar:users-group-rounded-bold-duotone"),
   elastic: icon("streamline-logos:elastic-logo-block"),
-  sql: icon("oui:vis-query-sql"),
+  sql: icon("mdi:sql-query"),
+  results: icon("mdi:gauge"),
   logs: icon("icon-park-outline:log"),
   logsFilled: icon("icon-park-solid:log"),
-  bank: icon("ri:bank-line"),
   electronics: icon("streamline-pixel:computers-devices-electronics-chipset"),
+  fashion: icon("hugeicons:t-shirt"),
 };
 
 export const useNavData = () => {
@@ -48,7 +49,7 @@ export const useNavData = () => {
     {
       items: [
         {
-          title: "Dashboard",
+          title: t("dashboard"),
           path: paths.dashboard.root,
           icon: ICONS.dashboard,
         },
@@ -58,15 +59,15 @@ export const useNavData = () => {
       subheader: t("sqlData"),
       icon: ICONS.sql,
       items: [
-        // {
-        //   title: t("bankDataSQL"),
-        //   path: paths.sql.bankData,
-        //   icon: ICONS.sql,
-        // },
         {
           title: t("electronicsDataSQL"),
           path: paths.sql.electronicsData,
           icon: ICONS.electronics,
+        },
+        {
+          title: t("hmTransactionsDataSQL"),
+          path: paths.sql.hmTransactionsData,
+          icon: ICONS.fashion,
         },
         {
           title: t("logsDataSql"),
@@ -79,15 +80,15 @@ export const useNavData = () => {
       subheader: t("elasticData"),
       icon: ICONS.elastic,
       items: [
-        // {
-        //   title: t("bankDataElastic"),
-        //   path: paths.elastic.bankData,
-        //   icon: ICONS.bank,
-        // },
         {
           title: t("electronicsDataElastic"),
           path: paths.elastic.electronicsData,
           icon: ICONS.electronics,
+        },
+        {
+          title: t("hmTransactionsDataElastic"),
+          path: paths.elastic.hmTransactionsData,
+          icon: ICONS.fashion,
         },
         {
           title: t("logsDataElastic"),

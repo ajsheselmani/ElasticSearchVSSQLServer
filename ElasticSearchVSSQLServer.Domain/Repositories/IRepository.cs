@@ -7,5 +7,12 @@ namespace ElasticSearchVSSQLServer.Domain.Repositories;
 
 public interface IRepository
 {
-    Task<List<HMFashionDatasetDTO>> GetHMFashionFlatBatch(DateOnly? lastDate, string lastCustomerId, int? lastArticleId, int batchSize);
+    Task<List<HMFashionDatasetDTO>> GetHMFashionFlatBatch(
+        DateOnly? lastDate,
+        string lastCustomerId,
+        int? lastArticleId,
+        double? lastPrice,
+        byte? lastSalesChannelId,
+        int batchSize);
+
 };

@@ -7,16 +7,8 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace ElasticSearchVSSQLServer.Domain.Services.SQLData;
-public class SQLDataService(IGenericRepository<HMTransactionsTrainDTO, int> hmTransactionsTrainDataRepo, IGenericRepository<BankDatasetDTO, int> bankDataRepo, IGenericRepository<ElectronicEventsDTO, int> electronicsDataRepo, IRepository repository, ILogger<SQLDataService> logger) : ISQLDataService
+public class SQLDataService(IGenericRepository<HMTransactionsTrainDTO, int> hmTransactionsTrainDataRepo, IGenericRepository<ElectronicEventsDTO, int> electronicsDataRepo, IRepository repository, ILogger<SQLDataService> logger) : ISQLDataService
 {
-    public async Task<IEnumerable<BankDatasetDTO>> GetAllBankData()
-    {
-        logger.LogInformation("Kerkese per marrje te te dhenave te datasetit te bankes nga SQLServer");
-        var banksData = await bankDataRepo.GetAllAsync();
-        logger.LogInformation("Marrja e te dhenave te datasetit per banka perfundoi. Numri i rekordeve: {Count}", banksData?.Count() ?? 0);
-        return banksData.ToList();
-    }
-
     public async Task<(IEnumerable<HMFashionDatasetDTO> Items, long TotalCount)> GetHMFashionData(
         int page,
         int pageSize,
@@ -50,47 +42,20 @@ public class SQLDataService(IGenericRepository<HMTransactionsTrainDTO, int> hmTr
         List<FilterItemDto> filters,
         string logicType
     ){
-        logger.LogInformation("Kerkese per marrje te te dhenave te datasetit te bankes nga SQLServer");
+        logger.LogInformation("Kerkese per marrje te te dhenave te datasetit te elektronikes nga SQLServer");
         var electronicsData = await electronicsDataRepo.GetPagedAsync(page, pageSize, filters, logicType);
-        logger.LogInformation("Marrja e te dhenave te datasetit per banka perfundoi. Rekorde ne faqe: {Count}, Total: {TotalCount}", electronicsData.Items?.Count() ?? 0, electronicsData.TotalCount);
+        logger.LogInformation("Marrja e te dhenave te datasetit per elektronike perfundoi. Rekorde ne faqe: {Count}, Total: {TotalCount}", electronicsData.Items?.Count() ?? 0, electronicsData.TotalCount);
         return electronicsData;
     }
 
-    public async Task<List<BankDatasetDTO>> GetBankBatch(string lastId, int batchSize)
+    public async Task<List<HMFashionDatasetDTO>> GetHMFashionFlatBatch(
+        DateOnly? lastDate,
+        string lastCustomerId,
+        int? lastArticleId,
+        double? lastPrice,
+        byte? lastSalesChannelId,
+        int batchSize)
     {
-        var data = await bankDataRepo.GetBatchAsync(lastId, batchSize);
-
-        return data.Select(b => new BankDatasetDTO
-        {
-            Id = b.Id,
-            Date = b.Date,
-            Location = b.Location,
-            TransactionCount = b.TransactionCount,
-            Domain = b.Domain,
-            Value = b.Value,
-        }).ToList();
-    }
-
-    //public async Task<List<ElectronicEventsDTO>> GetElectronicsBatch(string lastId, int batchSize)
-    //{
-    //    var data = await electronicsDataRepo.GetBatchAsync(lastId, batchSize);
-
-    //    return data.Select(b => new ElectronicEventsDTO
-    //    {
-    //        Id = b.Id,
-    //        EventTime = b.EventTime,
-    //        EventType = b.EventType,
-    //        ProductId = b.ProductId,
-    //        CategoryId = b.CategoryId,
-    //        CategoryCode = b.CategoryCode,
-    //        Brand = b.Brand,
-    //        Price = b.Price,
-    //        UserId = b.UserId,
-    //        UserSession = b.UserSession
-    //    }).ToList();
-    //}
-    public async Task<List<HMFashionDatasetDTO>> GetHMFashionFlatBatch(DateOnly? lastDate, string lastCustomerId, int? lastArticleId, int batchSize)
-    {
-        return await repository.GetHMFashionFlatBatch(lastDate, lastCustomerId, lastArticleId, batchSize);
+        return await repository.GetHMFashionFlatBatch(lastDate, lastCustomerId, lastArticleId, lastPrice, lastSalesChannelId, batchSize);
     }
 }

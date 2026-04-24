@@ -29,7 +29,6 @@ const StyledTextField = styled(TextField)(({ theme, ownerState }) => ({
 
 export default function DataGridToolbar(props) {
   const { onSearchChange } = props;
-  console.log(props, "props");
   const { t } = useTranslation();
   const [expanded, setExpanded] = React.useState(false);
   const [value, setValue] = React.useState("");

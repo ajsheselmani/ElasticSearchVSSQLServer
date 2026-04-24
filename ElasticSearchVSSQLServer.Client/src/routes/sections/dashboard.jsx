@@ -12,7 +12,9 @@ import { CONFIG } from "../../global-config";
 
 // ----------------------------------------------------------------------
 
-const IndexPage = lazy(() => import("src/pages/dashboard/one"));
+const PerformanceDashboardPage = lazy(
+  () => import("src/pages/testResults/testResults"),
+);
 
 // ----------------------------------------------------------------------
 
@@ -39,6 +41,6 @@ export const dashboardRoutes = [
     ) : (
       <AuthGuard>{dashboardLayout()}</AuthGuard>
     ),
-    children: [{ element: <IndexPage />, index: true }],
+    children: [{ element: <PerformanceDashboardPage />, index: true }],
   },
 ];

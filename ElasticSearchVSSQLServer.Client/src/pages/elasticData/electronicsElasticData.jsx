@@ -127,8 +127,6 @@ const ElectronicsElasticData = () => {
             logicType: logicType || "and",
           },
         );
-        debugger;
-        console.log(electronicsDatasetData, "electronicsDatasetData");
         setData(electronicsDatasetData.data?.hits);
         setTotalCount(electronicsDatasetData?.data?.metadata?.totalCount ?? 0);
       } finally {
@@ -138,7 +136,7 @@ const ElectronicsElasticData = () => {
 
     loadData();
   }, [user, page, pageSize, filter, logicType, searchText]);
-  console.log(data, "data");
+
   const rowsWithId =
     data &&
     data?.map((row, index) => ({

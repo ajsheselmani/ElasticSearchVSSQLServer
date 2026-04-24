@@ -115,8 +115,6 @@ const LogsElasticSearch = () => {
           });
         }
 
-        console.log("Sending filters to backend:", requestFilters); // ✅ debug
-
         const bankDatasetData = await axiosInstance.put(
           "/ElasticData/LogsDataSearch?page=" + page + "&pageSize=" + pageSize,
           {

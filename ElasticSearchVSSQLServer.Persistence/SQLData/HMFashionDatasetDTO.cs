@@ -21,11 +21,14 @@ public class HMFashionDatasetDTO
     public string DetailDesc { get; set; }
 
     public string CustomerId { get; set; }
+    public string Fn { get; set; }
+    public string Active { get; set; }
     public string ClubMemberStatus { get; set; }
     public string FashionNewsFrequency { get; set; }
     public string Age { get; set; }
     public string PostalCode { get; set; }
 
     public double? Price { get; set; }
+    public byte? SalesChannelId { get; set; }
     public DateOnly Date { get; set; }
 }

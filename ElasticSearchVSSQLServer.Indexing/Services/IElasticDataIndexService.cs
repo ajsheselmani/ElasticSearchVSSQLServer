@@ -5,6 +5,6 @@ using System.Text;
 namespace ElasticSearchVSSQLServer.Indexing.Services;
 public interface IElasticDataIndexService
 {
-    Task IndexAllBankDatas();
     Task IndexAllElectronicsDatas();
+    Task IndexAllHMFashionFlatDatas(int batchSize = 10000);
 }

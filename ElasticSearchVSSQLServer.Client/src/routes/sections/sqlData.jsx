@@ -6,12 +6,17 @@ import { DashboardLayout } from "src/layouts/dashboard";
 import { AuthGuard } from "src/auth/guard";
 
 const IndexPage = lazy(() => import("src/pages/dashboard/one"));
-const SQLDataPage = lazy(() => import("../../pages/sqlData/bankDataset"));
 const ElectronicsDataPage = lazy(
   () => import("../../pages/sqlData/electronicsDataset"),
 );
+const HMTransactionsDataPage = lazy(
+  () => import("../../pages/sqlData/hmTransactionsDataset"),
+);
 const ElectronicsElasticDataPage = lazy(
   () => import("../../pages/elasticData/electronicsElasticData"),
+);
+const HMTransactionsElasticDataPage = lazy(
+  () => import("../../pages/elasticData/hmTransactionsElasticData"),
 );
 const LogsElasticDataPage = lazy(
   () => import("../../pages/elasticData/logsElasticSearch"),
@@ -46,12 +51,12 @@ export const sqlDataRoutes = [
         element: <IndexPage />,
         children: [
           {
-            path: "bankData",
-            element: <SQLDataPage />,
-          },
-          {
             path: "electronicsData",
             element: <ElectronicsDataPage />,
+          },
+          {
+            path: "hmTransactionsData",
+            element: <HMTransactionsDataPage />,
           },
           {
             path: "logsData",
@@ -64,12 +69,12 @@ export const sqlDataRoutes = [
         element: <IndexPage />,
         children: [
           {
-            path: "bankData",
-            element: <SQLDataPage />,
-          },
-          {
             path: "electronicsData",
             element: <ElectronicsElasticDataPage />,
+          },
+          {
+            path: "hmTransactionsData",
+            element: <HMTransactionsElasticDataPage />,
           },
           {
             path: "logsData",

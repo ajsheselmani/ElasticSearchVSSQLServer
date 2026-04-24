@@ -13,16 +13,21 @@ public class H_MFashionFlatIndexDTO
     public int SalesChannelId { get; set; }
 
     public string CustomerId { get; set; } = default!;
+    public string? Fn { get; set; }
+    public string? Active { get; set; }
     public int? Age { get; set; }
     public string? ClubMemberStatus { get; set; }
     public string? FashionNewsFrequency { get; set; }
     public string? PostalCode { get; set; }
 
     public long ArticleId { get; set; }
+    public int ProductCode { get; set; }
     public string? ProdName { get; set; }
     public string? ProductTypeName { get; set; }
     public string? ProductGroupName { get; set; }
+    public string? GraphicalAppearanceName { get; set; }
     public string? ColourGroupName { get; set; }
+    public string? PerceivedColourValueName { get; set; }
     public string? DepartmentName { get; set; }
     public string? IndexName { get; set; }
     public string? IndexGroupName { get; set; }

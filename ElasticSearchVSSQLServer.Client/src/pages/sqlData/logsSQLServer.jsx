@@ -129,7 +129,6 @@ const LogsElasticSearch = () => {
             },
           },
         );
-        console.log(bankDatasetData, "bankDatasetData");
         setTotalCount(bankDatasetData?.data?.totalCount ?? 0);
         setData(bankDatasetData?.data);
       } finally {
@@ -147,7 +146,6 @@ const LogsElasticSearch = () => {
       id: page * pageSize + index,
     }));
 
-  console.log(data, "data");
   const columns = useMemo(
     () => [
       {

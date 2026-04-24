@@ -23,7 +23,12 @@
             </summary>
             <returns>Returns logs of the system.</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.GetAllHMData(System.Int32,System.Int32,System.String,System.String)" -->
+        <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.GetAllHMTransactionsTrain(System.Int32,System.Int32,System.String,System.String)">
+            <summary>
+            Retrieves paged transaction rows from HMdatasetTransactionsTrain with article and customer data.
+            </summary>
+            <returns>Returns paged HM transactions for datagrid usage.</returns>
+        </member>
         <member name="M:ElasticSearchVSSQLServer.RestApi.Controllers.SQLDataController.ElectronicEvents(System.Int32,System.Int32,System.String,System.String)">
             <summary>
             Retrieves datas from electronicEvents dataset.

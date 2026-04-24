@@ -8,9 +8,10 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:perf:sql": "k6 run tests/k6/scenarios/sqlserver-fetch.js",
-    "test:perf:es": "k6 run tests/k6/scenarios/elasticsearch-search.js",
-    "test:perf:all": "k6 run tests/k6/scenarios/sqlserver-fetch.js && k6 run tests/k6/scenarios/elasticsearch-search.js"
+    "test:perf:electronics:browse": "k6 run tests/k6/scenarios/electronics-browse.js",
+    "test:perf:electronics:search": "k6 run tests/k6/scenarios/electronics-search.js",
+    "test:perf:logs:search": "k6 run tests/k6/scenarios/logs-search.js",
+    "test:perf:all": "npm run test:perf:electronics:browse && npm run test:perf:electronics:search && npm run test:perf:logs:search"
   },
   "dependencies": {
     "@apollo/client": "^4.1.6",

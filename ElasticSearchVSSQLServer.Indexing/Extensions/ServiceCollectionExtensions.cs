@@ -7,6 +7,7 @@ using ElasticSearchVSSQLServer.Indexing.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 
@@ -28,9 +29,11 @@ public static class ServiceCollectionExtensions
             options.CertificateFingerprint = configuration.CertificateFingerprint;
             options.Password = configuration.Password;
             options.Username = configuration.Username;
+            options.ApiKey = configuration.ApiKey;
         });
 
-        var nodePool = new SingleNodePool(new Uri(configuration.Uri));
+        var elasticUri = new Uri(configuration.Uri);
+        var nodePool = new SingleNodePool(elasticUri);
 
         var settings = new ElasticsearchClientSettings(
                 nodePool,
@@ -38,8 +41,16 @@ public static class ServiceCollectionExtensions
                     new DefaultSourceSerializer(settings, opt =>
                         opt.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
                     )
-            )
-            .CertificateFingerprint(configuration.CertificateFingerprint);
+            );
+
+        if (!string.IsNullOrWhiteSpace(configuration.CertificateFingerprint))
+        {
+            settings = settings.CertificateFingerprint(configuration.CertificateFingerprint);
+        }
+        else if (IsLocalhost(elasticUri))
+        {
+            settings = settings.ServerCertificateValidationCallback(CertificateValidations.AllowAll);
+        }
 
         if (!string.IsNullOrWhiteSpace(configuration.ApiKey))
         {
@@ -55,5 +66,15 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<IIndexService, IndexService>();
         serviceCollection.AddScoped<IElasticDataIndexService, ElasticDataIndexService>();
         return serviceCollection;
+    }
+
+    private static bool IsLocalhost(Uri uri)
+    {
+        if (uri.IsLoopback)
+        {
+            return true;
+        }
+
+        return IPAddress.TryParse(uri.Host, out var address) && IPAddress.IsLoopback(address);
     }
 }

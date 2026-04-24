@@ -2,10 +2,10 @@
 using ElasticSearchVSSQLServer.Domain.Services.SQLData;
 using ElasticSearchVSSQLServer.Indexing.Models;
 using ElasticSearchVSSQLServer.Indexing.Models.Datasets;
+using ElasticSearchVSSQLServer.Indexing.Models.LogsIndexed;
 using ElasticSearchVSSQLServer.Indexing.Services;
 using ElasticSearchVSSQLServer.Persistence.Audit;
 using ElasticSearchVSSQLServer.Persistence.SQLData;
-using ElasticSearchVSSQLServer.RestApi.Models.OutputModels.SQLData;
 using ElasticSearchVSSQLServer.RestApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,57 +13,23 @@ using Microsoft.AspNetCore.Mvc;
 namespace ElasticSearchVSSQLServer.RestApi.Controllers;
 [Route("api/[controller]")]
 [ApiController, Authorize]
-public class ElasticDataController(IMapper mapper, ILogger<ElasticDataController> logger, IElasticDataIndexService elasticDataService, IIndexService indexService, ISQLDataService sqlDataService, IElasticDataIndexService elasticDataIndexService) : ControllerBase
+public class ElasticDataController(
+    ILogger<ElasticDataController> logger,
+    IServiceScopeFactory serviceScopeFactory,
+    IElasticDataIndexService elasticDataIndexService,
+    IIndexService indexService,
+    ISQLDataService sqlDataService) : ControllerBase
 {
-    private const string BankDatasetIndexName = "elasticvssql_bank";
     private const string ElectronicsDatasetIndexName = "elasticvssql_electronics";
     private const string HMFashionDatasetIndexName = "elasticvssql_hmfashion";
-
-    [HttpPost("BankDatasetElastic")]
-    public async Task<IActionResult> BankDatasetElastic()
-    {
-        string lastId = "0";
-        int batchSize = 5000;
-        int totalIndexed = 0;
-
-        _ = Task.Run(async () =>
-        {
-            while (true)
-            {
-                try
-                {
-                    var batch = await sqlDataService.GetBankBatch(lastId, batchSize);
-
-                    if (batch == null || !batch.Any())
-                        break;
-
-                    await indexService.IndexData(batch.ToArray(), BankDatasetIndexName);
-
-                    // Update the pointer to the last ID in this batch
-                    lastId = batch.Max(x => x.Id);
-                    totalIndexed += batch.Count;
-
-                    logger.LogInformation("Successfully indexed {Total} rows. Last ID: {Id}", totalIndexed, lastId);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Sync failed at ID {Id}", lastId);
-                    break;
-                }
-            }
-        });
-
-        return Accepted("Background synchronization started.");
-    }
 
     [HttpPost("ElectronicsDatasetElasticIndexing")]
     public async Task<IActionResult> ElectronicsDatasetElastic()
     {
         try
         {
-         await elasticDataIndexService.IndexAllElectronicsDatas();
-        //var mappedData = mapper.Map<ElectronicEventsOutputModel[]>(electronicsDataElastic);
-        return Ok();
+            await elasticDataIndexService.IndexAllElectronicsDatas();
+            return Ok();
         }
         catch (Exception ex)
         {
@@ -90,44 +56,83 @@ public class ElasticDataController(IMapper mapper, ILogger<ElasticDataController
         return Ok(result);
     }
 
+    [HttpPut("HMFashionFlatSearch")]
+    public async Task<IActionResult> HMFashionFlatSearch([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? query, [FromBody] SearchParamsNew search)
+    {
+        var userId = UserClaimHelper.GetUserId(User);
+        var result = await indexService.SearchNew<H_MFashionFlatIndexDTO>(page, pageSize, query, search, HMFashionDatasetIndexName);
+        logger.LogInformation("H&M flat search executed with Page={Page}, PageSize={PageSize}, Query={Query} by user {UserId}.", page, pageSize, query, userId);
+        return Ok(result);
+    }
+
     [HttpPost("HMFashionFlatElastic")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(HMFashionFlatElasticStartResponse), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> HMFashionFlatElastic(int batchSize = 10000)
     {
-        DateOnly? lastDate = null;
-        string lastCustomerId = string.Empty;
-        int? lastArticleId = null;
-        long totalIndexed = 0;
+        if (batchSize <= 0)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid batch size.",
+                Detail = "Batch size must be greater than zero.",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        var startedAtUtc = DateTime.UtcNow;
+
+        try
+        {
+            logger.LogInformation(
+                "Preparing H&M flat indexing. Creating or verifying Elasticsearch index {IndexName}. BatchSize={BatchSize}",
+                HMFashionDatasetIndexName,
+                batchSize);
+
+            await indexService.CreateIndex(HMFashionDatasetIndexName);
+            logger.LogInformation("Elasticsearch index {IndexName} is ready. Starting background import.", HMFashionDatasetIndexName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Could not create or verify Elasticsearch index {IndexName}.", HMFashionDatasetIndexName);
+
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Could not start H&M flat indexing.",
+                Detail = ex.Message,
+                Status = StatusCodes.Status500InternalServerError
+            });
+        }
 
         _ = Task.Run(async () =>
         {
-            while (true)
+            try
             {
-                try
-                {
-                    var batch = await sqlDataService.GetHMFashionFlatBatch(lastDate, lastCustomerId, lastArticleId, batchSize);
+                using var scope = serviceScopeFactory.CreateScope();
+                var scopedIndexService = scope.ServiceProvider.GetRequiredService<IElasticDataIndexService>();
 
-                    if (batch == null || batch.Count == 0)
-                        break;
-
-                    var mappedData = mapper.Map<H_MFashionFlatIndexDTO[]>(batch);
-                    await indexService.IndexData(mappedData, HMFashionDatasetIndexName);
-
-                    var lastRecord = batch.Last();
-                    lastDate = lastRecord.Date;
-                    lastCustomerId = lastRecord.CustomerId;
-                    lastArticleId = (int)lastRecord.ArticleId;
-                    totalIndexed += batch.Count;
-
-                    logger.LogInformation("H&M flat indexing progress: {TotalIndexed} rows. Cursor: {Date} | {CustomerId} | {ArticleId}", totalIndexed, lastDate, lastCustomerId, lastArticleId);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "H&M flat indexing failed at cursor {Date} | {CustomerId} | {ArticleId}", lastDate, lastCustomerId, lastArticleId);
-                    break;
-                }
+                await scopedIndexService.IndexAllHMFashionFlatDatas(batchSize);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "H&M flat indexing failed.");
             }
         });
 
-        return Accepted($"Background H&M flat synchronization started with batch size {batchSize}.");
+        return StatusCode(
+            StatusCodes.Status202Accepted,
+            new HMFashionFlatElasticStartResponse(
+                "Background H&M flat synchronization started.",
+                HMFashionDatasetIndexName,
+                batchSize,
+                startedAtUtc));
     }
 }
+
+public record HMFashionFlatElasticStartResponse(
+    string Message,
+    string IndexName,
+    int BatchSize,
+    DateTime StartedAtUtc);

@@ -39,13 +39,14 @@ export const paths = {
     root: ROOTS.DASHBOARD,
   },
   sql: {
-    bankData: "/sql/bankData",
     electronicsData: "/sql/electronicsData",
+    hmTransactionsData: "/sql/hmTransactionsData",
     logsData: "/sql/logsData",
   },
   elastic: {
-    bankData: "/elastic/bankData",
     electronicsData: "/elastic/electronicsData",
+    hmTransactionsData: "/elastic/hmTransactionsData",
     logsData: "/elastic/logsData",
+    testResults: "/elastic/testResults",
   },
 };
