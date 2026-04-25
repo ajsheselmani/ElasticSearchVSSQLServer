@@ -49,4 +49,7 @@ export const paths = {
     logsData: "/elastic/logsData",
     testResults: "/elastic/testResults",
   },
+  compare: {
+    querySearch: "/compare/querySearch",
+  },
 };

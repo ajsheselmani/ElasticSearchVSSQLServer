@@ -285,7 +285,22 @@ public class Repository(ApplicationDBService dbContextService) : IRepository
             method = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) })!;
         }
 
-        var comparison = Expression.Call(memberExpression, method, Expression.Constant(normalizedValue));
+        Expression comparison;
+        if (method.Name == nameof(string.Contains))
+        {
+            var searchTerms = SplitSearchTerms(normalizedValue);
+
+            comparison = searchTerms.Count == 0
+                ? Expression.Constant(true)
+                : searchTerms
+                    .Select(searchTerm => (Expression)Expression.Call(memberExpression, method, Expression.Constant(searchTerm)))
+                    .Aggregate(Expression.AndAlso);
+        }
+        else
+        {
+            comparison = Expression.Call(memberExpression, method, Expression.Constant(normalizedValue));
+        }
+
         return Expression.AndAlso(notNull, comparison);
     }
 
@@ -296,7 +311,7 @@ public class Repository(ApplicationDBService dbContextService) : IRepository
         if (string.IsNullOrWhiteSpace(filter.Value))
             return null;
 
-        var searchValue = filter.Value.Trim();
+        var searchTerms = SplitSearchTerms(filter.Value);
         Expression? combined = null;
 
         var properties = typeof(TEntity)
@@ -304,32 +319,44 @@ public class Repository(ApplicationDBService dbContextService) : IRepository
             .Where(p => p.CanRead)
             .ToList();
 
-        foreach (var prop in properties)
+        foreach (var searchTerm in searchTerms)
         {
-            var member = Expression.Property(parameter, prop);
-            var propType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+            Expression? termPredicate = null;
 
-            Expression? fieldPredicate = null;
-
-            if (propType == typeof(string))
+            foreach (var prop in properties)
             {
-                fieldPredicate = BuildLikePredicate(member, $"*{searchValue}*", filter.CaseSensitive);
-            }
-            else if (IsGlobalSearchSupportedType(propType) &&
-                     TryParseFilterValue(searchValue, propType, out var typedValue))
-            {
-                var constant = Expression.Constant(typedValue, propType);
-                fieldPredicate = prop.PropertyType != propType
-                    ? Expression.Equal(member, Expression.Convert(constant, prop.PropertyType))
-                    : Expression.Equal(member, constant);
+                var member = Expression.Property(parameter, prop);
+                var propType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+
+                Expression? fieldPredicate = null;
+
+                if (propType == typeof(string))
+                {
+                    fieldPredicate = BuildLikePredicate(member, $"*{searchTerm}*", filter.CaseSensitive);
+                }
+                else if (IsGlobalSearchSupportedType(propType) &&
+                         TryParseFilterValue(searchTerm, propType, out var typedValue))
+                {
+                    var constant = Expression.Constant(typedValue, propType);
+                    fieldPredicate = prop.PropertyType != propType
+                        ? Expression.Equal(member, Expression.Convert(constant, prop.PropertyType))
+                        : Expression.Equal(member, constant);
+                }
+
+                if (fieldPredicate == null)
+                    continue;
+
+                termPredicate = termPredicate == null
+                    ? fieldPredicate
+                    : Expression.OrElse(termPredicate, fieldPredicate);
             }
 
-            if (fieldPredicate == null)
+            if (termPredicate == null)
                 continue;
 
             combined = combined == null
-                ? fieldPredicate
-                : Expression.OrElse(combined, fieldPredicate);
+                ? termPredicate
+                : Expression.OrElse(combined, termPredicate);
         }
 
         if (combined == null)
@@ -337,6 +364,15 @@ public class Repository(ApplicationDBService dbContextService) : IRepository
 
         return filter.Negate ? Expression.Not(combined) : combined;
     }
+
+    private static List<string> SplitSearchTerms(string? value)
+        => string.IsNullOrWhiteSpace(value)
+            ? []
+            : value
+                .Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Select(searchTerm => searchTerm.Trim(',', ';', '.', ':', '!', '?', '"', '\'', '(', ')', '[', ']', '{', '}'))
+                .Where(searchTerm => !string.IsNullOrWhiteSpace(searchTerm))
+                .ToList();
 
     private static bool TryParseFilterValue(string rawValue, Type targetType, out object? typedValue)
     {

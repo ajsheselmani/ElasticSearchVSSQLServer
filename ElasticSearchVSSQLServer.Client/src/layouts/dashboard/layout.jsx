@@ -36,6 +36,7 @@ export const ICONS = {
   elastic: icon("streamline-logos:elastic-logo-block"),
   sql: icon("mdi:sql-query"),
   results: icon("mdi:gauge"),
+  compare: icon("mdi:database-search-outline"),
   logs: icon("icon-park-outline:log"),
   logsFilled: icon("icon-park-solid:log"),
   electronics: icon("streamline-pixel:computers-devices-electronics-chipset"),
@@ -57,7 +58,7 @@ export const useNavData = () => {
     },
     {
       subheader: t("sqlData"),
-      icon: ICONS.sql,
+      // icon: ICONS.sql,
       items: [
         {
           title: t("electronicsDataSQL"),
@@ -78,7 +79,7 @@ export const useNavData = () => {
     },
     {
       subheader: t("elasticData"),
-      icon: ICONS.elastic,
+      // icon: ICONS.elastic,
       items: [
         {
           title: t("electronicsDataElastic"),
@@ -94,6 +95,17 @@ export const useNavData = () => {
           title: t("logsDataElastic"),
           path: paths.elastic.logsData,
           icon: ICONS.logs,
+        },
+      ],
+    },
+    {
+      subheader: "Compare",
+      icon: ICONS.compare,
+      items: [
+        {
+          title: "SQL vs Elasticsearch Search",
+          path: paths.compare.querySearch,
+          icon: ICONS.compare,
         },
       ],
     },

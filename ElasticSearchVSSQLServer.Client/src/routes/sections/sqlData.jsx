@@ -25,6 +25,9 @@ const TestResultsPage = lazy(
   () => import("../../pages/testResults/testResults"),
 );
 const LogsSQLDataPage = lazy(() => import("../../pages/sqlData/logsSQLServer"));
+const QueryComparisonPage = lazy(
+  () => import("../../pages/compare/queryDatasetComparison"),
+);
 
 function SuspenseOutlet() {
   const pathname = usePathname();
@@ -83,6 +86,16 @@ export const sqlDataRoutes = [
           {
             path: "testResults",
             element: <TestResultsPage />,
+          },
+        ],
+      },
+      {
+        path: "/compare",
+        element: <IndexPage />,
+        children: [
+          {
+            path: "querySearch",
+            element: <QueryComparisonPage />,
           },
         ],
       },

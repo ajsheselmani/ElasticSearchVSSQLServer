@@ -276,14 +276,22 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         foreach (var filter in filters)
         {
             string propertyType = getPropertyType(filter.PropertyName, properties);
-            var fieldName = getCorrectFieldName(filter.PropertyName, properties);
+            var fieldName = getFilterFieldName(filter.PropertyName, properties, filter.Operator);
             switch (filter.Operator)
             {
                 case Models.Enums.DataFilterOperator.Eq:
-                    mustConditions.Add(Query.Term(new TermQuery(fieldName) { Value = filter.Value.ToString(), CaseInsensitive = !filter.CaseSensitive }));
+                    mustConditions.Add(Query.Term(new TermQuery(fieldName)
+                    {
+                        Value = BuildTermFilterValue(filter.Value?.ToString(), propertyType),
+                        CaseInsensitive = SupportsCaseInsensitiveStringMatching(propertyType) && !filter.CaseSensitive
+                    }));
                     break;
                 case Models.Enums.DataFilterOperator.Neq:
-                    mustNotConditions.Add(Query.Term(new TermQuery(fieldName) { Value = filter.Value.ToString(), CaseInsensitive = !filter.CaseSensitive }));
+                    mustNotConditions.Add(Query.Term(new TermQuery(fieldName)
+                    {
+                        Value = BuildTermFilterValue(filter.Value?.ToString(), propertyType),
+                        CaseInsensitive = SupportsCaseInsensitiveStringMatching(propertyType) && !filter.CaseSensitive
+                    }));
                     break;
                 case Models.Enums.DataFilterOperator.Like:
                     mustConditions.Add(Query.Wildcard(new WildcardQuery(fieldName) { Value = $"*{filter.Value}*", CaseInsensitive = !filter.CaseSensitive }));
@@ -333,14 +341,22 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         foreach (var orFilter in orFilters)
         {
             string propertyType = getPropertyType(orFilter.PropertyName, properties);
-            var fieldName = getCorrectFieldName(orFilter.PropertyName, properties);
+            var fieldName = getFilterFieldName(orFilter.PropertyName, properties, orFilter.Operator);
             switch (orFilter.Operator)
             {
                 case Models.Enums.DataFilterOperator.Eq:
-                    shouldConditions.Add(Query.Term(new TermQuery(fieldName) { Value = orFilter.Value.ToString(), CaseInsensitive = !orFilter.CaseSensitive }));
+                    shouldConditions.Add(Query.Term(new TermQuery(fieldName)
+                    {
+                        Value = BuildTermFilterValue(orFilter.Value?.ToString(), propertyType),
+                        CaseInsensitive = SupportsCaseInsensitiveStringMatching(propertyType) && !orFilter.CaseSensitive
+                    }));
                     break;
                 case Models.Enums.DataFilterOperator.Neq:
-                    shouldConditions.Add(Query.Term(new TermQuery(fieldName) { Value = orFilter.Value.ToString(), CaseInsensitive = !orFilter.CaseSensitive }));
+                    shouldConditions.Add(Query.Term(new TermQuery(fieldName)
+                    {
+                        Value = BuildTermFilterValue(orFilter.Value?.ToString(), propertyType),
+                        CaseInsensitive = SupportsCaseInsensitiveStringMatching(propertyType) && !orFilter.CaseSensitive
+                    }));
                     break;
                 case Models.Enums.DataFilterOperator.Like:
                     shouldConditions.Add(Query.Wildcard(new WildcardQuery(fieldName) { Value = $"*{orFilter.Value}*", CaseInsensitive = !orFilter.CaseSensitive }));
@@ -404,13 +420,13 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         return aggregationDictionary;
     }
 
-    private string getCorrectFieldName(string fieldName, Properties properties)
+    private string getCorrectFieldName(string fieldName, Properties properties, bool useExactTextField = true)
     {
         if (string.IsNullOrWhiteSpace(fieldName) || fieldName == "_id")
         {
             return fieldName;
         }
-        if (fieldName.Contains(".keyword"))
+        if (fieldName.Contains(".keyword") || fieldName.Contains(".raw"))
         {
             return fieldName;
         }
@@ -418,9 +434,18 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         var resolvedFieldName = resolveFieldName(fieldName, properties);
         var propertyType = getPropertyType(resolvedFieldName, properties);
 
-        return propertyType == "text"
-            ? $"{resolvedFieldName}.raw"
+        return useExactTextField && propertyType == "text"
+            ? $"{resolvedFieldName}.keyword"
             : resolvedFieldName;
+    }
+
+    private string getFilterFieldName(string fieldName, Properties properties, DataFilterOperator filterOperator)
+    {
+        var useExactTextField = filterOperator is DataFilterOperator.Eq
+            or DataFilterOperator.Neq
+            or DataFilterOperator.In;
+
+        return getCorrectFieldName(fieldName, properties, useExactTextField);
     }
 
     private string getPropertyType(string fieldName, Properties properties)
@@ -644,6 +669,12 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         return rawValue ?? string.Empty;
     }
 
+    private static bool SupportsCaseInsensitiveStringMatching(string? propertyType)
+        => propertyType is "text"
+            or "keyword"
+            or "constant_keyword"
+            or "wildcard";
+
     private Query setFilteringNew(string searchQuery, IEnumerable<DataFilter> filters, Properties properties, string logicType = "and")
     {
         var mustConditions = new List<Query>();
@@ -753,7 +784,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
 
     private Query getQuery(DataFilter filter, Properties properties)
     {
-        var fieldName = getCorrectFieldName(filter.PropertyName, properties);
+        var fieldName = getFilterFieldName(filter.PropertyName, properties, filter.Operator);
 
         if (filter.PropertyName == "_id")
             return Query.Ids(new IdsQuery { Values = new[] { filter.Value?.ToString() } });
@@ -766,7 +797,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                 return Query.Term(new TermQuery(fieldName)
                 {
                     Value = BuildTermFilterValue(filter.Value?.ToString(), propertyType),
-                    CaseInsensitive = !filter.CaseSensitive
+                    CaseInsensitive = SupportsCaseInsensitiveStringMatching(propertyType) && !filter.CaseSensitive
                 });
 
             case Models.Enums.DataFilterOperator.Neq:
@@ -777,7 +808,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                     Query.Term(new TermQuery(fieldName)
                     {
                         Value = BuildTermFilterValue(filter.Value?.ToString(), propertyType),
-                        CaseInsensitive = !filter.CaseSensitive
+                        CaseInsensitive = SupportsCaseInsensitiveStringMatching(propertyType) && !filter.CaseSensitive
                     })
                 }
                 });
