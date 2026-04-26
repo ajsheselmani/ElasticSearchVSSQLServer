@@ -45,11 +45,29 @@ public class SQLDataController(IMapper mapper, ISQLDataService service, ILogger<
         [FromQuery] string logicType = "and"
     )
     {
-        var parsedFilters = ParseFilters(filters);
-
-        var (items, totalCount) = await service.GetElectronicEvents(page, pageSize, parsedFilters, logicType);
-        var result = mapper.Map<ElectronicEventsOutputModel[]>(items);
-        return Ok(new { items = result, totalCount });
+        try
+        {
+            var parsedFilters = ParseFilters(filters);
+            var (items, totalCount) = await service.GetElectronicEvents(page, pageSize, parsedFilters, logicType);
+            var result = mapper.Map<ElectronicEventsOutputModel[]>(items);
+            return Ok(new { items = result, totalCount });
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Invalid electronics filters payload. Page: {Page}, PageSize: {PageSize}, LogicType: {LogicType}", page, pageSize, logicType);
+            return BadRequest(new
+            {
+                message = "Invalid filters JSON format."
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load electronics data. Page: {Page}, PageSize: {PageSize}, LogicType: {LogicType}", page, pageSize, logicType);
+            return Problem(
+                title: "Failed to load electronics data.",
+                detail: ex.Message,
+                statusCode: StatusCodes.Status500InternalServerError);
+        }
     }
 
     private async Task<IActionResult> GetHMTransactionsTrainDataInternal(

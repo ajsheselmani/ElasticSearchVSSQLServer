@@ -1,10 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Outlet } from "react-router";
-// import { DashboardLayout } from 'src/layouts/dashboard';
-// import { LoadingScreen } from "src/components/loading-screen";
-// import { AuthGuard } from "src/auth/guard";
 import { usePathname } from "../hooks";
-// import { DashboardLayout } from "src/layouts/dashboard";
 import { LoadingScreen } from "src/components/loading-screen";
 import { DashboardLayout } from "src/layouts/dashboard";
 import { AuthGuard } from "src/auth/guard";

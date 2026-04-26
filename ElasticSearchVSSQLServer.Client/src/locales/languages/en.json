@@ -16,7 +16,7 @@
   "dayOff": "Number of days off",
   "deleteSuccess": "Delete success!",
   "titleMax100": "Title must be less than 100 characters",
-  "descriptionRequired": "Description is required!",
+  "descriptionRequired": "Description is required.",
   "descriptionMin50": "Description must be at least 50 characters",
   "accessManagement": "Access Management",
   "sq": "Albanian",
@@ -66,7 +66,7 @@
   "continue": "Continue",
   "close": "Close",
   "refundOfFunds": "Refund of Funds",
-  "searchResults": "Search Results",
+  "searchResults": "Search results",
   "payments": "Payments",
   "uniref": "Reference",
   "icsDate": "ICS Date",
@@ -108,7 +108,6 @@
   "icsDescriptionMaxLength": "ICS description cannot be longer than 512 characters.",
   "icsDescriptionRequired": "ICS description is required.",
   "descriptionMaxLength": "Description cannot be longer than 512 characters.",
-  "descriptionRequired": "Description is required.",
   "reasonRequired": "Reason is required.",
   "statusRequired": "Status is required.",
   "bankOrNfibRequired": "You must select a Bank or NFIB.",
@@ -922,7 +921,6 @@
   "searchByFields": "Search by fields",
   "icsDateFrom": "ICS date from",
   "icsDateTo": "ICS date to",
-  "clear": "Clear",
   "july": "July",
   "august": "August",
   "september": "September",
@@ -978,7 +976,6 @@
   "startDateRequired": "Start date is required",
   "endDateRequired": "End date is required",
   "endDateAfterStart": "End date must be after start date",
-  "searchResults": "Search results",
   "errorFetchingCities": "Error fetching cities",
   "pleaseSearchFirst": "Please perform a search first before generating reports",
   "errorGeneratingReport": "Error generating report. Please try again.",
@@ -1022,7 +1019,6 @@
   "passwordChanges": "Password changes",
   "accessLevelChanges": "Access level changes",
   "failedLoginAttempts": "Failed login attempts",
-  "toYear": "Until the year",
   "averageTimeResponse": "Average response time",
   "averageTimeServeRequest": "Average time needed to serve a request.",
   "p90ResponseTime": "P90 response time",
@@ -1053,16 +1049,19 @@
     "headlineReliabilityLeader": "{{winner}} is more stable on failed requests at {{value}}.",
     "leader": "Leader: {{winner}}",
     "ready": "Ready",
+    "seeded": "Seeded",
     "pending": "Pending",
     "updated": "Updated: {{date}}",
     "quickRead": "Quick read",
     "avgLatencyLeader": "Avg latency leader: {{winner}} at {{value}}",
-    "reliabilityLeader": "Reliability leader: {{winner}} at {{value}}",
+    "reliabilityLeader": "Most reliable: {{winner}} at {{value}}",
     "benchmarkResults": "Benchmark Results",
     "performanceObservatory": "Performance Observatory",
     "scenariosReady": "{{count}} scenarios ready",
+    "liveRuns": "{{count}} live runs",
+    "seededSamples": "{{count}} seeded samples",
     "k6BenchmarkSuite": "k6 Benchmark Suite",
-    "heroTitle": "Comparison of SQL Server and Elasticsearch across browse, search, and logs workflows.",
+    "heroTitle": "Compare SQL Server and Elasticsearch across browse/search workloads, from quick checks to 100-user traffic spikes.",
     "overview": "Overview",
     "kibanaLive": "Kibana Live",
     "suiteSnapshot": "Suite Snapshot",
@@ -1083,43 +1082,289 @@
     "refreshStepCredentials": "Provide K6_AUTH_TOKEN or K6_EMAIL and K6_PASSWORD so the protected API can be benchmarked.",
     "refreshStepRun": "Run {{command}} to regenerate this scenario report.",
     "refreshStepReload": "Reload the client to pick up the new JSON artifact in the dashboard.",
+    "throughput": "Throughput",
+    "throughputDescription": "Higher throughput means the source completed more requests per second.",
     "detailedComparisonTable": "Detailed Comparison Table",
     "detailedComparisonDescription": "A presentation-friendly breakdown for {{scenario}}.",
+    "detailedComparisonContext": "Context: {{users}}, {{query}}.",
     "metric": "Metric",
     "winner": "Winner",
     "authRequiredWarning": "This scenario does not have a fresh report yet because the API requires authentication. Supply credentials or a bearer token, run the benchmark command below, and then reload the dashboard.",
     "authRequired": "Auth required",
     "scenarioCoverage": "Scenario Coverage",
-    "scenarioCoverageDescription": "The dashboard now tracks multiple workflows instead of a single point-in-time comparison.",
+    "scenarioCoverageDescription": "Every benchmark view now shows query words, 100-user load cases, and concurrent-user levels instead of a single point-in-time comparison.",
+    "allScenarioResults": "All Scenario Results",
+    "allScenarioResultsDescription": "Compare every seeded or live scenario by dataset, view, query word, and concurrent-user level, with a clearer winner breakdown.",
+    "decisionGuide": "Decision guide",
+    "decisionGuideDescription": "A fast read on which platform leads overall, by view, and under 100-user concurrency.",
+    "overallLeader": "Overall leader",
+    "overallLeaderDescription": "Best overall result across every ready browse and search scenario.",
+    "browseLeader": "Browse leader",
+    "browseLeaderDescription": "Which platform keeps browse views faster and steadier.",
+    "searchLeader": "Search leader",
+    "searchLeaderDescription": "Which platform handles keyword search workloads better.",
+    "highLoadLeader": "100-user leader",
+    "highLoadLeaderDescription": "The clearest signal for scale when concurrency climbs to 100 users.",
+    "highLoadSpotlight": "100-user spotlight",
+    "highLoadSpotlightDescription": "These 100-user scenarios make it easier to see which platform scales better when traffic spikes.",
+    "noDecisionData": "Add ready scenarios to surface a recommendation.",
+    "recommendationTie": "The ready scenarios are evenly split.",
+    "recommendationSummary": "{{winner}} wins {{wins}} of {{total}} ready scenarios.",
+    "recommendationBreakdown": "SQL {{sql}}, Elastic {{elastic}}, ties {{tie}}.",
+    "metricRecommendationTie": "The benchmark metrics are evenly split.",
+    "metricWinnerSummary": "{{winner}} wins {{wins}} of {{total}} benchmark metrics.",
+    "dataset": "Dataset",
+    "view": "View",
+    "users": "Users",
+    "sqlAvgLatency": "SQL avg",
+    "elasticAvgLatency": "Elastic avg",
+    "sqlP95Latency": "SQL p95",
+    "elasticP95Latency": "Elastic p95",
+    "sqlFailureRate": "SQL fail",
+    "elasticFailureRate": "Elastic fail",
     "scenario": "Scenario",
     "status": "Status",
     "query": "Query",
     "generatedAt": "Generated",
     "runCommand": "Run Command",
-    "kibanaUrlNotice": "If Kibana is running somewhere other than `localhost:5601`, set `VITE_KIBANA_DASHBOARD_URL` and restart the client.",
     "liveKibanaDashboard": "Live Kibana Dashboard",
-    "liveKibanaDescription": "Use this view next to the benchmark suite when you want to connect scenario results with live operational telemetry.",
     "kibanaDashboard": "Kibana Dashboard",
+    "hmFashionDataset": "H&M Fashion",
+    "electronicsDataset": "Electronics",
+    "logsDataset": "Logs",
+    "unknownDataset": "Dataset",
+    "browseView": "Browse",
+    "searchView": "Search",
+    "comparisonView": "Comparison",
+    "seededNotice": "This scenario is a seeded dashboard sample. Run {{command}} to replace it with a live k6 measurement.",
     "scenarios": {
       "electronics-browse": {
         "title": "Electronics Browse",
         "description": "Baseline catalog retrieval with no filters to compare raw browse performance.",
         "queryLabel": "No filters",
-        "notes": "Uses the same electronics list endpoints already wired into the application UI."
+        "notes": "Uses the same electronics list endpoints already wired into the application UI. Set K6_PEAK_USERS to increase concurrency."
+      },
+      "electronics-browse-20vu": {
+        "title": "Electronics Browse (20 users)",
+        "description": "Higher-concurrency electronics browse run to compare raw list retrieval under heavier traffic.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=20 to reproduce this heavier browse scenario."
+      },
+      "electronics-browse-100vu": {
+        "title": "Electronics Browse (100 users)",
+        "description": "Heavy-load electronics browse run for a clear scaling comparison.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=100 to reproduce this 100-user browse scenario."
       },
       "electronics-search": {
         "title": "Electronics Search",
         "description": "Global-search query against the electronics data set to compare filtered search latency.",
         "queryLabel": "Query: \"phone\"",
-        "notes": "Set K6_ELECTRONICS_QUERY to swap the search term for your own product keyword."
+        "notes": "Set K6_ELECTRONICS_QUERY to swap the search term for your own product keyword, and K6_PEAK_USERS to increase concurrency."
+      },
+      "electronics-search-samsung-20vu": {
+        "title": "Electronics Search (samsung, 20 users)",
+        "description": "Higher-concurrency electronics search run for the samsung keyword.",
+        "queryLabel": "Query: \"samsung\"",
+        "notes": "Use K6_ELECTRONICS_QUERY=samsung and K6_PEAK_USERS=20 to reproduce this search scenario."
+      },
+      "electronics-search-phone-100vu": {
+        "title": "Electronics Search (phone, 100 users)",
+        "description": "Heavy-load electronics search run for the phone keyword.",
+        "queryLabel": "Query: \"phone\"",
+        "notes": "Use K6_ELECTRONICS_QUERY=phone and K6_PEAK_USERS=100 to reproduce this 100-user search scenario."
+      },
+      "hm-fashion-browse-2vu": {
+        "title": "H&M Fashion Browse (2 users)",
+        "description": "Baseline H&M browse view with no filters to compare flat-catalog retrieval performance.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS to regenerate this H&M browse scenario for a different concurrency level."
+      },
+      "hm-fashion-browse-5vu": {
+        "title": "H&M Fashion Browse (5 users)",
+        "description": "Moderate-concurrency H&M browse run to compare flat-catalog retrieval performance.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=5 to reproduce this H&M browse scenario."
+      },
+      "hm-fashion-browse-20vu": {
+        "title": "H&M Fashion Browse (20 users)",
+        "description": "Higher-concurrency H&M browse run to compare flat-catalog retrieval performance.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=20 to reproduce this H&M browse scenario."
+      },
+      "hm-fashion-browse-100vu": {
+        "title": "H&M Fashion Browse (100 users)",
+        "description": "Heavy-load H&M browse run to compare flat-catalog retrieval performance.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=100 to reproduce this 100-user H&M browse scenario."
+      },
+      "hm-fashion-search-dress-2vu": {
+        "title": "H&M Fashion Search (dress, 2 users)",
+        "description": "H&M search run for the dress keyword at low concurrency.",
+        "queryLabel": "Query: \"dress\"",
+        "notes": "Use K6_HM_QUERY=dress and K6_PEAK_USERS=2 to reproduce this scenario."
+      },
+      "hm-fashion-search-shirt-5vu": {
+        "title": "H&M Fashion Search (shirt, 5 users)",
+        "description": "H&M search run for the shirt keyword at moderate concurrency.",
+        "queryLabel": "Query: \"shirt\"",
+        "notes": "Use K6_HM_QUERY=shirt and K6_PEAK_USERS=5 to reproduce this scenario."
+      },
+      "hm-fashion-search-black-10vu": {
+        "title": "H&M Fashion Search (black, 10 users)",
+        "description": "H&M search run for the black keyword at elevated concurrency.",
+        "queryLabel": "Query: \"black\"",
+        "notes": "Use K6_HM_QUERY=black and K6_PEAK_USERS=10 to reproduce this scenario."
+      },
+      "hm-fashion-search-ladieswear-10vu": {
+        "title": "H&M Fashion Search (ladieswear, 10 users)",
+        "description": "H&M search run for the ladieswear keyword at elevated concurrency.",
+        "queryLabel": "Query: \"ladieswear\"",
+        "notes": "Use K6_HM_QUERY=ladieswear and K6_PEAK_USERS=10 to reproduce this scenario."
+      },
+      "hm-fashion-search-blue-20vu": {
+        "title": "H&M Fashion Search (blue, 20 users)",
+        "description": "Higher-concurrency H&M search run for the blue keyword.",
+        "queryLabel": "Query: \"blue\"",
+        "notes": "Use K6_HM_QUERY=blue and K6_PEAK_USERS=20 to reproduce this scenario."
+      },
+      "hm-fashion-search-dress-100vu": {
+        "title": "H&M Fashion Search (dress, 100 users)",
+        "description": "Heavy-load H&M search run for the dress keyword.",
+        "queryLabel": "Query: \"dress\"",
+        "notes": "Use K6_HM_QUERY=dress and K6_PEAK_USERS=100 to reproduce this 100-user search scenario."
       },
       "logs-search": {
         "title": "Logs Search",
         "description": "Search-heavy log retrieval to compare how both stores behave on operational log queries.",
         "queryLabel": "Query: \"error\"",
-        "notes": "Set K6_LOGS_QUERY to target your own log keyword, IP fragment, or event text."
+        "notes": "Set K6_LOGS_QUERY to target your own log keyword, IP fragment, or event text, and K6_PEAK_USERS to increase concurrency."
+      },
+      "logs-search-warn-20vu": {
+        "title": "Logs Search (warn, 20 users)",
+        "description": "Higher-concurrency log search run for the warn keyword.",
+        "queryLabel": "Query: \"warn\"",
+        "notes": "Use K6_LOGS_QUERY=warn and K6_PEAK_USERS=20 to reproduce this scenario."
+      },
+      "logs-search-error-100vu": {
+        "title": "Logs Search (error, 100 users)",
+        "description": "Heavy-load log search run for the error keyword.",
+        "queryLabel": "Query: \"error\"",
+        "notes": "Use K6_LOGS_QUERY=error and K6_PEAK_USERS=100 to reproduce this 100-user search scenario."
+      },
+      "electronics-browse-50vu": {
+        "title": "Electronics Browse (50 users)",
+        "description": "Higher-concurrency electronics browse run to compare raw list retrieval under sustained traffic.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=50 to reproduce this browse scenario."
+      },
+      "electronics-search-phone-20vu": {
+        "title": "Electronics Search (phone, 20 users)",
+        "description": "Higher-concurrency electronics search run for the phone keyword.",
+        "queryLabel": "Query: \"phone\"",
+        "notes": "Use K6_ELECTRONICS_QUERY=phone and K6_PEAK_USERS=20 to reproduce this search scenario."
+      },
+      "electronics-search-phone-50vu": {
+        "title": "Electronics Search (phone, 50 users)",
+        "description": "Sustained-load electronics search run for the phone keyword.",
+        "queryLabel": "Query: \"phone\"",
+        "notes": "Use K6_ELECTRONICS_QUERY=phone and K6_PEAK_USERS=50 to reproduce this search scenario."
+      },
+      "hm-fashion-browse-50vu": {
+        "title": "H&M Fashion Browse (50 users)",
+        "description": "Sustained-load H&M browse run to compare flat-catalog retrieval performance.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=50 to reproduce this H&M browse scenario."
+      },
+      "hm-fashion-search-dress-20vu": {
+        "title": "H&M Fashion Search (dress, 20 users)",
+        "description": "Higher-concurrency H&M search run for the dress keyword.",
+        "queryLabel": "Query: \"dress\"",
+        "notes": "Use K6_HM_QUERY=dress and K6_PEAK_USERS=20 to reproduce this search scenario."
+      },
+      "hm-fashion-search-dress-50vu": {
+        "title": "H&M Fashion Search (dress, 50 users)",
+        "description": "Sustained-load H&M search run for the dress keyword.",
+        "queryLabel": "Query: \"dress\"",
+        "notes": "Use K6_HM_QUERY=dress and K6_PEAK_USERS=50 to reproduce this search scenario."
+      },
+      "logs-browse-20vu": {
+        "title": "Logs Browse (20 users)",
+        "description": "Higher-concurrency logs browse run to compare raw operational-log retrieval.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=20 to reproduce this logs browse scenario."
+      },
+      "logs-browse-50vu": {
+        "title": "Logs Browse (50 users)",
+        "description": "Sustained-load logs browse run to compare raw operational-log retrieval.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=50 to reproduce this logs browse scenario."
+      },
+      "logs-browse-100vu": {
+        "title": "Logs Browse (100 users)",
+        "description": "Heavy-load logs browse run to compare raw operational-log retrieval.",
+        "queryLabel": "No filters",
+        "notes": "Use K6_PEAK_USERS=100 to reproduce this logs browse scenario."
+      },
+      "logs-search-error-20vu": {
+        "title": "Logs Search (error, 20 users)",
+        "description": "Higher-concurrency log search run for the error keyword.",
+        "queryLabel": "Query: \"error\"",
+        "notes": "Use K6_LOGS_QUERY=error and K6_PEAK_USERS=20 to reproduce this search scenario."
+      },
+      "logs-search-error-50vu": {
+        "title": "Logs Search (error, 50 users)",
+        "description": "Sustained-load log search run for the error keyword.",
+        "queryLabel": "Query: \"error\"",
+        "notes": "Use K6_LOGS_QUERY=error and K6_PEAK_USERS=50 to reproduce this search scenario."
       }
-    }
+    },
+    "viewBenchmarkDashboard": "View benchmark dashboard",
+    "viewBenchmarkDashboardDescription": "This dashboard shows how long each SQL Server and Elasticsearch view needs to return data for open-with-data and filtered-result workloads at 20, 50, and 100 concurrent users.",
+    "resultsTableTab": "Results table",
+    "monitoredViewsCard": "Monitored views",
+    "monitoredViewsCardCopy": "SQL Server and Elasticsearch views across electronics, H&M Fashion, and logs.",
+    "savedMeasurementsCard": "Saved measurements",
+    "savedMeasurementsCardCopy": "Each row is one stored k6 measurement for a single view and workload.",
+    "concurrentUsersCard": "Concurrent user levels",
+    "concurrentUsersCardCopy": "The current suite focuses on the 20, 50, and 100-user load levels.",
+    "freshestRunCard": "Freshest run",
+    "fastestAverageRunCard": "Fastest average result time",
+    "slowestAverageRunCard": "Slowest average result time",
+    "dashboardDataSourceMessage": "These values are loaded from the saved k6 JSON reports under tests/k6/reports. Each workload is shown as a separate view row instead of a direct SQL-versus-Elasticsearch winner comparison.",
+    "viewResultsTableTitle": "Per-view benchmark results",
+    "viewResultsTableDescription": "Use this table to see how long each view needs to return data under browse and filter workloads, without comparing the pages inside the views themselves.",
+    "workload": "Workload",
+    "filter": "Filter",
+    "avgResultTime": "Avg result time",
+    "p90ResultTime": "P90",
+    "p95ResultTime": "P95",
+    "maxResultTime": "Max",
+    "failureRate": "Failure rate",
+    "requestCount": "Requests",
+    "liveKibanaDashboardDescription": "Use the embedded Kibana dashboard when you want the live Elasticsearch telemetry view alongside the saved k6 results table.",
+    "pageSpecificBenchmarks": "Real benchmark cases for this data fetch",
+    "pageSpecificBenchmarksDescription": "The grid above is still the main record browser. This section keeps the stored k6 scenarios for {{dataset}} close to the page so you can see how {{preferred}} and {{peer}} behave across browse and search cases.",
+    "openFullDashboard": "Open full benchmark dashboard",
+    "coverageSummary": "{{browse}} browse cases, {{search}} search cases",
+    "maxUsersCovered": "Up to {{users}} users",
+    "readyScenariosCard": "Ready scenarios",
+    "readyScenariosCardCopy": "{{browse}} browse and {{search}} search cases already have stored measurements.",
+    "pageLeaderCard": "{{preferred}} scenario wins",
+    "pageLeaderCardCopy": "{{preferred}} leads {{preferredWins}} scenarios, {{peer}} leads {{peerWins}}, ties {{ties}}.",
+    "largestGapCard": "Largest average-latency gap",
+    "scenarioBreakdownTitle": "Scenario-by-scenario breakdown",
+    "scenarioBreakdownCopy": "Each row is one real k6 report saved under tests/k6/reports so we can keep the detailed cases close to the data-fetch page.",
+    "sqlP90Latency": "SQL p90",
+    "elasticP90Latency": "Elastic p90",
+    "datasetOverviewCardCopy": "{{count}} real scenarios saved for this data fetch family.",
+    "datasetWinnerBreakdown": "SQL {{sql}}, Elastic {{elastic}}, ties {{tie}}.",
+    "datasetLargestGapCopy": "Largest average-response gap: {{winner}} by {{percent}}% in {{scenario}}.",
+    "dataFetchOverview": "Data-fetch overview",
+    "dataFetchOverviewCopy": "This keeps the dashboard focused on general comparison, while the individual data pages now carry the scenario-level details for each fetch family.",
+    "unknownSource": "Unknown source",
+    "workloadOpenWithData": "Open with data",
+    "workloadFilteredResults": "Filtered results"
   },
   "audit": {
     "login": {
@@ -1206,5 +1451,7 @@
   "response": "Response",
   "exception": "Exception",
   "true": "Happened",
-  "false": "Didn't happen"
+  "false": "Didn't happen",
+  "compare": "Comparison",
+  "sqlVsElasticsearchSearch": "SQL vs Elasticsearch Search"
 }

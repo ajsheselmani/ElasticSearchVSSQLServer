@@ -1,7 +1,5 @@
 import rootReducer from "./rootReducer";
 import { configureStore } from "@reduxjs/toolkit";
-// import persistReducer from "redux-persist/es/persistReducer";
-// import persistStore from "redux-persist/es/persistStore";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { CONFIG } from "src/global-config";
@@ -22,8 +20,6 @@ const store = configureStore({
       immutableCheck: false,
       serializableCheck: false,
     }).concat(middlewares),
-  // devTools: import.meta.env.MODE === "development",
-  // devTools: process.env.NODE_ENV === "development",
   devTools: import.meta.env.DEV,
 });
 

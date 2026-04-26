@@ -23,6 +23,8 @@ import { PersistGate } from "redux-persist/integration/react";
 import { SnackbarProvider } from "notistack";
 // import notificationService from "./services/notificationService";
 import "dayjs/locale/en-gb";
+import "dayjs/locale/sq";
+import "dayjs/locale/sr";
 import ErrorPage from "./pages/shared/error-page";
 import { useTranslation } from "react-i18next";
 import { ErrorBoundary } from "react-error-boundary";
@@ -33,7 +35,7 @@ import store, { persistor } from "./store";
 // ----------------------------------------------------------------------
 
 export default function App({ children }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   useScrollToTop();
 
   // useEffect(() => {
@@ -97,7 +99,10 @@ export default function App({ children }) {
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
       autoHideDuration={4000}
     >
-      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+      <LocalizationProvider
+        dateAdapter={AdapterDayjs}
+        adapterLocale={i18n.language === "en" ? "en-gb" : i18n.language}
+      >
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
             <AuthProvider>

@@ -161,42 +161,18 @@ namespace ElasticSearchVSSQLServer.Domain.Services.Auth
         {
             await userManager.AccessFailedAsync(user);
             await userManager.SetLockoutEnabledAsync(user, true);
-            // logger.LogWarning(
-            //    "Tentim i pasuksesshëm për kyçje. UserId: {UserId}, Email: {Email}",
-            //    user.Id, user.Email
-            //);
+            logger.LogWarning(
+               "Tentim i pasuksesshëm për kyçje. UserId: {UserId}, Email: {Email}",
+               user.Id, user.Email
+            );
 
             if (await userManager.IsLockedOutAsync(user))
             {
                 await userManager.SetLockoutEndDateAsync(user, DateTime.UtcNow.AddYears(2000));
-                //     logger.LogWarning(
-                //    "Përdoruesi u bllokua për shkak të tentimeve të pasuksesshme. UserId: {UserId}, Email: {Email}.",
-                //    user.Id, user.Email
-                //);
-                //var emailTemplate = await emailConfiguration.Get((int)EmailTemplateEnum.UserBlocked);
-                //var body = user.Language switch
-                //{
-                //    LanguageEnum.Albanian => emailTemplate.BodySq,
-                //    LanguageEnum.English => emailTemplate.BodyEn,
-                //    LanguageEnum.Serbian => emailTemplate.BodySr,
-                //    _ => throw new ArgumentException(Resource.ErrorOccurred)
-                //};
-
-                //var subject = user.Language switch
-                //{
-                //    LanguageEnum.Albanian => emailTemplate.SubjectSq,
-                //    LanguageEnum.English => emailTemplate.SubjectEn,
-                //    LanguageEnum.Serbian => emailTemplate.SubjectSr,
-                //    _ => throw new ArgumentException(Resource.ErrorOccurred)
-                //};
-
-                //var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
-                //body = body.Replace("[User]", $"{user.Firstname} {user.Lastname}");
-                //body = body.Replace("[reset_link]", $"{domainConfiguration.Value.ClientApplicationPath}/auth/jwt/update-password?email={Uri.EscapeDataString(email)}&token={resetToken}");
-
-                //await emailConfiguration.SendEmailAsync(user.Email, subject, body, null);
-                //logger.LogInformation("Emaili për bllokim + resetim u dërgua. UserId: {UserId}, Email: {Email}.", user.Id, user.Email);
-
+                    logger.LogWarning(
+                   "Përdoruesi u bllokua për shkak të tentimeve të pasuksesshme. UserId: {UserId}, Email: {Email}.",
+                   user.Id, user.Email
+                );
                 return LoginResultDto.Failure(new ErrorDTO
                 {
                     ErrorType = ErrorTypeEnum.Warning,

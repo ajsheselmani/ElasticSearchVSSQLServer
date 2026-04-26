@@ -457,15 +457,12 @@
   "uniref": "Uniref",
   "icsDate": "Data ICS",
   "amount": "Shuma",
-
   "loading": "Duke u ngarkuar...",
   "refundNotFound": "Rimbursimi nuk u gjet.",
   "refundReview": "Shqyrtimi i rimbursimit",
   "review": "Shqyrtim",
-
   "dataFromIcs": "Të dhënat nga ICS",
   "dataFromPaymentSlip": "Të dhënat nga urdhërpagesa",
-
   "paymentSlipFor": "Urdhërpagesa për",
   "selectBank": "Zgjidh bankën",
   "selectNfib": "Zgjidh IF JB",
@@ -475,7 +472,7 @@
   "requestNumber": "Numri i kërkesës",
   "applicant": "Aplikuesi",
   "paymentNotFound": "Pagesa nuk u gjet.",
-  "dataSavedSuccessfully": "Të dhënat u ruajtën me sukses.",
+  "dataSavedSuccessfully": "Të dhënat janë ruajtur me sukses!",
   "errorSavingData": "Gabim gjatë ruajtjes së të dhënave.",
   "unexpectedError": "Gabim i papritur (statusi: {{status}}).",
   "unknownError": "Gabim i panjohur.",
@@ -505,7 +502,6 @@
   "nfibRequiresBank": "Nëse zgjidhet IF JB, duhet të zgjidhet edhe banka.",
   "bankNotFound": "Banka nuk u gjet (llogaria: {{bankAccount}}).",
   "nfibNotFound": "IF JB nuk u gjet (llogaria: {{ifjb}}).",
-
   "icsDescription": "Përshkrimi",
   "registrationDate": "Data e regjistrimit",
   "registeredBy": "Regjistruar nga",
@@ -656,7 +652,7 @@
   "integrate": "Integrimi",
   "apparent": "Dukshmëria",
   "family": "Familja",
-  "dashboardOnlyAvailableLargResultions": "Paneli i kontrollit është i disponueshëm vetëm për zgjidhje me rezolucion të madh > 1600px(xl)",
+  "dashboardOnlyAvailableLargResultions": "Ballina e kontrollit është e disponueshme vetëm për zgjidhje me rezolucion të madh > 1600px(xl)",
   "size": "Madhësia",
   "allNotifications": "Të gjitha njoftimet",
   "unOpened": "I pahapur",
@@ -1049,7 +1045,6 @@
   "accountsReceivable": "Llogari të arkëtueshme",
   "donwloadReport": "Shkarko raportin",
   "userlogs": "Gjurmët e përdoruesit",
-  "dataSavedSuccessfully": "Të dhënat janë ruajtur me sukses!",
   "logsReport": "Raporti i gjurmëve",
   "logins": "Kyçjet",
   "logouts": "Çkyçjet",
@@ -1080,22 +1075,25 @@
     "higher": "më lartë",
     "deltaCopy": "{{leader}} performoi {{percent}} {{direction}} në këtë metrikë.",
     "awaitingFreshRun": "Në pritje të ekzekutimit të ri",
-    "headlineNeedsFreshRun": "{{scenarioTitle}} është konfiguruar në paketë, por ende i duhet një ekzekutim i ri i autentikuar me k6 para se paneli të shfaqë matje reale.",
+    "headlineNeedsFreshRun": "{{scenarioTitle}} është konfiguruar në paketë, por ende i duhet një ekzekutim i ri i autentikuar me k6 para se ballina të shfaqë matje reale.",
     "headlineActiveScenario": "{{scenarioTitle}} është skenari aktiv i benchmark-ut.",
     "headlineLatencyLeader": "{{winner}} udhëheq në kohën mesatare të përgjigjes me {{value}}.",
     "headlineReliabilityLeader": "{{winner}} është më stabil te kërkesat e dështuara me {{value}}.",
     "leader": "Udhëheqësi: {{winner}}",
     "ready": "Gati",
+    "seeded": "Mostër",
     "pending": "Në pritje",
     "updated": "Përditësuar: {{date}}",
     "quickRead": "Përmbledhje e shpejtë",
     "avgLatencyLeader": "Udhëheqësi i latencës mesatare: {{winner}} me {{value}}",
-    "reliabilityLeader": "Udhëheqësi i stabilitetit: {{winner}} me {{value}}",
+    "reliabilityLeader": "Platforma më e qëndrueshme: {{winner}} me {{value}}",
     "benchmarkResults": "Rezultatet e benchmark-ut",
     "performanceObservatory": "Observatori i performancës",
     "scenariosReady": "{{count}} skenarë gati",
+    "liveRuns": "{{count}} ekzekutime live",
+    "seededSamples": "{{count}} mostra të futura",
     "k6BenchmarkSuite": "Paketa e benchmark-ut k6",
-    "heroTitle": "Krahasimi i SQL Server dhe Elasticsearch në rrjedhat e shfletimit, kërkimit dhe logeve.",
+    "heroTitle": "Krahasoni SQL Server dhe Elasticsearch në browse/search, nga kontrollet e shpejta deri te kulmet e trafikut me 100 përdorues.",
     "overview": "Përmbledhje",
     "kibanaLive": "Kibana live",
     "suiteSnapshot": "Gjendja e paketës",
@@ -1116,43 +1114,289 @@
     "refreshStepCredentials": "Jepni K6_AUTH_TOKEN ose K6_EMAIL dhe K6_PASSWORD që API-ja e mbrojtur të mund të testohet.",
     "refreshStepRun": "Ekzekutoni {{command}} për ta rigjeneruar raportin e këtij skenari.",
     "refreshStepReload": "Rifreskoni klientin për të marrë artefaktin e ri JSON në panel.",
+    "throughput": "Rrjedhshmëria",
+    "throughputDescription": "Rrjedhshmëria më e lartë do të thotë se burimi përfundoi më shumë kërkesa për sekondë.",
     "detailedComparisonTable": "Tabela e detajuar e krahasimit",
     "detailedComparisonDescription": "Një përmbledhje e përshtatshme për prezantim për {{scenario}}.",
+    "detailedComparisonContext": "Kontekst: {{users}}, {{query}}.",
     "metric": "Metrika",
     "winner": "Fituesi",
-    "authRequiredWarning": "Ky skenar nuk ka ende raport të ri sepse API kërkon autentikim. Jepni kredencialet ose bearer token, ekzekutoni komandën e benchmark-ut më poshtë dhe pastaj rifreskoni panelin.",
+    "authRequiredWarning": "Ky skenar nuk ka ende raport të ri sepse API kërkon autentikim. Jepni kredencialet ose bearer token, ekzekutoni komandën e benchmark-ut më poshtë dhe pastaj rifreskoni ballinen.",
     "authRequired": "Kërkohet autentikim",
     "scenarioCoverage": "Mbulimi i skenarëve",
-    "scenarioCoverageDescription": "Paneli tani ndjek disa rrjedha pune në vend të një krahasimi të vetëm në një moment kohe.",
+    "scenarioCoverageDescription": "Ballina tani ndjek fjalët e kërkimit, rastet me 100 përdorues dhe nivelet e përdoruesve paralelë, jo vetëm një krahasim në një moment të vetëm.",
+    "allScenarioResults": "Të gjitha rezultatet e skenarëve",
+    "allScenarioResultsDescription": "Krahasoni çdo skenar mostër ose live sipas dataset-it, view-it, fjalës së kërkimit dhe nivelit të përdoruesve paralelë, me një përmbledhje më të qartë të fituesit.",
+    "decisionGuide": "Udhëzues vendimi",
+    "decisionGuideDescription": "Një lexim i shpejtë për të parë cila platformë kryeson në total, sipas view-it dhe nën ngarkesë me 100 përdorues.",
+    "overallLeader": "Kryesuesi në total",
+    "overallLeaderDescription": "Rezultati më i mirë i përgjithshëm në të gjithë skenarët browse dhe search që janë gati.",
+    "browseLeader": "Kryesuesi në browse",
+    "browseLeaderDescription": "Cila platformë i mban view-et browse më të shpejta dhe më të qëndrueshme.",
+    "searchLeader": "Kryesuesi në search",
+    "searchLeaderDescription": "Cila platformë i përballon më mirë ngarkesat e kërkimit me fjalë kyçe.",
+    "highLoadLeader": "Kryesuesi me 100 përdorues",
+    "highLoadLeaderDescription": "Sinjali më i qartë për shkallëzim kur konkurrenca ngjitet në 100 përdorues.",
+    "highLoadSpotlight": "Fokus te 100 përdoruesit",
+    "highLoadSpotlightDescription": "Këta skenarë me 100 përdorues e bëjnë më të lehtë të shihet cila platformë shkallëzohet më mirë kur trafiku rritet.",
+    "noDecisionData": "Shtoni skenarë gati për të nxjerrë një rekomandim.",
+    "recommendationTie": "Skenarët gati janë të ndarë në mënyrë të barabartë.",
+    "recommendationSummary": "{{winner}} fiton {{wins}} nga {{total}} skenarë gati.",
+    "recommendationBreakdown": "SQL {{sql}}, Elastic {{elastic}}, barazime {{tie}}.",
+    "metricRecommendationTie": "Metrikat e benchmark-ut janë të ndara në mënyrë të barabartë.",
+    "metricWinnerSummary": "{{winner}} fiton {{wins}} nga {{total}} metrika benchmark-u.",
+    "dataset": "Dataset-i",
+    "view": "View",
+    "users": "Përdorues",
+    "sqlAvgLatency": "SQL mes.",
+    "elasticAvgLatency": "Elastic mes.",
+    "sqlP95Latency": "SQL p95",
+    "elasticP95Latency": "Elastic p95",
+    "sqlFailureRate": "SQL dësht.",
+    "elasticFailureRate": "Elastic dësht.",
     "scenario": "Skenari",
     "status": "Statusi",
     "query": "Kërkimi",
     "generatedAt": "Gjeneruar",
     "runCommand": "Komanda e ekzekutimit",
-    "kibanaUrlNotice": "Nëse Kibana po punon diku tjetër përveç `localhost:5601`, vendosni `VITE_KIBANA_DASHBOARD_URL` dhe ristartoni klientin.",
-    "liveKibanaDashboard": "Paneli live i Kibana",
-    "liveKibanaDescription": "Përdoreni këtë pamje pranë paketës së benchmark-ut kur doni t'i lidhni rezultatet e skenarëve me telemetrinë operative live.",
-    "kibanaDashboard": "Paneli i Kibana",
+    "liveKibanaDashboard": "Ballina live e Kibana-së",
+    "kibanaDashboard": "Ballina e Kibana-së",
+    "hmFashionDataset": "H&M Fashion",
+    "electronicsDataset": "Elektronikë",
+    "logsDataset": "Loge",
+    "unknownDataset": "Dataset",
+    "browseView": "Browse",
+    "searchView": "Search",
+    "comparisonView": "Krahasim",
+    "seededNotice": "Ky skenar është një mostër e futur në dashboard. Ekzekutoni {{command}} për ta zëvendësuar me një matje live nga k6.",
     "scenarios": {
       "electronics-browse": {
         "title": "Shfletimi i elektronikës",
         "description": "Marrja bazë e katalogut pa filtra për të krahasuar performancën e shfletimit.",
         "queryLabel": "Pa filtra",
-        "notes": "Përdor të njëjtat endpoint-e të listës së elektronikës që tashmë janë të lidhura në UI të aplikacionit."
+        "notes": "Përdor të njëjtat endpoint-e të listës së elektronikës që tashmë janë të lidhura në UI të aplikacionit. Përdorni K6_PEAK_USERS për të rritur ngarkesën."
+      },
+      "electronics-browse-20vu": {
+        "title": "Shfletimi i elektronikës (20 përdorues)",
+        "description": "Ekzekutim me ngarkesë më të lartë për shfletimin e elektronikës pa filtra.",
+        "queryLabel": "Pa filtra",
+        "notes": "Përdorni K6_PEAK_USERS=20 për ta riprodhuar këtë skenar browse."
+      },
+      "electronics-browse-100vu": {
+        "title": "Shfletimi i elektronikës (100 përdorues)",
+        "description": "Ekzekutim me ngarkesë të rëndë për shfletimin e elektronikës për një krahasim të qartë të shkallëzimit.",
+        "queryLabel": "Pa filtra",
+        "notes": "Përdorni K6_PEAK_USERS=100 për ta riprodhuar këtë skenar browse me 100 përdorues."
       },
       "electronics-search": {
         "title": "Kërkimi i elektronikës",
         "description": "Kërkim global në dataset-in e elektronikës për të krahasuar latencën e kërkimit të filtruar.",
         "queryLabel": "Kërkim: \"phone\"",
-        "notes": "Vendosni K6_ELECTRONICS_QUERY për ta zëvendësuar termin e kërkimit me fjalën tuaj kyçe të produktit."
+        "notes": "Vendosni K6_ELECTRONICS_QUERY për ta zëvendësuar termin e kërkimit me fjalën tuaj kyçe të produktit, dhe K6_PEAK_USERS për të rritur ngarkesën."
+      },
+      "electronics-search-samsung-20vu": {
+        "title": "Kërkimi i elektronikës (samsung, 20 përdorues)",
+        "description": "Ekzekutim me ngarkesë më të lartë për kërkimin e elektronikës me fjalën samsung.",
+        "queryLabel": "Kërkim: \"samsung\"",
+        "notes": "Përdorni K6_ELECTRONICS_QUERY=samsung dhe K6_PEAK_USERS=20 për ta riprodhuar këtë skenar."
+      },
+      "electronics-search-phone-100vu": {
+        "title": "Kërkimi i elektronikës (phone, 100 përdorues)",
+        "description": "Ekzekutim me ngarkesë të rëndë për kërkimin e elektronikës me fjalën phone.",
+        "queryLabel": "Kërkim: \"phone\"",
+        "notes": "Përdorni K6_ELECTRONICS_QUERY=phone dhe K6_PEAK_USERS=100 për ta riprodhuar këtë skenar me 100 përdorues."
+      },
+      "hm-fashion-browse-2vu": {
+        "title": "Shfletimi H&M Fashion (2 përdorues)",
+        "description": "View bazë browse i H&M pa filtra për të krahasuar performancën e marrjes së katalogut të sheshuar.",
+        "queryLabel": "Pa filtra",
+        "notes": "Përdorni K6_PEAK_USERS për ta rigjeneruar këtë skenar browse të H&M me një nivel tjetër konkurrence."
+      },
+      "hm-fashion-browse-5vu": {
+        "title": "Shfletimi H&M Fashion (5 përdorues)",
+        "description": "Ekzekutim browse i H&M me ngarkesë mesatare.",
+        "queryLabel": "Pa filtra",
+        "notes": "Përdorni K6_PEAK_USERS=5 për ta riprodhuar këtë skenar browse."
+      },
+      "hm-fashion-browse-20vu": {
+        "title": "Shfletimi H&M Fashion (20 përdorues)",
+        "description": "Ekzekutim browse i H&M me ngarkesë të lartë për krahasim më të fortë.",
+        "queryLabel": "Pa filtra",
+        "notes": "Përdorni K6_PEAK_USERS=20 për ta riprodhuar këtë skenar browse."
+      },
+      "hm-fashion-browse-100vu": {
+        "title": "Shfletimi H&M Fashion (100 përdorues)",
+        "description": "Ekzekutim browse i H&M me ngarkesë të rëndë për të parë më qartë shkallëzimin.",
+        "queryLabel": "Pa filtra",
+        "notes": "Përdorni K6_PEAK_USERS=100 për ta riprodhuar këtë skenar browse me 100 përdorues."
+      },
+      "hm-fashion-search-dress-2vu": {
+        "title": "Kërkimi H&M Fashion (dress, 2 përdorues)",
+        "description": "Ekzekutim i kërkimit H&M për fjalën dress me konkurrencë të ulët.",
+        "queryLabel": "Kërkim: \"dress\"",
+        "notes": "Përdorni K6_HM_QUERY=dress dhe K6_PEAK_USERS=2 për ta riprodhuar këtë skenar."
+      },
+      "hm-fashion-search-shirt-5vu": {
+        "title": "Kërkimi H&M Fashion (shirt, 5 përdorues)",
+        "description": "Ekzekutim i kërkimit H&M për fjalën shirt me konkurrencë mesatare.",
+        "queryLabel": "Kërkim: \"shirt\"",
+        "notes": "Përdorni K6_HM_QUERY=shirt dhe K6_PEAK_USERS=5 për ta riprodhuar këtë skenar."
+      },
+      "hm-fashion-search-black-10vu": {
+        "title": "Kërkimi H&M Fashion (black, 10 përdorues)",
+        "description": "Ekzekutim i kërkimit H&M për fjalën black me ngarkesë më të lartë.",
+        "queryLabel": "Kërkim: \"black\"",
+        "notes": "Përdorni K6_HM_QUERY=black dhe K6_PEAK_USERS=10 për ta riprodhuar këtë skenar."
+      },
+      "hm-fashion-search-ladieswear-10vu": {
+        "title": "Kërkimi H&M Fashion (ladieswear, 10 përdorues)",
+        "description": "Ekzekutim i kërkimit H&M për fjalën ladieswear me ngarkesë më të lartë.",
+        "queryLabel": "Kërkim: \"ladieswear\"",
+        "notes": "Përdorni K6_HM_QUERY=ladieswear dhe K6_PEAK_USERS=10 për ta riprodhuar këtë skenar."
+      },
+      "hm-fashion-search-blue-20vu": {
+        "title": "Kërkimi H&M Fashion (blue, 20 përdorues)",
+        "description": "Ekzekutim me ngarkesë shumë të lartë për kërkimin H&M me fjalën blue.",
+        "queryLabel": "Kërkim: \"blue\"",
+        "notes": "Përdorni K6_HM_QUERY=blue dhe K6_PEAK_USERS=20 për ta riprodhuar këtë skenar."
+      },
+      "hm-fashion-search-dress-100vu": {
+        "title": "Kërkimi H&M Fashion (dress, 100 përdorues)",
+        "description": "Ekzekutim me ngarkesë të rëndë për kërkimin H&M me fjalën dress.",
+        "queryLabel": "Kërkim: \"dress\"",
+        "notes": "Përdorni K6_HM_QUERY=dress dhe K6_PEAK_USERS=100 për ta riprodhuar këtë skenar me 100 përdorues."
       },
       "logs-search": {
         "title": "Kërkimi i logeve",
         "description": "Marrje intensive e logeve për të krahasuar si sillen të dy ruajtësit në kërkime operative të logeve.",
         "queryLabel": "Kërkim: \"error\"",
-        "notes": "Vendosni K6_LOGS_QUERY për të synuar fjalën tuaj kyçe të logut, fragment IP-je ose tekst ngjarjeje."
+        "notes": "Vendosni K6_LOGS_QUERY për të synuar fjalën tuaj kyçe të logut, fragment IP-je ose tekst ngjarjeje, dhe K6_PEAK_USERS për të rritur ngarkesën."
+      },
+      "logs-search-warn-20vu": {
+        "title": "Kërkimi i logeve (warn, 20 përdorues)",
+        "description": "Ekzekutim me ngarkesë shumë të lartë për kërkimin e logeve me fjalën warn.",
+        "queryLabel": "Kërkim: \"warn\"",
+        "notes": "Përdorni K6_LOGS_QUERY=warn dhe K6_PEAK_USERS=20 për ta riprodhuar këtë skenar."
+      },
+      "logs-search-error-100vu": {
+        "title": "Kërkimi i logeve (error, 100 përdorues)",
+        "description": "Ekzekutim me ngarkesë të rëndë për kërkimin e logeve me fjalën error.",
+        "queryLabel": "Kërkim: \"error\"",
+        "notes": "Përdorni K6_LOGS_QUERY=error dhe K6_PEAK_USERS=100 për ta riprodhuar këtë skenar me 100 përdorues."
+      },
+      "electronics-browse-50vu": {
+        "title": "Shfletimi i elektronikes (50 perdorues)",
+        "description": "Skenar browse per elektroniken me ngarkese me te larte dhe te qendrueshme.",
+        "queryLabel": "Pa filtra",
+        "notes": "Perdorni K6_PEAK_USERS=50 per ta riprodhuar kete skenar browse."
+      },
+      "electronics-search-phone-20vu": {
+        "title": "Kerkimi i elektronikes (phone, 20 perdorues)",
+        "description": "Skenar kerkimi per elektroniken me fjalen phone nen ngarkese me te larte.",
+        "queryLabel": "Kerkim: \"phone\"",
+        "notes": "Perdorni K6_ELECTRONICS_QUERY=phone dhe K6_PEAK_USERS=20 per ta riprodhuar kete skenar."
+      },
+      "electronics-search-phone-50vu": {
+        "title": "Kerkimi i elektronikes (phone, 50 perdorues)",
+        "description": "Skenar kerkimi per elektroniken me fjalen phone nen ngarkese te qendrueshme me te larte.",
+        "queryLabel": "Kerkim: \"phone\"",
+        "notes": "Perdorni K6_ELECTRONICS_QUERY=phone dhe K6_PEAK_USERS=50 per ta riprodhuar kete skenar."
+      },
+      "hm-fashion-browse-50vu": {
+        "title": "Shfletimi H&M Fashion (50 perdorues)",
+        "description": "Skenar browse i H&M me ngarkese me te larte dhe te qendrueshme.",
+        "queryLabel": "Pa filtra",
+        "notes": "Perdorni K6_PEAK_USERS=50 per ta riprodhuar kete skenar browse te H&M."
+      },
+      "hm-fashion-search-dress-20vu": {
+        "title": "Kerkimi H&M Fashion (dress, 20 perdorues)",
+        "description": "Skenar kerkimi i H&M per fjalen dress nen ngarkese me te larte.",
+        "queryLabel": "Kerkim: \"dress\"",
+        "notes": "Perdorni K6_HM_QUERY=dress dhe K6_PEAK_USERS=20 per ta riprodhuar kete skenar."
+      },
+      "hm-fashion-search-dress-50vu": {
+        "title": "Kerkimi H&M Fashion (dress, 50 perdorues)",
+        "description": "Skenar kerkimi i H&M per fjalen dress nen ngarkese te qendrueshme me te larte.",
+        "queryLabel": "Kerkim: \"dress\"",
+        "notes": "Perdorni K6_HM_QUERY=dress dhe K6_PEAK_USERS=50 per ta riprodhuar kete skenar."
+      },
+      "logs-browse-20vu": {
+        "title": "Shfletimi i logeve (20 perdorues)",
+        "description": "Skenar browse per loget nen ngarkese me te larte pa filtra.",
+        "queryLabel": "Pa filtra",
+        "notes": "Perdorni K6_PEAK_USERS=20 per ta riprodhuar kete skenar browse te logeve."
+      },
+      "logs-browse-50vu": {
+        "title": "Shfletimi i logeve (50 perdorues)",
+        "description": "Skenar browse per loget nen ngarkese te qendrueshme me te larte pa filtra.",
+        "queryLabel": "Pa filtra",
+        "notes": "Perdorni K6_PEAK_USERS=50 per ta riprodhuar kete skenar browse te logeve."
+      },
+      "logs-browse-100vu": {
+        "title": "Shfletimi i logeve (100 perdorues)",
+        "description": "Skenar browse per loget nen ngarkese te rende pa filtra.",
+        "queryLabel": "Pa filtra",
+        "notes": "Perdorni K6_PEAK_USERS=100 per ta riprodhuar kete skenar browse te logeve."
+      },
+      "logs-search-error-20vu": {
+        "title": "Kerkimi i logeve (error, 20 perdorues)",
+        "description": "Skenar kerkimi i logeve me fjalen error nen ngarkese me te larte.",
+        "queryLabel": "Kerkim: \"error\"",
+        "notes": "Perdorni K6_LOGS_QUERY=error dhe K6_PEAK_USERS=20 per ta riprodhuar kete skenar."
+      },
+      "logs-search-error-50vu": {
+        "title": "Kerkimi i logeve (error, 50 perdorues)",
+        "description": "Skenar kerkimi i logeve me fjalen error nen ngarkese te qendrueshme me te larte.",
+        "queryLabel": "Kerkim: \"error\"",
+        "notes": "Perdorni K6_LOGS_QUERY=error dhe K6_PEAK_USERS=50 per ta riprodhuar kete skenar."
       }
-    }
+    },
+    "viewBenchmarkDashboard": "Ballina e benchmark-ut te view-eve",
+    "viewBenchmarkDashboardDescription": "Ky panel tregon sa kohe i duhet cdo view-i te SQL Server dhe Elasticsearch per te kthyer te dhena per hapje me te dhena dhe rezultate te filtruara nen ngarkese me 20, 50 dhe 100 perdorues paralel.",
+    "resultsTableTab": "Tabela e rezultateve",
+    "monitoredViewsCard": "View-et e monitoruara",
+    "monitoredViewsCardCopy": "View-e SQL Server dhe Elasticsearch ne elektronike, H&M Fashion dhe loge.",
+    "savedMeasurementsCard": "Matjet e ruajtura",
+    "savedMeasurementsCardCopy": "Cdo rresht eshte nje matje e ruajtur e k6 per nje view dhe nje ngarkese.",
+    "concurrentUsersCard": "Nivelet e perdoruesve paralel",
+    "concurrentUsersCardCopy": "Paketa aktuale fokusohet ne ngarkesat me 20, 50 dhe 100 perdorues.",
+    "freshestRunCard": "Ekzekutimi me i fundit",
+    "fastestAverageRunCard": "Koha mesatare me e shpejte e rezultatit",
+    "slowestAverageRunCard": "Koha mesatare me e ngadalte e rezultatit",
+    "dashboardDataSourceMessage": "Keto vlera ngarkohen nga raportet e ruajtura k6 JSON ne tests/k6/reports. Cdo ngarkese paraqitet si rresht i vecante i view-it ne vend te nje krahasimi direkt SQL-kunder-Elasticsearch.",
+    "viewResultsTableTitle": "Rezultatet e benchmark-ut per view",
+    "viewResultsTableDescription": "Perdoreni kete tabele per te pare sa kohe i duhet secilit view per te kthyer te dhena ne browse dhe filter workloads, pa krahasuar faqet brenda view-eve.",
+    "workload": "Ngarkesa",
+    "filter": "Filtri",
+    "avgResultTime": "Koha mesatare e rezultatit",
+    "p90ResultTime": "P90",
+    "p95ResultTime": "P95",
+    "maxResultTime": "Maks",
+    "failureRate": "Shkalla e deshtimit",
+    "requestCount": "Kerkesa",
+    "liveKibanaDashboardDescription": "Perdoreni ballinen e integruar te Kibana kur doni pamjen live te telemetrise se Elasticsearch bashke me tabelen e ruajtur te rezultateve k6.",
+    "pageSpecificBenchmarks": "Raste reale benchmark-u per kete fetch",
+    "pageSpecificBenchmarksDescription": "Grid-i me siper mbetet shfletuesi kryesor i regjistrave. Ky seksion i mban skenaret e ruajtur k6 per {{dataset}} prane faqes qe te shihni si sillen {{preferred}} dhe {{peer}} ne browse dhe search.",
+    "openFullDashboard": "Hap ballinen e plote te benchmark-ut",
+    "coverageSummary": "{{browse}} raste browse, {{search}} raste search",
+    "maxUsersCovered": "Deri ne {{users}} perdorues",
+    "readyScenariosCard": "Skenare gati",
+    "readyScenariosCardCopy": "{{browse}} raste browse dhe {{search}} raste search tashme kane matje te ruajtura.",
+    "pageLeaderCard": "Fitoret e skenareve per {{preferred}}",
+    "pageLeaderCardCopy": "{{preferred}} kryeson ne {{preferredWins}} skenare, {{peer}} ne {{peerWins}}, barazime {{ties}}.",
+    "largestGapCard": "Dallimi me i madh i latences mesatare",
+    "scenarioBreakdownTitle": "Pasqyre skenar pas skenari",
+    "scenarioBreakdownCopy": "Cdo rresht eshte nje raport real k6 i ruajtur ne tests/k6/reports qe rastet e detajuara te qendrojne prane faqes se fetch-it te te dhenave.",
+    "sqlP90Latency": "SQL p90",
+    "elasticP90Latency": "Elastic p90",
+    "datasetOverviewCardCopy": "{{count}} skenare reale jane ruajtur per kete familje fetch te te dhenave.",
+    "datasetWinnerBreakdown": "SQL {{sql}}, Elastic {{elastic}}, barazime {{tie}}.",
+    "datasetLargestGapCopy": "Dallimi me i madh i pergjigjes mesatare: {{winner}} me {{percent}}% ne {{scenario}}.",
+    "dataFetchOverview": "Pasqyra e marrjes së të dhënave",
+    "dataFetchOverviewCopy": "Keshtu ballina mbetet e fokusuar te krahasimi i pergjithshem, ndersa faqet individuale te te dhenave mbajne detajet e skenareve per secilen familje fetch.",
+    "unknownSource": "Burim i panjohur",
+    "workloadOpenWithData": "Hapje me te dhena",
+    "workloadFilteredResults": "Rezultate te filtruara"
   },
   "audit": {
     "login": {
@@ -1239,5 +1483,7 @@
   "response": "Përgjigjja",
   "exception": "Përjashtimi/gabimi(Exception)",
   "true": "Ka ndodhur",
-  "false": "Nuk ka ndodhur"
+  "false": "Nuk ka ndodhur",
+  "compare": "Krahasimi",
+  "sqlVsElasticsearchSearch": "Kerkimi SQL dhe Elasticsearch"
 }

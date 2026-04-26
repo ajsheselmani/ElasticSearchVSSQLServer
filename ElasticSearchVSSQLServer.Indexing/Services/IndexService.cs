@@ -124,8 +124,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             query = null;
         var client = getElasticClient(indexName);
 
-        var mappingsResponse = client.Indices.GetMapping();
-        var properties = mappingsResponse.Indices.Where(x => x.Key == indexName).First().Value.Mappings.Properties;
+        var properties = GetIndexProperties(client, indexName);
 
         SortOptions[] fieldsSort = setSorting(searchParams?.sortOrders, properties);
 
@@ -185,8 +184,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
 
         var client = getElasticClient(indexName);
 
-        var mappingsResponse = client.Indices.GetMapping();
-        var properties = mappingsResponse.Indices.Where(x => x.Key == indexName).First().Value.Mappings.Properties;
+        var properties = GetIndexProperties(client, indexName);
 
         SortOptions[] fieldsSort = setSorting(searchParams?.sortOrders, properties);
 
@@ -249,6 +247,29 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                 Aggregations = response.Aggregations?.GetGlobal(x.Key).GetFilters(x.Key).Buckets.FirstOrDefault()?.GetStringTerms(x.Key)?.Buckets.ToDictionary(x => x.Key.ToString(), x => x.DocCount) ?? response.Aggregations?.GetGlobal(x.Key).GetFilters(x.Key).Buckets.FirstOrDefault()?.GetDateHistogram(x.Key)?.Buckets.ToDictionary(x => x.Key.ToString(), x => x.DocCount)
             }).ToList()
         };
+    }
+
+    private static Properties GetIndexProperties(ElasticsearchClient client, string indexName)
+    {
+        var mappingsResponse = client.Indices.GetMapping();
+        var indices = mappingsResponse?.Indices;
+        if (indices == null)
+        {
+            throw new InvalidOperationException(
+                $"Elasticsearch mappings for index '{indexName}' could not be loaded.");
+        }
+
+        var mappingEntry = indices.FirstOrDefault(index =>
+            string.Equals(index.Key.ToString(), indexName, StringComparison.OrdinalIgnoreCase));
+
+        var properties = mappingEntry.Value?.Mappings?.Properties;
+        if (properties == null)
+        {
+            throw new InvalidOperationException(
+                $"Elasticsearch index '{indexName}' was not found or does not have mappings yet. Create or reindex the dataset before searching.");
+        }
+
+        return properties;
     }
 
     private SortOptions[] setSorting(IEnumerable<SortType> sortOrders, Properties properties)

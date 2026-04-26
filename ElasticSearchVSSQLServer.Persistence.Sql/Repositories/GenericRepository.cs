@@ -6,12 +6,15 @@ using ElasticSearchVSSQLServer.Persistence.Sql.Context;
 using ElasticSearchVSSQLServer.Persistence.SQLData;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 namespace ElasticSearchVSSQLServer.Persistence.Sql.Repositories;
 
-public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMapper mapper) : IGenericRepository<TDto, Tid> where T : class where TDto : class {
+public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMapper mapper, IMemoryCache memoryCache) : IGenericRepository<TDto, Tid> where T : class where TDto : class {
+    private static readonly TimeSpan TotalCountCacheLifetime = TimeSpan.FromSeconds(30);
     private ApplicationDbContext _dbContext = dbContext.DbContext;
     private DbSet<T> dbset;
 
@@ -109,12 +112,13 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
 
         var safePage = page < 1 ? 1 : page;
         var safePageSize = pageSize < 1 ? 10 : pageSize;
+        var normalizedFilters = filters ?? [];
 
         IQueryable<T> query = dbset.AsNoTracking();
-        query = ApplyDynamicFilters(query, filters, logicType);
+        query = ApplyDynamicFilters(query, normalizedFilters, logicType);
 
-        var totalCount = await query.LongCountAsync();
-        var entities = await query
+        var totalCount = await GetCachedTotalCountAsync(query, normalizedFilters, logicType);
+        var entities = await ApplyDefaultOrdering(query)
             .Skip((safePage - 1) * safePageSize)
             .Take(safePageSize)
             .ToListAsync();
@@ -345,6 +349,67 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
 
         var lambda = Expression.Lambda<Func<TEntity, bool>>(combined, parameter);
         return query.Where(lambda);
+    }
+
+    private async Task<long> GetCachedTotalCountAsync(
+        IQueryable<T> query,
+        IReadOnlyList<FilterItemDto> filters,
+        string logicType)
+    {
+        var cacheKey = BuildTotalCountCacheKey(filters, logicType);
+        return await memoryCache.GetOrCreateAsync(cacheKey, async cacheEntry =>
+        {
+            cacheEntry.AbsoluteExpirationRelativeToNow = TotalCountCacheLifetime;
+            return await query.LongCountAsync();
+        });
+    }
+
+    private string BuildTotalCountCacheKey(IReadOnlyList<FilterItemDto> filters, string logicType)
+    {
+        var cacheKeyBuilder = new StringBuilder(typeof(T).FullName);
+        cacheKeyBuilder.Append('|');
+        cacheKeyBuilder.Append(logicType?.Trim().ToLowerInvariant() ?? "and");
+
+        foreach (var filter in filters)
+        {
+            cacheKeyBuilder.Append('|');
+            cacheKeyBuilder.Append(filter.PropertyName?.Trim().ToLowerInvariant());
+            cacheKeyBuilder.Append(':');
+            cacheKeyBuilder.Append(filter.Operator?.Trim().ToLowerInvariant());
+            cacheKeyBuilder.Append(':');
+            cacheKeyBuilder.Append(filter.Value?.Trim().ToLowerInvariant());
+            cacheKeyBuilder.Append(':');
+            cacheKeyBuilder.Append(filter.Negate);
+            cacheKeyBuilder.Append(':');
+            cacheKeyBuilder.Append(filter.CaseSensitive);
+        }
+
+        return cacheKeyBuilder.ToString();
+    }
+
+    private IQueryable<T> ApplyDefaultOrdering(IQueryable<T> query)
+    {
+        var primaryKeyProperty = dbset.EntityType.FindPrimaryKey()?.Properties.FirstOrDefault();
+        if (primaryKeyProperty == null)
+        {
+            return query;
+        }
+
+        var parameter = Expression.Parameter(typeof(T), "x");
+        var propertyAccessor = Expression.Call(
+            typeof(EF),
+            nameof(EF.Property),
+            [primaryKeyProperty.ClrType],
+            parameter,
+            Expression.Constant(primaryKeyProperty.Name));
+
+        var orderByExpression = Expression.Lambda(propertyAccessor, parameter);
+        var orderByMethod = typeof(Queryable)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Single(method => method.Name == nameof(Queryable.OrderBy) && method.GetParameters().Length == 2)
+            .MakeGenericMethod(typeof(T), primaryKeyProperty.ClrType);
+
+        return (IQueryable<T>)orderByMethod.Invoke(null, [query, orderByExpression])!;
     }
 
     private static bool TryParseFilterValue(string rawValue, Type targetType, out object? typedValue)

@@ -624,8 +624,8 @@
   "ChartConfigurationNotFound": "Konfiguracija grafikona nije pronađena",
   "CickSettingsToConfigureThisChart": "Kliknite na podešavanja da konfigurišete ovaj grafikon",
   "GroupByField": "Grupiši po polju",
-  "disable2fa": "Onemogućite dvofaktorsku autentifikaciju",
-  "2faDisableTitle": "Ova radnja onemogućava samo 2fa!",
+  "disable2fa": "OnemogucÌite dvofaktorsku autentifikaciju",
+  "2faDisableTitle": "Ova radnja onemogucÌava samo 2fa!",
   "2faDisableText": "Onemogućavanje 2FA ne menja ključeve koji se koriste u aplikacijama za autentifikovanje. Ako želite da promenite ključ koji se koristi u aplikaciji za autentifikovanje, morate",
   "resetingAuthenticatorKey": "resetujte ključ za autentifikovanje",
   "setUpAuthApp": "Podesite aplikaciju za autentifikator",
@@ -871,11 +871,11 @@
   "outsideTheReportingPeriod": "Van izveštajnog perioda",
   "transactionsOutsideApplicationDate": "Transakcije izvršene van perioda za prijavu",
   "clear": "Jasno",
-  "bussinesName": "Naziv preduzeća",
+  "bussinesName": "Naziv preduzecÌa",
   "applicationDate": "Datum prijave",
   "transactionDate": "Datum transakcije",
   "thisFieldIsRequired": "Ovo polje je obavezno",
-  "searchByTheFollowingFields": "Pretraga po sledećim poljima",
+  "searchByTheFollowingFields": "Pretraga po sledecÌim poljima",
   "bankPayments": "Bankovne uplate",
   "report": "Izveštaj",
   "dateFrom": "Datum od",
@@ -891,7 +891,7 @@
   "noData": "Nema podataka",
   "issuedPaymentOrders": "Izdati nalozi za plaćanje",
   "paymentsByBanks": "Uplate po bankama",
-  "paymentsByBanksAndIFFJB": "Plaćanje putem banaka i IFJB-a",
+  "paymentsByBanksAndIFFJB": "PlacÌanje putem banaka i IFJB-a",
   "advancedSearch": "Napredna pretraga",
   "advancedSearchRequiresOneField": "Molimo popunite bar jedno polje za naprednu pretragu.",
   "dailyReport": "Dnevni izveštaj",
@@ -1040,16 +1040,19 @@
     "headlineReliabilityLeader": "{{winner}} je stabilniji kod neuspelih zahteva sa {{value}}.",
     "leader": "Lider: {{winner}}",
     "ready": "Spremno",
+    "seeded": "Uzorak",
     "pending": "Na čekanju",
     "updated": "Ažurirano: {{date}}",
     "quickRead": "Brzi pregled",
     "avgLatencyLeader": "Lider prosečne latencije: {{winner}} sa {{value}}",
-    "reliabilityLeader": "Lider pouzdanosti: {{winner}} sa {{value}}",
+    "reliabilityLeader": "Najstabilniji: {{winner}} sa {{value}}",
     "benchmarkResults": "Rezultati benchmark-a",
     "performanceObservatory": "Opservatorija performansi",
     "scenariosReady": "{{count}} scenarija spremno",
+    "liveRuns": "{{count}} live pokretanja",
+    "seededSamples": "{{count}} ubačenih uzoraka",
     "k6BenchmarkSuite": "k6 benchmark paket",
-    "heroTitle": "Uporedite SQL Server i Elasticsearch kroz tokove pregleda, pretrage i logova.",
+    "heroTitle": "Uporedite SQL Server i Elasticsearch kroz browse/search tokove, od brzih provera do skokova saobraćaja sa 100 korisnika.",
     "overview": "Pregled",
     "kibanaLive": "Kibana uživo",
     "suiteSnapshot": "Pregled paketa",
@@ -1070,43 +1073,289 @@
     "refreshStepCredentials": "Obezbedite K6_AUTH_TOKEN ili K6_EMAIL i K6_PASSWORD kako bi zaštićeni API mogao da se benchmark-uje.",
     "refreshStepRun": "Pokrenite {{command}} da ponovo generišete izveštaj ovog scenarija.",
     "refreshStepReload": "Osvežite klijent da preuzme novi JSON artefakt u kontrolnoj tabli.",
+    "throughput": "Protok",
+    "throughputDescription": "Veći protok znači da je izvor završio više zahteva u sekundi.",
     "detailedComparisonTable": "Detaljna tabela poređenja",
     "detailedComparisonDescription": "Pregled pogodan za prezentaciju za {{scenario}}.",
+    "detailedComparisonContext": "Kontekst: {{users}}, {{query}}.",
     "metric": "Metrika",
     "winner": "Pobednik",
     "authRequiredWarning": "Ovaj scenario još nema svež izveštaj jer API zahteva autentifikaciju. Obezbedite kredencijale ili bearer token, pokrenite benchmark komandu ispod, pa osvežite kontrolnu tablu.",
     "authRequired": "Potrebna autentifikacija",
     "scenarioCoverage": "Pokrivenost scenarija",
-    "scenarioCoverageDescription": "Kontrolna tabla sada prati više tokova rada umesto jednog poređenja u jednoj tački vremena.",
+    "scenarioCoverageDescription": "Kontrolna tabla sada prati reči pretrage, slučajeve sa 100 korisnika i nivoe paralelnih korisnika za svaki view, a ne samo jedno poređenje u jednoj tački vremena.",
+    "allScenarioResults": "Svi rezultati scenarija",
+    "allScenarioResultsDescription": "Uporedite svaki uzorak ili live scenario po dataset-u, view-u, reči pretrage i nivou paralelnih korisnika, uz jasniji prikaz pobednika.",
+    "decisionGuide": "Vodič za odluku",
+    "decisionGuideDescription": "Brz pregled koja platforma vodi ukupno, po view-u i pod opterećenjem od 100 korisnika.",
+    "overallLeader": "Ukupni lider",
+    "overallLeaderDescription": "Najbolji ukupan rezultat kroz sve spremne browse i search scenarije.",
+    "browseLeader": "Lider browse-a",
+    "browseLeaderDescription": "Koja platforma održava browse view-e bržim i stabilnijim.",
+    "searchLeader": "Lider search-a",
+    "searchLeaderDescription": "Koja platforma bolje podnosi opterećenja pretrage po ključnoj reči.",
+    "highLoadLeader": "Lider na 100 korisnika",
+    "highLoadLeaderDescription": "Najjasniji signal skaliranja kada konkurentnost poraste na 100 korisnika.",
+    "highLoadSpotlight": "Fokus na 100 korisnika",
+    "highLoadSpotlightDescription": "Ovi scenariji sa 100 korisnika olakšavaju da se vidi koja platforma se bolje skalira kada saobraćaj skoči.",
+    "noDecisionData": "Dodajte spremne scenarije da biste dobili preporuku.",
+    "recommendationTie": "Spremni scenariji su ravnomerno podeljeni.",
+    "recommendationSummary": "{{winner}} dobija {{wins}} od {{total}} spremnih scenarija.",
+    "recommendationBreakdown": "SQL {{sql}}, Elastic {{elastic}}, nerešeno {{tie}}.",
+    "metricRecommendationTie": "Benchmark metrike su ravnomerno podeljene.",
+    "metricWinnerSummary": "{{winner}} dobija {{wins}} od {{total}} benchmark metrika.",
+    "dataset": "Dataset",
+    "view": "View",
+    "users": "Korisnici",
+    "sqlAvgLatency": "SQL prosek",
+    "elasticAvgLatency": "Elastic prosek",
+    "sqlP95Latency": "SQL p95",
+    "elasticP95Latency": "Elastic p95",
+    "sqlFailureRate": "SQL pad",
+    "elasticFailureRate": "Elastic pad",
     "scenario": "Scenario",
     "status": "Status",
     "query": "Upit",
     "generatedAt": "Generisano",
     "runCommand": "Komanda za pokretanje",
-    "kibanaUrlNotice": "Ako Kibana radi negde drugde osim na `localhost:5601`, podesite `VITE_KIBANA_DASHBOARD_URL` i restartujte klijent.",
     "liveKibanaDashboard": "Kibana kontrolna tabla uživo",
-    "liveKibanaDescription": "Koristite ovaj prikaz uz benchmark paket kada želite da povežete rezultate scenarija sa živom operativnom telemetrijom.",
     "kibanaDashboard": "Kibana kontrolna tabla",
+    "hmFashionDataset": "H&M Fashion",
+    "electronicsDataset": "Elektronika",
+    "logsDataset": "Logovi",
+    "unknownDataset": "Dataset",
+    "browseView": "Browse",
+    "searchView": "Search",
+    "comparisonView": "Poređenje",
+    "seededNotice": "Ovaj scenario je ubačeni uzorak na dashboard-u. Pokrenite {{command}} da ga zamenite živim k6 merenjem.",
     "scenarios": {
       "electronics-browse": {
         "title": "Pregled elektronike",
         "description": "Osnovno preuzimanje kataloga bez filtera za poređenje sirove performanse pregleda.",
         "queryLabel": "Bez filtera",
-        "notes": "Koristi iste endpoint-e liste elektronike koji su već povezani u korisničkom interfejsu aplikacije."
+        "notes": "Koristi iste endpoint-e liste elektronike koji su već povezani u korisničkom interfejsu aplikacije. Koristite K6_PEAK_USERS da povećate opterećenje."
+      },
+      "electronics-browse-20vu": {
+        "title": "Pregled elektronike (20 korisnika)",
+        "description": "Jače opterećenje za pregled elektronike bez filtera.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=20 da reprodukujete ovaj browse scenario."
+      },
+      "electronics-browse-100vu": {
+        "title": "Pregled elektronike (100 korisnika)",
+        "description": "Teško opterećenje za pregled elektronike radi jasnijeg poređenja skaliranja.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=100 da reprodukujete ovaj browse scenario sa 100 korisnika."
       },
       "electronics-search": {
         "title": "Pretraga elektronike",
         "description": "Globalna pretraga nad skupom podataka elektronike za poređenje latencije filtrirane pretrage.",
         "queryLabel": "Upit: \"phone\"",
-        "notes": "Podesite K6_ELECTRONICS_QUERY da zamenite termin pretrage sopstvenom ključnom rečju proizvoda."
+        "notes": "Podesite K6_ELECTRONICS_QUERY da zamenite termin pretrage sopstvenom ključnom rečju proizvoda, a K6_PEAK_USERS da povećate opterećenje."
+      },
+      "electronics-search-samsung-20vu": {
+        "title": "Pretraga elektronike (samsung, 20 korisnika)",
+        "description": "Jače opterećenje za pretragu elektronike sa rečju samsung.",
+        "queryLabel": "Upit: \"samsung\"",
+        "notes": "Koristite K6_ELECTRONICS_QUERY=samsung i K6_PEAK_USERS=20 da reprodukujete ovaj scenario."
+      },
+      "electronics-search-phone-100vu": {
+        "title": "Pretraga elektronike (phone, 100 korisnika)",
+        "description": "Teško opterećenje za pretragu elektronike sa rečju phone.",
+        "queryLabel": "Upit: \"phone\"",
+        "notes": "Koristite K6_ELECTRONICS_QUERY=phone i K6_PEAK_USERS=100 da reprodukujete ovaj scenario sa 100 korisnika."
+      },
+      "hm-fashion-browse-2vu": {
+        "title": "H&M Fashion Browse (2 korisnika)",
+        "description": "Osnovni H&M browse view bez filtera za poređenje performanse preuzimanja ravnog kataloga.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS da ponovo generišete ovaj H&M browse scenario za drugi nivo konkurentnosti."
+      },
+      "hm-fashion-browse-5vu": {
+        "title": "H&M Fashion Browse (5 korisnika)",
+        "description": "H&M browse scenario sa srednjim opterećenjem.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=5 da reprodukujete ovaj browse scenario."
+      },
+      "hm-fashion-browse-20vu": {
+        "title": "H&M Fashion Browse (20 korisnika)",
+        "description": "H&M browse scenario sa visokim opterećenjem za jače poređenje.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=20 da reprodukujete ovaj browse scenario."
+      },
+      "hm-fashion-browse-100vu": {
+        "title": "H&M Fashion Browse (100 korisnika)",
+        "description": "H&M browse scenario sa teškim opterećenjem za jasniji pogled na skaliranje.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=100 da reprodukujete ovaj browse scenario sa 100 korisnika."
+      },
+      "hm-fashion-search-dress-2vu": {
+        "title": "H&M Fashion Search (dress, 2 korisnika)",
+        "description": "H&M search scenario za reč dress pri manjoj konkurentnosti.",
+        "queryLabel": "Upit: \"dress\"",
+        "notes": "Koristite K6_HM_QUERY=dress i K6_PEAK_USERS=2 da reprodukujete ovaj scenario."
+      },
+      "hm-fashion-search-shirt-5vu": {
+        "title": "H&M Fashion Search (shirt, 5 korisnika)",
+        "description": "H&M search scenario za reč shirt pri srednjoj konkurentnosti.",
+        "queryLabel": "Upit: \"shirt\"",
+        "notes": "Koristite K6_HM_QUERY=shirt i K6_PEAK_USERS=5 da reprodukujete ovaj scenario."
+      },
+      "hm-fashion-search-black-10vu": {
+        "title": "H&M Fashion Search (black, 10 korisnika)",
+        "description": "H&M search scenario za reč black pri većem opterećenju.",
+        "queryLabel": "Upit: \"black\"",
+        "notes": "Koristite K6_HM_QUERY=black i K6_PEAK_USERS=10 da reprodukujete ovaj scenario."
+      },
+      "hm-fashion-search-ladieswear-10vu": {
+        "title": "H&M Fashion Search (ladieswear, 10 korisnika)",
+        "description": "H&M search scenario za reč ladieswear pri većem opterećenju.",
+        "queryLabel": "Upit: \"ladieswear\"",
+        "notes": "Koristite K6_HM_QUERY=ladieswear i K6_PEAK_USERS=10 da reprodukujete ovaj scenario."
+      },
+      "hm-fashion-search-blue-20vu": {
+        "title": "H&M Fashion Search (blue, 20 korisnika)",
+        "description": "Veoma veliko opterećenje za H&M search sa rečju blue.",
+        "queryLabel": "Upit: \"blue\"",
+        "notes": "Koristite K6_HM_QUERY=blue i K6_PEAK_USERS=20 da reprodukujete ovaj scenario."
+      },
+      "hm-fashion-search-dress-100vu": {
+        "title": "H&M Fashion Search (dress, 100 korisnika)",
+        "description": "Teško opterećenje za H&M search sa rečju dress.",
+        "queryLabel": "Upit: \"dress\"",
+        "notes": "Koristite K6_HM_QUERY=dress i K6_PEAK_USERS=100 da reprodukujete ovaj scenario sa 100 korisnika."
       },
       "logs-search": {
         "title": "Pretraga logova",
         "description": "Preuzimanje logova opterećeno pretragom za poređenje ponašanja oba skladišta na operativnim upitima logova.",
         "queryLabel": "Upit: \"error\"",
-        "notes": "Podesite K6_LOGS_QUERY da ciljate sopstvenu ključnu reč loga, IP fragment ili tekst događaja."
+        "notes": "Podesite K6_LOGS_QUERY da ciljate sopstvenu ključnu reč loga, IP fragment ili tekst događaja, a K6_PEAK_USERS da povećate opterećenje."
+      },
+      "logs-search-warn-20vu": {
+        "title": "Pretraga logova (warn, 20 korisnika)",
+        "description": "Veoma veliko opterećenje za pretragu logova sa rečju warn.",
+        "queryLabel": "Upit: \"warn\"",
+        "notes": "Koristite K6_LOGS_QUERY=warn i K6_PEAK_USERS=20 da reprodukujete ovaj scenario."
+      },
+      "logs-search-error-100vu": {
+        "title": "Pretraga logova (error, 100 korisnika)",
+        "description": "Teško opterećenje za pretragu logova sa rečju error.",
+        "queryLabel": "Upit: \"error\"",
+        "notes": "Koristite K6_LOGS_QUERY=error i K6_PEAK_USERS=100 da reprodukujete ovaj scenario sa 100 korisnika."
+      },
+      "electronics-browse-50vu": {
+        "title": "Pregled elektronike (50 korisnika)",
+        "description": "Browse scenario za elektroniku sa jacim stalnim opterecenjem.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=50 da reprodukujete ovaj browse scenario."
+      },
+      "electronics-search-phone-20vu": {
+        "title": "Pretraga elektronike (phone, 20 korisnika)",
+        "description": "Pretraga elektronike sa recju phone pri vecem opterecenju.",
+        "queryLabel": "Upit: \"phone\"",
+        "notes": "Koristite K6_ELECTRONICS_QUERY=phone i K6_PEAK_USERS=20 da reprodukujete ovaj scenario."
+      },
+      "electronics-search-phone-50vu": {
+        "title": "Pretraga elektronike (phone, 50 korisnika)",
+        "description": "Pretraga elektronike sa recju phone pri stalnom vecem opterecenju.",
+        "queryLabel": "Upit: \"phone\"",
+        "notes": "Koristite K6_ELECTRONICS_QUERY=phone i K6_PEAK_USERS=50 da reprodukujete ovaj scenario."
+      },
+      "hm-fashion-browse-50vu": {
+        "title": "H&M Fashion Browse (50 korisnika)",
+        "description": "H&M browse scenario sa stalnim vecim opterecenjem.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=50 da reprodukujete ovaj H&M browse scenario."
+      },
+      "hm-fashion-search-dress-20vu": {
+        "title": "H&M Fashion Search (dress, 20 korisnika)",
+        "description": "H&M search scenario za rec dress pri vecem opterecenju.",
+        "queryLabel": "Upit: \"dress\"",
+        "notes": "Koristite K6_HM_QUERY=dress i K6_PEAK_USERS=20 da reprodukujete ovaj scenario."
+      },
+      "hm-fashion-search-dress-50vu": {
+        "title": "H&M Fashion Search (dress, 50 korisnika)",
+        "description": "H&M search scenario za rec dress pri stalnom vecem opterecenju.",
+        "queryLabel": "Upit: \"dress\"",
+        "notes": "Koristite K6_HM_QUERY=dress i K6_PEAK_USERS=50 da reprodukujete ovaj scenario."
+      },
+      "logs-browse-20vu": {
+        "title": "Pregled logova (20 korisnika)",
+        "description": "Browse scenario za logove pri vecem opterecenju bez filtera.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=20 da reprodukujete ovaj logs browse scenario."
+      },
+      "logs-browse-50vu": {
+        "title": "Pregled logova (50 korisnika)",
+        "description": "Browse scenario za logove pri stalnom vecem opterecenju bez filtera.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=50 da reprodukujete ovaj logs browse scenario."
+      },
+      "logs-browse-100vu": {
+        "title": "Pregled logova (100 korisnika)",
+        "description": "Browse scenario za logove pri teskom opterecenju bez filtera.",
+        "queryLabel": "Bez filtera",
+        "notes": "Koristite K6_PEAK_USERS=100 da reprodukujete ovaj logs browse scenario."
+      },
+      "logs-search-error-20vu": {
+        "title": "Pretraga logova (error, 20 korisnika)",
+        "description": "Pretraga logova sa recju error pri vecem opterecenju.",
+        "queryLabel": "Upit: \"error\"",
+        "notes": "Koristite K6_LOGS_QUERY=error i K6_PEAK_USERS=20 da reprodukujete ovaj scenario."
+      },
+      "logs-search-error-50vu": {
+        "title": "Pretraga logova (error, 50 korisnika)",
+        "description": "Pretraga logova sa recju error pri stalnom vecem opterecenju.",
+        "queryLabel": "Upit: \"error\"",
+        "notes": "Koristite K6_LOGS_QUERY=error i K6_PEAK_USERS=50 da reprodukujete ovaj scenario."
       }
-    }
+    },
+    "viewBenchmarkDashboard": "Kontrolna tabla benchmark pregleda",
+    "viewBenchmarkDashboardDescription": "Ova kontrolna tabla prikazuje koliko je vremena potrebno svakom SQL Server i Elasticsearch pregledu da vrati podatke za otvaranje sa podacima i filtrirane rezultate pod opterecenjem od 20, 50 i 100 paralelnih korisnika.",
+    "resultsTableTab": "Tabela rezultata",
+    "monitoredViewsCard": "Praceni pregledi",
+    "monitoredViewsCardCopy": "SQL Server i Elasticsearch pregledi kroz elektroniku, H&M Fashion i logove.",
+    "savedMeasurementsCard": "Sacuvana merenja",
+    "savedMeasurementsCardCopy": "Svaki red predstavlja jedno sacuvano k6 merenje za jedan pregled i jedno opterecenje.",
+    "concurrentUsersCard": "Nivoi paralelnih korisnika",
+    "concurrentUsersCardCopy": "Trenutni paket je fokusiran na opterecenja od 20, 50 i 100 korisnika.",
+    "freshestRunCard": "Najnovije pokretanje",
+    "fastestAverageRunCard": "Najbrze prosecno vreme rezultata",
+    "slowestAverageRunCard": "Najsporije prosecno vreme rezultata",
+    "dashboardDataSourceMessage": "Ove vrednosti se ucitavaju iz sacuvanih k6 JSON izvestaja u tests/k6/reports. Svako opterecenje je prikazano kao poseban red pregleda umesto kao direktno SQL-versus-Elasticsearch poredjenje.",
+    "viewResultsTableTitle": "Benchmark rezultati po pregledu",
+    "viewResultsTableDescription": "Koristite ovu tabelu da vidite koliko je vremena potrebno svakom pregledu da vrati podatke za browse i filter opterecenja, bez poredjenja stranica unutar samih pregleda.",
+    "workload": "Opterecenje",
+    "filter": "Filter",
+    "avgResultTime": "Prosecno vreme rezultata",
+    "p90ResultTime": "P90",
+    "p95ResultTime": "P95",
+    "maxResultTime": "Maks",
+    "failureRate": "Stopa neuspeha",
+    "requestCount": "Zahtevi",
+    "liveKibanaDashboardDescription": "Koristite ugradjenu Kibana kontrolnu tablu kada zelite zivi Elasticsearch telemetry pregled uz sacuvanu tabelu k6 rezultata.",
+    "pageSpecificBenchmarks": "Stvarni benchmark slucajevi za ovaj fetch",
+    "pageSpecificBenchmarksDescription": "Gornja mreza ostaje glavni pregled zapisa. Ovaj deo drzi sacuvane k6 scenarije za {{dataset}} blizu stranice kako biste videli kako se {{preferred}} i {{peer}} ponasaju kroz browse i search slucajeve.",
+    "openFullDashboard": "Otvori punu benchmark kontrolnu tablu",
+    "coverageSummary": "{{browse}} browse slucajeva, {{search}} search slucajeva",
+    "maxUsersCovered": "Do {{users}} korisnika",
+    "readyScenariosCard": "Spremni scenariji",
+    "readyScenariosCardCopy": "{{browse}} browse i {{search}} search slucajeva vec imaju sacuvana merenja.",
+    "pageLeaderCard": "Pobede scenarija za {{preferred}}",
+    "pageLeaderCardCopy": "{{preferred}} vodi u {{preferredWins}} scenarija, {{peer}} vodi u {{peerWins}}, nereseno {{ties}}.",
+    "largestGapCard": "Najveci jaz prosecne latencije",
+    "scenarioBreakdownTitle": "Pregled scenario po scenario",
+    "scenarioBreakdownCopy": "Svaki red je jedan stvarni k6 izvestaj sacuvan u tests/k6/reports kako bi detaljni slucajevi ostali blizu stranice za fetch podataka.",
+    "sqlP90Latency": "SQL p90",
+    "elasticP90Latency": "Elastic p90",
+    "datasetOverviewCardCopy": "{{count}} stvarnih scenarija je sacuvano za ovu grupu fetch podataka.",
+    "datasetWinnerBreakdown": "SQL {{sql}}, Elastic {{elastic}}, nereseno {{tie}}.",
+    "datasetLargestGapCopy": "Najveci jaz prosecnog odziva: {{winner}} za {{percent}}% u scenariju {{scenario}}.",
+    "dataFetchOverview": "Pregled fetch podataka",
+    "dataFetchOverviewCopy": "Ovako kontrolna tabla ostaje fokusirana na opste poredjenje, dok pojedinacne stranice sa podacima nose detalje scenarija za svaku fetch grupu.",
+    "unknownSource": "Nepoznat izvor",
+    "workloadOpenWithData": "Otvaranje sa podacima",
+    "workloadFilteredResults": "Filtrirani rezultati"
   },
   "audit": {
     "login": {
@@ -1192,5 +1441,7 @@
   "response": "Odgovor",
   "exception": "Izuzetak",
   "true": "Desilo se",
-  "false": "Nije se dogodilo"
+  "false": "Nije se dogodilo",
+  "compare": "Poređenje",
+  "sqlVsElasticsearchSearch": "SQL vs Elasticsearch Search"
 }

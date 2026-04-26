@@ -11,6 +11,32 @@ const DEFAULT_STAGES = [
   { duration: "15s", target: 0 },
 ];
 
+export function resolvePeakUsers(defaultValue = 2) {
+  const parsedValue = Number((__ENV.K6_PEAK_USERS || `${defaultValue}`).trim());
+
+  if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+    return defaultValue;
+  }
+
+  return Math.round(parsedValue);
+}
+
+export function buildRampStages(peakUsers) {
+  return [
+    { duration: "5s", target: Math.max(1, Math.ceil(peakUsers / 2)) },
+    { duration: "10s", target: peakUsers },
+    { duration: "5s", target: 0 },
+  ];
+}
+
+export function slugifySegment(value) {
+  return `${value ?? ""}`
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export function createBenchmarkMetrics(prefix) {
   const sqlDurationMetric = `${prefix}_sql_duration`;
   const elasticDurationMetric = `${prefix}_elastic_duration`;
@@ -42,6 +68,7 @@ export function createBenchmarkOptions(metricNames, overrides = {}) {
     stages = DEFAULT_STAGES,
     p95Threshold = 1500,
     failureRateThreshold = 0.05,
+    setupTimeout = "180s",
   } = overrides;
 
   const enforceThresholds = `${__ENV.K6_ENFORCE_THRESHOLDS || ""}`.trim() === "true";
@@ -49,6 +76,7 @@ export function createBenchmarkOptions(metricNames, overrides = {}) {
   const options = {
     insecureSkipTLSVerify: true,
     stages,
+    setupTimeout,
   };
 
   if (enforceThresholds) {
@@ -205,6 +233,10 @@ export function buildScenarioOutput({
     title: scenario.title,
     description: scenario.description,
     status: "ready",
+    datasetLabel: scenario.datasetLabel ?? null,
+    workloadLabel: scenario.workloadLabel ?? null,
+    viewType: scenario.viewType ?? null,
+    queryTerm: scenario.queryTerm ?? null,
     queryLabel: scenario.queryLabel,
     reportSource: reportPath,
     metadata: {
@@ -216,6 +248,8 @@ export function buildScenarioOutput({
           : __ENV.K6_EMAIL && __ENV.K6_PASSWORD
             ? "credentials"
             : "none",
+      concurrentUsers: scenario.concurrentUsers ?? null,
+      suiteKey: scenario.suiteKey ?? null,
       notes: scenario.notes ?? "",
     },
     sql: {

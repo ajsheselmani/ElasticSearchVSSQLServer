@@ -4,6 +4,28 @@ import sr from './languages/sr.json';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+export const LANGUAGE_STORAGE_KEY = 'app_language';
+
+export function normalizeLanguage(value) {
+  return ['sq', 'en', 'sr'].includes(value) ? value : 'sq';
+}
+
+export function getStoredLanguage() {
+  if (typeof window === 'undefined') return 'sq';
+
+  return normalizeLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
+}
+
+export function persistLanguage(language) {
+  const normalizedLanguage = normalizeLanguage(language);
+
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, normalizedLanguage);
+  }
+
+  return normalizedLanguage;
+}
+
 const resources = {
   en: {
     translation: en,
@@ -19,7 +41,7 @@ const resources = {
 i18n.use(initReactI18next).init({
   resources,
   fallbackLng: 'sq',
-  lng: 'sq',
+  lng: getStoredLanguage(),
   interpolation: {
     escapeValue: false,
   },

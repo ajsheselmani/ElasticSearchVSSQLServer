@@ -7,8 +7,23 @@ import { JWT_STORAGE_KEY } from "./constant";
 import { AuthContext } from "../auth-context";
 import { setSession, isValidToken } from "./utils";
 import { useTranslation } from "react-i18next";
+import { persistLanguage } from "src/locales";
 
 // ----------------------------------------------------------------------
+
+function getLanguageCode(languageId) {
+  if (languageId == 1) return "sq";
+  if (languageId == 2) return "en";
+  if (languageId == 3) return "sr";
+  return "sq";
+}
+
+function getLanguageId(languageCode) {
+  if (languageCode === "sq") return 1;
+  if (languageCode === "en") return 2;
+  if (languageCode === "sr") return 3;
+  return 1;
+}
 
 export function AuthProvider({ children }) {
   const { state, setState } = useSetState({ user: null, loading: true });
@@ -23,9 +38,10 @@ export function AuthProvider({ children }) {
 
         const res = await axios.get(endpoints.auth.me);
         const user = res.data;
-        if (user.language == 1) i18n.changeLanguage("sq");
-        else if (user.language == 2) i18n.changeLanguage("en");
-        else if (user.language == 3) i18n.changeLanguage("sr");
+        const languageCode = getLanguageCode(user.language);
+
+        persistLanguage(languageCode);
+        await i18n.changeLanguage(languageCode);
         setState({ user: { ...user, accessToken }, loading: false });
       } else {
         setState({ user: null, loading: false, role: null });
@@ -34,7 +50,25 @@ export function AuthProvider({ children }) {
       console.error(error);
       setState({ user: null, loading: false, role: null });
     }
-  }, [setState]);
+  }, [i18n, setState]);
+
+  const updateUserLanguage = useCallback(
+    async (languageCode) => {
+      const normalizedLanguage = persistLanguage(languageCode);
+
+      await i18n.changeLanguage(normalizedLanguage);
+
+      if (state.user) {
+        setState({
+          user: {
+            ...state.user,
+            language: getLanguageId(normalizedLanguage),
+          },
+        });
+      }
+    },
+    [i18n, setState, state.user],
+  );
 
   useEffect(() => {
     checkUserSession();
@@ -53,11 +87,12 @@ export function AuthProvider({ children }) {
         ? { ...state.user, role: state.user?.role ?? "admin" }
         : null,
       checkUserSession,
+      updateUserLanguage,
       loading: status === "loading",
       authenticated: status === "authenticated",
       unauthenticated: status === "unauthenticated",
     }),
-    [checkUserSession, state.user, status],
+    [checkUserSession, state.user, status, updateUserLanguage],
   );
 
   return <AuthContext value={memoizedValue}>{children}</AuthContext>;

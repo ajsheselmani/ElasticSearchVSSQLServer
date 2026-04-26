@@ -6,8 +6,6 @@ import { AuthCenteredLayout } from "src/layouts/auth-centered";
 import { SplashScreen } from "src/components/loading-screen";
 
 import { GuestGuard } from "src/auth/guard";
-// import { JwtLoginWith2FAView } from "src/auth/view/jwt/jwt-login-with-2FA-view";
-// import { JwtLoginWithRecoveryCodeView } from "src/auth/view/jwt/jwt-login-with-recoveryCodes-view";
 
 // ----------------------------------------------------------------------
 

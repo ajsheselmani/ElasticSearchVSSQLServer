@@ -1,15 +1,29 @@
 import { sleep } from "k6";
 
 import {
+  buildRampStages,
   buildScenarioOutput,
   createBenchmarkMetrics,
   createBenchmarkOptions,
+  resolvePeakUsers,
   runComparisonRequest,
+  slugifySegment,
   setupAuthContext,
 } from "../helpers/benchmark.js";
 
-const metrics = createBenchmarkMetrics("electronics_search");
+const peakUsers = resolvePeakUsers();
 const searchTerm = (__ENV.K6_ELECTRONICS_QUERY || "phone").trim();
+const querySlug = slugifySegment(searchTerm) || "query";
+const isDefaultScenario = peakUsers === 2 && searchTerm === "phone";
+const metrics = createBenchmarkMetrics(
+  `electronics_search_${querySlug}_${peakUsers}vu`,
+);
+const scenarioId = isDefaultScenario
+  ? "electronics-search"
+  : `electronics-search-${querySlug}-${peakUsers}vu`;
+const reportPath = isDefaultScenario
+  ? "tests/k6/reports/scenario-electronics-search.json"
+  : `tests/k6/reports/scenario-${scenarioId}.json`;
 const encodedSqlFilters = encodeURIComponent(
   JSON.stringify([
     {
@@ -22,26 +36,22 @@ const encodedSqlFilters = encodeURIComponent(
 );
 
 export const options = createBenchmarkOptions(metrics.names, {
-  stages: [
-    { duration: "5s", target: 1 },
-    { duration: "10s", target: 2 },
-    { duration: "5s", target: 0 },
-  ],
+  stages: buildRampStages(peakUsers),
   p95Threshold: 15000,
   failureRateThreshold: 0.05,
 });
 
 const sqlRequest = {
-  scenarioId: "electronics-search",
-  name: "electronics_search_sql",
+  scenarioId,
+  name: `${scenarioId}_sql`,
   source: "sql",
   method: "GET",
   path: `/SQLData/GetAllElectronicEvents?page=1&pageSize=10&filters=${encodedSqlFilters}&logicType=and`,
 };
 
 const elasticRequest = {
-  scenarioId: "electronics-search",
-  name: "electronics_search_elastic",
+  scenarioId,
+  name: `${scenarioId}_elastic`,
   source: "elastic",
   method: "PUT",
   path: "/ElasticData/ElectronicsDataSearch?page=0&pageSize=10",
@@ -61,15 +71,24 @@ const elasticRequest = {
 };
 
 const scenario = {
-  id: "electronics-search",
-  title: "Electronics Search",
+  id: scenarioId,
+  suiteKey: "view-benchmark-matrix",
+  title: isDefaultScenario
+    ? "Electronics Search"
+    : `Electronics Search (${searchTerm}, ${peakUsers} users)`,
   description:
     "Global-search query against the electronics data set to compare filtered search latency.",
+  datasetLabel: "Electronics",
+  workloadLabel: "Search",
+  viewType: "search",
+  queryTerm: searchTerm,
   queryLabel: `Query: "${searchTerm}"`,
-  runCommand:
-    "k6 run tests/k6/scenarios/electronics-search.js -e K6_ELECTRONICS_QUERY=phone",
+  concurrentUsers: peakUsers,
+  runCommand: isDefaultScenario
+    ? "k6 run tests/k6/scenarios/electronics-search.js -e K6_ELECTRONICS_QUERY=phone"
+    : `k6 run tests/k6/scenarios/electronics-search.js -e K6_ELECTRONICS_QUERY=${searchTerm} -e K6_PEAK_USERS=${peakUsers}`,
   notes:
-    "Set K6_ELECTRONICS_QUERY to swap the search term for your own product keyword.",
+    "Set K6_ELECTRONICS_QUERY to swap the search term for your own product keyword and K6_PEAK_USERS to increase concurrency.",
 };
 
 export function setup() {
@@ -90,7 +109,7 @@ export default function (context) {
 export function handleSummary(data) {
   return buildScenarioOutput({
     data,
-    reportPath: "tests/k6/reports/scenario-electronics-search.json",
+    reportPath,
     scenario,
     metricNames: metrics.names,
     sqlRequest,

@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import axiosInstance from "src/lib/axios";
 import { useSnackbar } from "notistack";
 import { useAuthContext } from "src/auth/hooks";
+import { persistLanguage } from "src/locales";
 
 // ----------------------------------------------------------------------
 
@@ -21,41 +22,54 @@ export function LanguagePopover({ data = [], sx, ...other }) {
 
   const { i18n, t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
-  const { user } = useAuthContext();
+  const { user, updateUserLanguage } = useAuthContext();
 
   const handleChangeLang = useCallback(
-    (newLang) => {
-      i18n.changeLanguage(newLang);
+    async (newLang) => {
+      const previousLanguage = i18n.resolvedLanguage ?? i18n.language;
+
+      if (newLang === previousLanguage) {
+        onClose();
+        return;
+      }
+
+      await i18n.changeLanguage(newLang);
+      persistLanguage(newLang);
+
       const languageEnum = {
         sq: 1,
         en: 2,
         sr: 3,
       };
-      if (user != null)
-        axiosInstance
-          .put(
-            `/User/UpdateUserLanguage?languageId=${languageEnum[newLang]}`,
-            {},
-          )
-          .then((res) => {
-            if (res.status == 200) {
-              enqueueSnackbar(t("languageUpdatedSuccessfully"), {
-                variant: "success",
-                autoHideDuration: 1000,
-                onClose: () => {
-                  window.location.reload();
-                },
-              });
-              onClose();
-            } else {
-              enqueueSnackbar(t("languageNotUpdated"), {
-                variant: "error",
-                autoHideDuration: 4000,
-              });
-            }
-          });
+
+      if (user == null) {
+        onClose();
+        return;
+      }
+
+      const res = await axiosInstance.put(
+        `/User/UpdateUserLanguage?languageId=${languageEnum[newLang]}`,
+        {},
+      );
+
+      if (res.status == 200) {
+        await updateUserLanguage(newLang);
+        enqueueSnackbar(t("languageUpdatedSuccessfully"), {
+          variant: "success",
+          autoHideDuration: 1000,
+        });
+        onClose();
+        return;
+      }
+
+      persistLanguage(previousLanguage);
+      await i18n.changeLanguage(previousLanguage);
+      enqueueSnackbar(t("languageNotUpdated"), {
+        variant: "error",
+        autoHideDuration: 4000,
+      });
     },
-    [i18n, user, axiosInstance, enqueueSnackbar, t, onClose],
+    [i18n, enqueueSnackbar, onClose, t, updateUserLanguage, user],
   );
 
   const renderMenuList = () => (

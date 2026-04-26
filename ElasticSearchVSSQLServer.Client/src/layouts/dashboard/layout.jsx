@@ -57,8 +57,18 @@ export const useNavData = () => {
       ],
     },
     {
+      subheader: t("compare"),
+      icon: ICONS.compare,
+      items: [
+        {
+          title: t("sqlVsElasticsearchSearch"),
+          path: paths.compare.querySearch,
+          icon: ICONS.compare,
+        },
+      ],
+    },
+    {
       subheader: t("sqlData"),
-      // icon: ICONS.sql,
       items: [
         {
           title: t("electronicsDataSQL"),
@@ -79,7 +89,6 @@ export const useNavData = () => {
     },
     {
       subheader: t("elasticData"),
-      // icon: ICONS.elastic,
       items: [
         {
           title: t("electronicsDataElastic"),
@@ -95,17 +104,6 @@ export const useNavData = () => {
           title: t("logsDataElastic"),
           path: paths.elastic.logsData,
           icon: ICONS.logs,
-        },
-      ],
-    },
-    {
-      subheader: "Compare",
-      icon: ICONS.compare,
-      items: [
-        {
-          title: "SQL vs Elasticsearch Search",
-          path: paths.compare.querySearch,
-          icon: ICONS.compare,
         },
       ],
     },

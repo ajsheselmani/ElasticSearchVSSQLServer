@@ -442,7 +442,6 @@ const LogsElasticSearch = () => {
           ]}
           sx={{ mb: { xs: 1, md: 1 } }}
         />
-        {/* <Card> */}
         <div style={{ height: "100%", m: 5 }}>
           <DataGrid
             autoHeight
@@ -477,7 +476,6 @@ const LogsElasticSearch = () => {
             }}
           />
         </div>
-        {/* </Card> */}
       </DashboardContent>
     </>
   );

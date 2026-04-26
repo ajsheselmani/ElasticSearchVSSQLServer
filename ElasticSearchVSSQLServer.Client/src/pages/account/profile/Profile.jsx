@@ -25,8 +25,8 @@ import axiosInstance from "src/lib/axios";
 import { fData } from "src/utils/format-number";
 
 const Profile = () => {
-  const { user, checkUserSession } = useAuthContext();
-  const { t, i18n } = useTranslation();
+  const { user, updateUserLanguage } = useAuthContext();
+  const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
 
   const [img, setImg] = React.useState(null);
@@ -162,17 +162,17 @@ const Profile = () => {
 
   const handleLanguageChange = (event) => {
     const newLanguage = event.target.value;
+    const nextLanguageCode =
+      newLanguage == 1 ? "sq" : newLanguage == 2 ? "en" : "sr";
+
     axiosInstance
-      .put(`/Administration/user/UpdateUserLanguage?languageId=` + newLanguage)
+      .put(`/User/UpdateUserLanguage?languageId=` + newLanguage)
       .then(async (response) => {
         if (response.status === 200) {
-          i18n.changeLanguage(
-            newLanguage == 1 ? "sq" : newLanguage == 2 ? "en" : "sr",
-          );
+          await updateUserLanguage(nextLanguageCode);
           enqueueSnackbar(t("languageUpdatedSuccessfully"), {
             variant: "success",
           });
-          await checkUserSession();
         } else {
           enqueueSnackbar(
             response.response.data.message ?? t("errorOccurred"),
