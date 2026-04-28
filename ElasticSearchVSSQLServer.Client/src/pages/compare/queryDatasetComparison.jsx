@@ -18,6 +18,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
+
 import axiosInstance from "src/lib/axios";
 import { CONFIG } from "src/global-config";
 import { DashboardContent } from "src/layouts/dashboard";
@@ -25,6 +27,11 @@ import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
 import { paths } from "src/routes/paths";
 
 const PAGE_SIZE = 10;
+const DATE_LOCALE_BY_LANGUAGE = {
+  en: "en-GB",
+  sq: "sq-AL",
+  sr: "sr-RS",
+};
 
 const SEARCH_TERM_SEPARATORS = /[\s,;]+/;
 const SEARCH_TERM_TRIM_PATTERN = /^[.?!:()[\]{}"']+|[.?!:()[\]{}"']+$/g;
@@ -34,10 +41,14 @@ function formatValue(value, fallback = "///") {
   return String(value);
 }
 
-function formatDate(value) {
+function getDateLocale(language) {
+  return DATE_LOCALE_BY_LANGUAGE[language] ?? DATE_LOCALE_BY_LANGUAGE.en;
+}
+
+function formatDate(value, locale = DATE_LOCALE_BY_LANGUAGE.en) {
   if (!value) return "///";
 
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -45,10 +56,10 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function formatDateTime(value) {
+function formatDateTime(value, locale = DATE_LOCALE_BY_LANGUAGE.en) {
   if (!value) return "///";
 
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -120,11 +131,9 @@ function getResponseError(response, fallbackMessage) {
 
 const DATASET_CONFIGS = {
   electronics: {
-    label: "Electronics dataset",
-    placeholder:
-      "Try phone, samsung, apple, purchase, or a product/category id",
-    description:
-      "Runs the same free-text query against the electronics dataset in SQL Server and Elasticsearch.",
+    labelKey: "compareView.datasets.electronics.label",
+    placeholderKey: "compareView.datasets.electronics.placeholder",
+    descriptionKey: "compareView.datasets.electronics.description",
     searchFields: [
       { name: "eventTime", type: "text" },
       { name: "eventType", type: "text" },
@@ -139,37 +148,37 @@ const DATASET_CONFIGS = {
     columns: [
       {
         key: "eventTime",
-        label: "Event time",
-        getValue: (row) => formatDateTime(row.eventTime),
+        labelKey: "compareView.columns.eventTime",
+        getValue: (row, locale) => formatDateTime(row.eventTime, locale),
       },
       {
         key: "eventType",
-        label: "Event type",
+        labelKey: "compareView.columns.eventType",
         getValue: (row) => formatValue(row.eventType),
       },
       {
         key: "brand",
-        label: "Brand",
+        labelKey: "compareView.columns.brand",
         getValue: (row) => formatValue(row.brand),
       },
       {
         key: "categoryCode",
-        label: "Category",
+        labelKey: "compareView.columns.category",
         getValue: (row) => formatValue(row.categoryCode),
       },
       {
         key: "productId",
-        label: "Product ID",
+        labelKey: "compareView.columns.productId",
         getValue: (row) => formatValue(row.productId),
       },
       {
         key: "price",
-        label: "Price",
+        labelKey: "compareView.columns.price",
         getValue: (row) => formatValue(row.price),
       },
       {
         key: "userId",
-        label: "User ID",
+        labelKey: "compareView.columns.userId",
         getValue: (row) => formatValue(row.userId),
       },
     ],
@@ -214,11 +223,9 @@ const DATASET_CONFIGS = {
     }),
   },
   hmFashion: {
-    label: "H&M fashion dataset",
-    placeholder:
-      "Try dress, shirt, blue, ladieswear, customer id, or article id",
-    description:
-      "Runs the same free-text query against the flattened H&M dataset in SQL Server and Elasticsearch.",
+    labelKey: "compareView.datasets.hmFashion.label",
+    placeholderKey: "compareView.datasets.hmFashion.placeholder",
+    descriptionKey: "compareView.datasets.hmFashion.description",
     searchFields: [
       { name: "customerId", type: "text" },
       { name: "articleId", type: "number" },
@@ -246,37 +253,38 @@ const DATASET_CONFIGS = {
     columns: [
       {
         key: "date",
-        label: "Date",
-        getValue: (row) => formatDate(row.date ?? row.transactionDate),
+        labelKey: "compareView.columns.date",
+        getValue: (row, locale) =>
+          formatDate(row.date ?? row.transactionDate, locale),
       },
       {
         key: "customerId",
-        label: "Customer ID",
+        labelKey: "compareView.columns.customerId",
         getValue: (row) => formatValue(row.customerId),
       },
       {
         key: "articleId",
-        label: "Article ID",
+        labelKey: "compareView.columns.articleId",
         getValue: (row) => formatValue(row.articleId),
       },
       {
         key: "prodName",
-        label: "Product name",
+        labelKey: "compareView.columns.productName",
         getValue: (row) => formatValue(row.prodName),
       },
       {
         key: "productTypeName",
-        label: "Product type",
+        labelKey: "compareView.columns.productType",
         getValue: (row) => formatValue(row.productTypeName),
       },
       {
         key: "departmentName",
-        label: "Department",
+        labelKey: "compareView.columns.department",
         getValue: (row) => formatValue(row.departmentName),
       },
       {
         key: "price",
-        label: "Price",
+        labelKey: "compareView.columns.price",
         getValue: (row) => formatValue(row.price),
       },
     ],
@@ -331,6 +339,24 @@ function createEmptyResult() {
   };
 }
 
+function getLocalizedDatasetConfigs(t) {
+  return Object.fromEntries(
+    Object.entries(DATASET_CONFIGS).map(([key, config]) => [
+      key,
+      {
+        ...config,
+        label: t(config.labelKey),
+        placeholder: t(config.placeholderKey),
+        description: t(config.descriptionKey),
+        columns: config.columns.map((column) => ({
+          ...column,
+          label: t(column.labelKey),
+        })),
+      },
+    ]),
+  );
+}
+
 async function fetchSource(fetcher, parser, fallbackMessage) {
   const startedAt = performance.now();
   const response = await fetcher();
@@ -347,19 +373,19 @@ async function fetchSource(fetcher, parser, fallbackMessage) {
   };
 }
 
-async function runComparisonSearch(datasetKey, query) {
+async function runComparisonSearch(datasetKey, query, messages) {
   const dataset = DATASET_CONFIGS[datasetKey] ?? DATASET_CONFIGS.electronics;
 
   const [sqlResult, elasticResult] = await Promise.allSettled([
     fetchSource(
       () => dataset.fetchSql(query),
       dataset.parseSql,
-      "SQL Server search failed.",
+      messages.sqlSearchFailed,
     ),
     fetchSource(
       () => dataset.fetchElastic(query),
       dataset.parseElastic,
-      "Elasticsearch search failed.",
+      messages.elasticSearchFailed,
     ),
   ]);
 
@@ -375,7 +401,15 @@ async function runComparisonSearch(datasetKey, query) {
   };
 }
 
-function SourceResultsCard({ title, color, result, columns, loading }) {
+function SourceResultsCard({
+  title,
+  color,
+  result,
+  columns,
+  loading,
+  t,
+  dateLocale,
+}) {
   return (
     <Card
       sx={{
@@ -398,15 +432,17 @@ function SourceResultsCard({ title, color, result, columns, loading }) {
 
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Chip
-              label={`Records: ${result.totalCount}`}
+              label={t("compareView.recordsValue", { count: result.totalCount })}
               color="default"
               variant="outlined"
             />
             <Chip
               label={
                 result.durationMs === null
-                  ? "Response time: -"
-                  : `Response time: ${result.durationMs} ms`
+                  ? t("compareView.responseTimePending")
+                  : t("compareView.responseTimeValue", {
+                      duration: result.durationMs,
+                    })
               }
               color="default"
               variant="outlined"
@@ -417,9 +453,7 @@ function SourceResultsCard({ title, color, result, columns, loading }) {
         {result.error ? (
           <Alert severity="error">{result.error}</Alert>
         ) : result.rows.length === 0 ? (
-          <Alert severity="info">
-            No results matched the current query for this source.
-          </Alert>
+          <Alert severity="info">{t("compareView.noResultsForSource")}</Alert>
         ) : (
           <Box sx={{ overflowX: "auto" }}>
             <Table size="small">
@@ -444,7 +478,7 @@ function SourceResultsCard({ title, color, result, columns, loading }) {
                         key={column.key}
                         sx={{ whiteSpace: "nowrap", maxWidth: 220 }}
                       >
-                        {column.getValue(row)}
+                        {column.getValue(row, dateLocale)}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -459,6 +493,7 @@ function SourceResultsCard({ title, color, result, columns, loading }) {
 }
 
 export default function QueryDatasetComparison() {
+  const { t, i18n } = useTranslation();
   const [datasetKey, setDatasetKey] = React.useState("electronics");
   const [query, setQuery] = React.useState("phone");
   const [loading, setLoading] = React.useState(false);
@@ -468,9 +503,13 @@ export default function QueryDatasetComparison() {
   });
   const latestSearchId = React.useRef(0);
 
-  const dataset = DATASET_CONFIGS[datasetKey] ?? DATASET_CONFIGS.electronics;
+  const dateLocale = getDateLocale(i18n.resolvedLanguage ?? i18n.language);
+  const datasetConfigs = getLocalizedDatasetConfigs(t);
+  const dataset = datasetConfigs[datasetKey] ?? datasetConfigs.electronics;
+  const sqlSearchFailed = t("compareView.sqlSearchFailed");
+  const elasticSearchFailed = t("compareView.elasticSearchFailed");
   const metadata = {
-    title: `SQL vs Elasticsearch Search - ${CONFIG.appName}`,
+    title: `${t("sqlVsElasticsearchSearch")} - ${CONFIG.appName}`,
   };
 
   const handleSearch = async (nextDatasetKey = datasetKey, nextQuery = query) => {
@@ -483,7 +522,11 @@ export default function QueryDatasetComparison() {
     setLoading(true);
 
     try {
-      const searchResults = await runComparisonSearch(nextDatasetKey, nextQuery);
+      const searchResults = await runComparisonSearch(
+        nextDatasetKey,
+        nextQuery,
+        { sqlSearchFailed, elasticSearchFailed },
+      );
       if (latestSearchId.current === currentSearchId) {
         setResults(searchResults);
       }
@@ -502,7 +545,10 @@ export default function QueryDatasetComparison() {
 
     setLoading(true);
 
-    void runComparisonSearch("electronics", "phone")
+    void runComparisonSearch("electronics", "phone", {
+      sqlSearchFailed,
+      elasticSearchFailed,
+    })
       .then((searchResults) => {
         if (isActive && latestSearchId.current === currentSearchId) {
           setResults(searchResults);
@@ -517,7 +563,7 @@ export default function QueryDatasetComparison() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [elasticSearchFailed, sqlSearchFailed]);
 
   return (
     <>
@@ -527,10 +573,13 @@ export default function QueryDatasetComparison() {
         sx={{ display: "flex", flexDirection: "column", gap: 3 }}
       >
         <CustomBreadcrumbs
-          heading="SQL vs Elasticsearch Search"
+          heading={t("sqlVsElasticsearchSearch")}
           links={[
-            { name: "Dashboard", href: paths.dashboard.root },
-            { name: "Search comparison", href: paths.compare.querySearch },
+            { name: t("dashboard"), href: paths.dashboard.root },
+            {
+              name: t("sqlVsElasticsearchSearch"),
+              href: paths.compare.querySearch,
+            },
           ]}
           sx={{ mb: { xs: 1, md: 1 } }}
         />
@@ -543,7 +592,7 @@ export default function QueryDatasetComparison() {
         >
           <CardContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <Stack spacing={1}>
-              <Typography variant="h4">Run one query against both sources</Typography>
+              <Typography variant="h4">{t("compareView.heroTitle")}</Typography>
               <Typography variant="body1" color="text.secondary">
                 {dataset.description}
               </Typography>
@@ -556,7 +605,7 @@ export default function QueryDatasetComparison() {
             >
               <TextField
                 select
-                label="Dataset"
+                label={t("compareView.datasetFieldLabel")}
                 value={datasetKey}
                 onChange={(event) => {
                   const nextDatasetKey = event.target.value;
@@ -565,7 +614,7 @@ export default function QueryDatasetComparison() {
                 }}
                 sx={{ minWidth: { xs: "100%", lg: 240 } }}
               >
-                {Object.entries(DATASET_CONFIGS).map(([value, item]) => (
+                {Object.entries(datasetConfigs).map(([value, item]) => (
                   <MenuItem key={value} value={value}>
                     {item.label}
                   </MenuItem>
@@ -574,7 +623,7 @@ export default function QueryDatasetComparison() {
 
               <TextField
                 fullWidth
-                label="Search query"
+                label={t("compareView.searchFieldLabel")}
                 value={query}
                 placeholder={dataset.placeholder}
                 onChange={(event) => setQuery(event.target.value)}
@@ -593,17 +642,25 @@ export default function QueryDatasetComparison() {
                 disabled={loading}
                 sx={{ minWidth: { xs: "100%", lg: 170 }, height: 56 }}
               >
-                {loading ? "Searching..." : "Run search"}
+                {loading ? t("compareView.searching") : t("compareView.runSearch")}
               </Button>
             </Stack>
 
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              <Chip label={`Dataset: ${dataset.label}`} color="primary" />
               <Chip
-                label={`Query: ${query.trim() || "(empty query)"}`}
+                label={t("compareView.datasetValue", { value: dataset.label })}
+                color="primary"
+              />
+              <Chip
+                label={t("compareView.queryValue", {
+                  value: query.trim() || t("compareView.emptyQuery"),
+                })}
                 variant="outlined"
               />
-              <Chip label={`Preview size: ${PAGE_SIZE} rows`} variant="outlined" />
+              <Chip
+                label={t("compareView.previewSizeValue", { count: PAGE_SIZE })}
+                variant="outlined"
+              />
             </Stack>
           </CardContent>
         </Card>
@@ -621,18 +678,22 @@ export default function QueryDatasetComparison() {
           }}
         >
           <SourceResultsCard
-            title="SQL Server"
+            title={t("testResults.sqlServer")}
             color="#2563eb"
             result={results.sql}
             columns={dataset.columns}
             loading={loading}
+            t={t}
+            dateLocale={dateLocale}
           />
           <SourceResultsCard
-            title="Elasticsearch"
+            title={t("testResults.elasticsearch")}
             color="#059669"
             result={results.elastic}
             columns={dataset.columns}
             loading={loading}
+            t={t}
+            dateLocale={dateLocale}
           />
         </Box>
       </DashboardContent>

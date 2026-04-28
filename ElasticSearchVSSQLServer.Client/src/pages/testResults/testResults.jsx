@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  Alert,
   Box,
   Card,
   Chip,
@@ -194,7 +193,7 @@ export default function TestResults() {
 
   return (
     <DashboardContent
-      maxWidth="xl"
+      maxWidth={false}
       sx={{ display: "flex", flexDirection: "column", gap: 3.5 }}
     >
       <Card
@@ -475,10 +474,6 @@ export default function TestResults() {
                 </Typography>
               </Box>
 
-              <Alert severity="info" variant="outlined">
-                {t("testResults.dashboardDataSourceMessage")}
-              </Alert>
-
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 <Chip
                   size="small"
@@ -641,12 +636,6 @@ export default function TestResults() {
           <Box sx={{ p: 2.5 }}>
             <Typography variant="h6">
               {t("testResults.liveKibanaDashboard")}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ mt: 0.75, color: "text.secondary", maxWidth: 880 }}
-            >
-              {t("testResults.liveKibanaDashboardDescription")}
             </Typography>
           </Box>
 

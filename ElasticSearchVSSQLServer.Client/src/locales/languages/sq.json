@@ -1363,7 +1363,6 @@
     "freshestRunCard": "Ekzekutimi me i fundit",
     "fastestAverageRunCard": "Koha mesatare me e shpejte e rezultatit",
     "slowestAverageRunCard": "Koha mesatare me e ngadalte e rezultatit",
-    "dashboardDataSourceMessage": "Keto vlera ngarkohen nga raportet e ruajtura k6 JSON ne tests/k6/reports. Cdo ngarkese paraqitet si rresht i vecante i view-it ne vend te nje krahasimi direkt SQL-kunder-Elasticsearch.",
     "viewResultsTableTitle": "Rezultatet e benchmark-ut per view",
     "viewResultsTableDescription": "Perdoreni kete tabele per te pare sa kohe i duhet secilit view per te kthyer te dhena ne browse dhe filter workloads, pa krahasuar faqet brenda view-eve.",
     "workload": "Ngarkesa",
@@ -1374,7 +1373,6 @@
     "maxResultTime": "Maks",
     "failureRate": "Shkalla e deshtimit",
     "requestCount": "Kerkesa",
-    "liveKibanaDashboardDescription": "Perdoreni ballinen e integruar te Kibana kur doni pamjen live te telemetrise se Elasticsearch bashke me tabelen e ruajtur te rezultateve k6.",
     "pageSpecificBenchmarks": "Raste reale benchmark-u per kete fetch",
     "pageSpecificBenchmarksDescription": "Grid-i me siper mbetet shfletuesi kryesor i regjistrave. Ky seksion i mban skenaret e ruajtur k6 per {{dataset}} prane faqes qe te shihni si sillen {{preferred}} dhe {{peer}} ne browse dhe search.",
     "openFullDashboard": "Hap ballinen e plote te benchmark-ut",
@@ -1485,5 +1483,49 @@
   "true": "Ka ndodhur",
   "false": "Nuk ka ndodhur",
   "compare": "Krahasimi",
-  "sqlVsElasticsearchSearch": "Kerkimi SQL dhe Elasticsearch"
+  "sqlVsElasticsearchSearch": "Kerkimi SQL dhe Elasticsearch",
+  "compareView": {
+    "heroTitle": "Ekzekuto nje kerkese ne te dy burimet",
+    "datasetFieldLabel": "Dataset-i",
+    "searchFieldLabel": "Kerkimi",
+    "runSearch": "Nise kerkimin",
+    "searching": "Duke kerkuar...",
+    "datasetValue": "Dataset-i: {{value}}",
+    "queryValue": "Pyetja: {{value}}",
+    "emptyQuery": "(kerkese boshe)",
+    "previewSizeValue": "Madhesia e preview-it: {{count}} rreshta",
+    "recordsValue": "Regjistrime: {{count}}",
+    "responseTimeValue": "Koha e pergjigjes: {{duration}} ms",
+    "responseTimePending": "Koha e pergjigjes: -",
+    "noResultsForSource": "Asnje rezultat nuk perputhet me kerkesen aktuale per kete burim.",
+    "sqlSearchFailed": "Kerkimi ne SQL Server deshtoi.",
+    "elasticSearchFailed": "Kerkimi ne Elasticsearch deshtoi.",
+    "datasets": {
+      "electronics": {
+        "label": "Dataset-i i elektronikes",
+        "placeholder": "Provoni phone, samsung, apple, purchase, ose nje id produkti/kategorie",
+        "description": "Ekzekuton te njejten kerkese tekstuale ne dataset-in e elektronikes ne SQL Server dhe Elasticsearch."
+      },
+      "hmFashion": {
+        "label": "Dataset-i i modes H&M",
+        "placeholder": "Provoni dress, shirt, blue, ladieswear, customer id, ose article id",
+        "description": "Ekzekuton te njejten kerkese tekstuale ne dataset-in e sheshuar H&M ne SQL Server dhe Elasticsearch."
+      }
+    },
+    "columns": {
+      "eventTime": "Koha e ngjarjes",
+      "eventType": "Lloji i ngjarjes",
+      "brand": "Brendi",
+      "category": "Kategoria",
+      "productId": "ID e produktit",
+      "price": "Cmimi",
+      "userId": "ID e perdoruesit",
+      "date": "Data",
+      "customerId": "ID e klientit",
+      "articleId": "ID e artikullit",
+      "productName": "Emri i produktit",
+      "productType": "Lloji i produktit",
+      "department": "Departamenti"
+    }
+  }
 }

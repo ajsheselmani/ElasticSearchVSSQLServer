@@ -1331,7 +1331,6 @@
     "freshestRunCard": "Freshest run",
     "fastestAverageRunCard": "Fastest average result time",
     "slowestAverageRunCard": "Slowest average result time",
-    "dashboardDataSourceMessage": "These values are loaded from the saved k6 JSON reports under tests/k6/reports. Each workload is shown as a separate view row instead of a direct SQL-versus-Elasticsearch winner comparison.",
     "viewResultsTableTitle": "Per-view benchmark results",
     "viewResultsTableDescription": "Use this table to see how long each view needs to return data under browse and filter workloads, without comparing the pages inside the views themselves.",
     "workload": "Workload",
@@ -1342,7 +1341,6 @@
     "maxResultTime": "Max",
     "failureRate": "Failure rate",
     "requestCount": "Requests",
-    "liveKibanaDashboardDescription": "Use the embedded Kibana dashboard when you want the live Elasticsearch telemetry view alongside the saved k6 results table.",
     "pageSpecificBenchmarks": "Real benchmark cases for this data fetch",
     "pageSpecificBenchmarksDescription": "The grid above is still the main record browser. This section keeps the stored k6 scenarios for {{dataset}} close to the page so you can see how {{preferred}} and {{peer}} behave across browse and search cases.",
     "openFullDashboard": "Open full benchmark dashboard",
@@ -1453,5 +1451,49 @@
   "true": "Happened",
   "false": "Didn't happen",
   "compare": "Comparison",
-  "sqlVsElasticsearchSearch": "SQL vs Elasticsearch Search"
+  "sqlVsElasticsearchSearch": "SQL vs Elasticsearch Search",
+  "compareView": {
+    "heroTitle": "Run one query against both sources",
+    "datasetFieldLabel": "Dataset",
+    "searchFieldLabel": "Search query",
+    "runSearch": "Run search",
+    "searching": "Searching...",
+    "datasetValue": "Dataset: {{value}}",
+    "queryValue": "Query: {{value}}",
+    "emptyQuery": "(empty query)",
+    "previewSizeValue": "Preview size: {{count}} rows",
+    "recordsValue": "Records: {{count}}",
+    "responseTimeValue": "Response time: {{duration}} ms",
+    "responseTimePending": "Response time: -",
+    "noResultsForSource": "No results matched the current query for this source.",
+    "sqlSearchFailed": "SQL Server search failed.",
+    "elasticSearchFailed": "Elasticsearch search failed.",
+    "datasets": {
+      "electronics": {
+        "label": "Electronics dataset",
+        "placeholder": "Try phone, samsung, apple, purchase, or a product/category id",
+        "description": "Runs the same free-text query against the electronics dataset in SQL Server and Elasticsearch."
+      },
+      "hmFashion": {
+        "label": "H&M fashion dataset",
+        "placeholder": "Try dress, shirt, blue, ladieswear, customer id, or article id",
+        "description": "Runs the same free-text query against the flattened H&M dataset in SQL Server and Elasticsearch."
+      }
+    },
+    "columns": {
+      "eventTime": "Event time",
+      "eventType": "Event type",
+      "brand": "Brand",
+      "category": "Category",
+      "productId": "Product ID",
+      "price": "Price",
+      "userId": "User ID",
+      "date": "Date",
+      "customerId": "Customer ID",
+      "articleId": "Article ID",
+      "productName": "Product name",
+      "productType": "Product type",
+      "department": "Department"
+    }
+  }
 }

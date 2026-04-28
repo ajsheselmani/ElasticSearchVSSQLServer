@@ -1322,7 +1322,6 @@
     "freshestRunCard": "Najnovije pokretanje",
     "fastestAverageRunCard": "Najbrze prosecno vreme rezultata",
     "slowestAverageRunCard": "Najsporije prosecno vreme rezultata",
-    "dashboardDataSourceMessage": "Ove vrednosti se ucitavaju iz sacuvanih k6 JSON izvestaja u tests/k6/reports. Svako opterecenje je prikazano kao poseban red pregleda umesto kao direktno SQL-versus-Elasticsearch poredjenje.",
     "viewResultsTableTitle": "Benchmark rezultati po pregledu",
     "viewResultsTableDescription": "Koristite ovu tabelu da vidite koliko je vremena potrebno svakom pregledu da vrati podatke za browse i filter opterecenja, bez poredjenja stranica unutar samih pregleda.",
     "workload": "Opterecenje",
@@ -1333,7 +1332,6 @@
     "maxResultTime": "Maks",
     "failureRate": "Stopa neuspeha",
     "requestCount": "Zahtevi",
-    "liveKibanaDashboardDescription": "Koristite ugradjenu Kibana kontrolnu tablu kada zelite zivi Elasticsearch telemetry pregled uz sacuvanu tabelu k6 rezultata.",
     "pageSpecificBenchmarks": "Stvarni benchmark slucajevi za ovaj fetch",
     "pageSpecificBenchmarksDescription": "Gornja mreza ostaje glavni pregled zapisa. Ovaj deo drzi sacuvane k6 scenarije za {{dataset}} blizu stranice kako biste videli kako se {{preferred}} i {{peer}} ponasaju kroz browse i search slucajeve.",
     "openFullDashboard": "Otvori punu benchmark kontrolnu tablu",
@@ -1443,5 +1441,49 @@
   "true": "Desilo se",
   "false": "Nije se dogodilo",
   "compare": "Poređenje",
-  "sqlVsElasticsearchSearch": "SQL vs Elasticsearch Search"
+  "sqlVsElasticsearchSearch": "SQL vs Elasticsearch pretraga",
+  "compareView": {
+    "heroTitle": "Pokrenite jedan upit nad oba izvora",
+    "datasetFieldLabel": "Dataset",
+    "searchFieldLabel": "Pretraga",
+    "runSearch": "Pokreni pretragu",
+    "searching": "Pretraga traje...",
+    "datasetValue": "Dataset: {{value}}",
+    "queryValue": "Upit: {{value}}",
+    "emptyQuery": "(prazan upit)",
+    "previewSizeValue": "Velicina pregleda: {{count}} redova",
+    "recordsValue": "Zapisi: {{count}}",
+    "responseTimeValue": "Vreme odziva: {{duration}} ms",
+    "responseTimePending": "Vreme odziva: -",
+    "noResultsForSource": "Nijedan rezultat ne odgovara trenutnom upitu za ovaj izvor.",
+    "sqlSearchFailed": "Pretraga u SQL Server-u nije uspela.",
+    "elasticSearchFailed": "Pretraga u Elasticsearch-u nije uspela.",
+    "datasets": {
+      "electronics": {
+        "label": "Dataset elektronike",
+        "placeholder": "Probajte phone, samsung, apple, purchase ili id proizvoda/kategorije",
+        "description": "Pokrece isti tekstualni upit nad dataset-om elektronike u SQL Server-u i Elasticsearch-u."
+      },
+      "hmFashion": {
+        "label": "H&M dataset mode",
+        "placeholder": "Probajte dress, shirt, blue, ladieswear, customer id ili article id",
+        "description": "Pokrece isti tekstualni upit nad spljostenim H&M dataset-om u SQL Server-u i Elasticsearch-u."
+      }
+    },
+    "columns": {
+      "eventTime": "Vreme dogadjaja",
+      "eventType": "Tip dogadjaja",
+      "brand": "Brend",
+      "category": "Kategorija",
+      "productId": "ID proizvoda",
+      "price": "Cena",
+      "userId": "ID korisnika",
+      "date": "Datum",
+      "customerId": "ID kupca",
+      "articleId": "ID artikla",
+      "productName": "Naziv proizvoda",
+      "productType": "Tip proizvoda",
+      "department": "Odeljenje"
+    }
+  }
 }

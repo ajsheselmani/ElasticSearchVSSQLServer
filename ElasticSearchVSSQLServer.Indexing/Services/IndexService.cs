@@ -22,6 +22,9 @@ namespace ElasticSearchVSSQLServer.Indexing.Services;
 
 public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper, ILogService logService, ElasticsearchClient elasticsearchClient) : ElasticClient(config, elasticsearchClient), IIndexService
 {
+    private const string ElectronicsDatasetIndexName = "elasticvssql_electronics";
+    private const string HMFashionDatasetIndexName = "elasticvssql_hmfashion";
+
     private static readonly Dictionary<string, string> FieldAliases = new(StringComparer.OrdinalIgnoreCase)
     {
         ["formContent"] = "fromContent"
@@ -127,6 +130,10 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         var properties = GetIndexProperties(client, indexName);
 
         SortOptions[] fieldsSort = setSorting(searchParams?.sortOrders, properties);
+        if (fieldsSort.Length == 0)
+        {
+            fieldsSort = getDefaultSorting(indexName, properties);
+        }
 
         var search = new SearchRequest
         {
@@ -187,6 +194,10 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         var properties = GetIndexProperties(client, indexName);
 
         SortOptions[] fieldsSort = setSorting(searchParams?.sortOrders, properties);
+        if (fieldsSort.Length == 0)
+        {
+            fieldsSort = getDefaultSorting(indexName, properties);
+        }
 
         Query queryFilter = setFilteringNew(query, searchParams?.filter ?? [], properties, searchParams?.logicType ?? "and");
 
@@ -281,6 +292,31 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             sortOptions[index] = SortOptions.Field(getCorrectFieldName(sortOrders.ElementAt(index).Key, properties), new FieldSort { Order = sortOrders.ElementAt(index).sortOrder });
         return sortOptions;
     }
+
+    private SortOptions[] getDefaultSorting(string indexName, Properties properties)
+    {
+        if (string.Equals(indexName, ElectronicsDatasetIndexName, StringComparison.OrdinalIgnoreCase))
+        {
+            return [createAscendingFieldSort("Id", properties)];
+        }
+
+        if (string.Equals(indexName, HMFashionDatasetIndexName, StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                createAscendingFieldSort("TransactionDate", properties),
+                createAscendingFieldSort("CustomerId", properties),
+                createAscendingFieldSort("ArticleId", properties)
+            ];
+        }
+
+        return Array.Empty<SortOptions>();
+    }
+
+    private SortOptions createAscendingFieldSort(string fieldName, Properties properties)
+        => SortOptions.Field(
+            getCorrectFieldName(fieldName, properties),
+            new FieldSort { Order = SortOrder.Asc });
 
     private Query setFiltering(string searchQuery, IEnumerable<DataFilter> filters, IEnumerable<DataFilter> orFilters, Properties properties)
     {
@@ -696,6 +732,141 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             or "constant_keyword"
             or "wildcard";
 
+    private static bool IsBooleanPropertyType(string? propertyType)
+        => propertyType == "boolean";
+
+    private static List<string> SplitSearchTerms(string? value)
+        => string.IsNullOrWhiteSpace(value)
+            ? []
+            : value
+                .Split([' ', ',', ';'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Select(searchTerm => searchTerm.Trim(',', ';', '.', ':', '!', '?', '"', '\'', '(', ')', '[', ']', '{', '}'))
+                .Where(searchTerm => !string.IsNullOrWhiteSpace(searchTerm))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+    private static bool CanApplyGlobalSearchTerm(string searchTerm, string? propertyType)
+    {
+        if (SupportsCaseInsensitiveStringMatching(propertyType))
+        {
+            return true;
+        }
+
+        if (IsNumericPropertyType(propertyType))
+        {
+            return double.TryParse(searchTerm.Replace(',', '.'), NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _)
+                || double.TryParse(searchTerm, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out _);
+        }
+
+        if (IsDatePropertyType(propertyType))
+        {
+            return DateTime.TryParse(searchTerm, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out _)
+                || DateTime.TryParse(searchTerm, CultureInfo.CurrentCulture, DateTimeStyles.AllowWhiteSpaces, out _)
+                || DateOnly.TryParse(searchTerm, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out _)
+                || DateOnly.TryParse(searchTerm, CultureInfo.CurrentCulture, DateTimeStyles.AllowWhiteSpaces, out _);
+        }
+
+        if (IsBooleanPropertyType(propertyType))
+        {
+            return bool.TryParse(searchTerm, out _);
+        }
+
+        return false;
+    }
+
+    private static string NormalizeGlobalSearchValue(string searchTerm, string? propertyType)
+    {
+        if (IsNumericPropertyType(propertyType))
+        {
+            return ParseNumericFilterValue(searchTerm).ToString(CultureInfo.InvariantCulture);
+        }
+
+        if (IsDatePropertyType(propertyType))
+        {
+            if (DateTime.TryParse(searchTerm, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var invariantDateTime)
+                || DateTime.TryParse(searchTerm, CultureInfo.CurrentCulture, DateTimeStyles.AllowWhiteSpaces, out invariantDateTime))
+            {
+                return invariantDateTime.ToString("O", CultureInfo.InvariantCulture);
+            }
+
+            if (DateOnly.TryParse(searchTerm, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var invariantDateOnly)
+                || DateOnly.TryParse(searchTerm, CultureInfo.CurrentCulture, DateTimeStyles.AllowWhiteSpaces, out invariantDateOnly))
+            {
+                return invariantDateOnly.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            }
+        }
+
+        if (IsBooleanPropertyType(propertyType) && bool.TryParse(searchTerm, out var booleanValue))
+        {
+            return booleanValue.ToString().ToLowerInvariant();
+        }
+
+        return searchTerm;
+    }
+
+    private Query? BuildGlobalSearchQuery(string? rawValue, Properties properties)
+    {
+        var searchTerms = SplitSearchTerms(rawValue);
+        if (searchTerms.Count == 0)
+        {
+            return null;
+        }
+
+        var termQueries = new List<Query>();
+
+        foreach (var searchTerm in searchTerms)
+        {
+            var fieldQueries = new List<Query>();
+
+            foreach (var property in properties)
+            {
+                var propertyName = property.Key.ToString();
+                var propertyType = property.Value?.Type ?? string.Empty;
+
+                if (!CanApplyGlobalSearchTerm(searchTerm, propertyType))
+                {
+                    continue;
+                }
+
+                var filter = new DataFilter
+                {
+                    PropertyName = propertyName,
+                    Operator = SupportsCaseInsensitiveStringMatching(propertyType)
+                        ? DataFilterOperator.Like
+                        : DataFilterOperator.Eq,
+                    Value = SupportsCaseInsensitiveStringMatching(propertyType)
+                        ? searchTerm
+                        : NormalizeGlobalSearchValue(searchTerm, propertyType),
+                    CaseSensitive = false
+                };
+
+                fieldQueries.Add(getQuery(filter, properties));
+            }
+
+            if (fieldQueries.Count == 0)
+            {
+                continue;
+            }
+
+            termQueries.Add(Query.Bool(new BoolQuery
+            {
+                Should = fieldQueries,
+                MinimumShouldMatch = 1
+            }));
+        }
+
+        if (termQueries.Count == 0)
+        {
+            return null;
+        }
+
+        return Query.Bool(new BoolQuery
+        {
+            Should = termQueries,
+            MinimumShouldMatch = 1
+        });
+    }
+
     private Query setFilteringNew(string searchQuery, IEnumerable<DataFilter> filters, Properties properties, string logicType = "and")
     {
         var mustConditions = new List<Query>();
@@ -705,21 +876,14 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         if (!string.IsNullOrWhiteSpace(safeSearchQuery))
             mustConditions.Add(Query.QueryString(new QueryStringQuery { Query = safeSearchQuery }));
 
-        var globalSearchFilter = filters.FirstOrDefault(f => f.PropertyName == "globalSearch");
-        if (globalSearchFilter != null)
-        {
-            var safeGlobalSearchValue = BuildQueryStringQueryValue(globalSearchFilter.Value?.ToString(), wrapWithWildcards: true);
-            if (!string.IsNullOrWhiteSpace(safeGlobalSearchValue))
-            {
-            mustConditions.Add(Query.QueryString(new QueryStringQuery
-            {
-                Query = safeGlobalSearchValue
-            }));
-            }
-        }
-
-        //foreach (var filter in filters)
         var topLevelFilterQueries = new List<Query>();
+
+        var globalSearchFilter = filters.FirstOrDefault(f => f.PropertyName == "globalSearch");
+        var globalSearchQuery = BuildGlobalSearchQuery(globalSearchFilter?.Value?.ToString(), properties);
+        if (globalSearchQuery != null)
+        {
+            topLevelFilterQueries.Add(globalSearchQuery);
+        }
 
         foreach (var filter in filters.Where(f => f.PropertyName != "globalSearch"))
         {
