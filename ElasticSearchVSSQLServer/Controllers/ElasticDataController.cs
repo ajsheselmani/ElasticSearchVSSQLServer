@@ -6,6 +6,7 @@ using ElasticSearchVSSQLServer.Indexing.Models.LogsIndexed;
 using ElasticSearchVSSQLServer.Indexing.Services;
 using ElasticSearchVSSQLServer.Persistence.Audit;
 using ElasticSearchVSSQLServer.Persistence.SQLData;
+using ElasticSearchVSSQLServer.RestApi.Models.OutputModels.Logs;
 using ElasticSearchVSSQLServer.RestApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -53,9 +54,9 @@ public class ElasticDataController(
     {
         var userId = UserClaimHelper.GetUserId(User);
         var result = await indexService.SearchNew<LogsIndexDTO>(page, pageSize, query, search, "elasticvssql_logs");
-        var mappedResult = new PaginatedSearchResponse<LogDTO>
+        var mappedResult = new PaginatedSearchResponse<LogsOutputModel>
         {
-            Hits = mapper.Map<IEnumerable<LogDTO>>(result.Hits),
+            Hits = mapper.Map<IEnumerable<LogsOutputModel>>(result.Hits),
             Metadata = result.Metadata,
             IsError = result.IsError,
             ErrorDetails = result.ErrorDetails,

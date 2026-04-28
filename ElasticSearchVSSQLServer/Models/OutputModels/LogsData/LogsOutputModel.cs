@@ -13,5 +13,5 @@ public class LogsOutputModel
     public string FormContent { get; set; }
     public string Response { get; set; }
     public string Exception { get; set; }
-    public DateTime InsertedDate { get; set; }
+    public DateTime? InsertedDate { get; set; }
 }

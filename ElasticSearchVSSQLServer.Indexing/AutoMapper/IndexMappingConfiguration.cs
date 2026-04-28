@@ -36,7 +36,9 @@ namespace ElasticSearchVSSQLServer.Indexing.AutoMapper
 
         private void SetupLogsMapping()
         {
-            CreateMap<LogDTO, LogsIndexDTO>();
+            CreateMap<LogDTO, LogsIndexDTO>()
+                .ForMember(dest => dest.IP, opt => opt.MapFrom(src => src.Ip))
+                .ForMember(dest => dest.FromContent, opt => opt.MapFrom(src => src.FormContent));
             CreateMap<LogsIndexDTO, LogDTO>()
                 .ForMember(dest => dest.Ip, opt => opt.MapFrom(src => src.IP))
                 .ForMember(dest => dest.FormContent, opt => opt.MapFrom(src => src.FromContent));

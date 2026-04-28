@@ -1,4 +1,6 @@
-﻿using ElasticSearchVSSQLServer.Domain.Services.Audit;
+using AutoMapper;
+using ElasticSearchVSSQLServer.Domain.Services.Audit;
+using ElasticSearchVSSQLServer.Indexing.Models.LogsIndexed;
 using ElasticSearchVSSQLServer.Indexing.Services;
 using ElasticSearchVSSQLServer.Persistence.Audit;
 using ElasticSearchVSSQLServer.RestApi.Utils.General;
@@ -54,8 +56,9 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 			};
 
 			using var scope = serviceProvider.CreateScope();
-			var logService = scope.ServiceProvider.GetService<ILogService>();
+			var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 			var indexService = scope.ServiceProvider.GetRequiredService<IIndexService>();
+			var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
 			context.Request.EnableBuffering();
 
 			using var stramReader = new StreamReader(context.Request.Body, leaveOpen: true);
@@ -79,7 +82,7 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 				log.FormContent = newRequestBody;
 				context.Request.Body.Position = 0;
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				log.FormContent = requestBody;
 				context.Request.Body.Position = 0;
@@ -103,7 +106,7 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 					memoryStream.Seek(0, SeekOrigin.Begin);
 					await memoryStream.CopyToAsync(originalResponseBody);
 					context.Response.Body = originalResponseBody;
-					await SaveAndIndexLog(logService, indexService, log);
+					await SaveAndIndexLog(logService, indexService, mapper, log);
 					return;
 				}
 
@@ -125,7 +128,7 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 					context.Response.Body = originalResponseBody;
 				}
 
-				await SaveAndIndexLog(logService, indexService, log);
+				await SaveAndIndexLog(logService, indexService, mapper, log);
 			}
 			catch (Exception ex)
 			{
@@ -133,20 +136,21 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
 				log.Exception = JsonConvert.SerializeObject(ex);
 				context.Response.StatusCode = 500;
 				await context.Response.WriteAsync("An error occurred.");
-				await SaveAndIndexLog(logService, indexService, log);
+				await SaveAndIndexLog(logService, indexService, mapper, log);
 				logger.LogInformation("Ka ndodhur nje gabim: {ExMessage} nga perdoruesit {userName}", ex.Message, userName);
 				throw;
 			}
 		}
 	}
 
-    private async Task SaveAndIndexLog(ILogService logService, IIndexService indexService, LogDTO log)
+    private async Task SaveAndIndexLog(ILogService logService, IIndexService indexService, IMapper mapper, LogDTO log)
     {
         var savedLog = await logService.Save(log);
 
         try
         {
-            await indexService.IndexData(new[] { savedLog }, LogsIndexName);
+            var logToIndex = mapper.Map<LogsIndexDTO>(savedLog);
+            await indexService.IndexData(new[] { logToIndex }, LogsIndexName);
         }
         catch (Exception ex)
         {

@@ -109,7 +109,7 @@ public class ElasticDataIndexService(IIndexService indexService, ISQLDataService
         int processedBatches = 0;
 
         logger.LogInformation(
-            "Starting missing logs reindex from SQL Server to Elasticsearch. Index={IndexName}, BatchSize={BatchSize}",
+            "Starting logs synchronization from SQL Server to Elasticsearch. Index={IndexName}, BatchSize={BatchSize}",
             LogsIndexName,
             batchSize);
 
@@ -131,14 +131,14 @@ public class ElasticDataIndexService(IIndexService indexService, ISQLDataService
                 LogsIndexName,
                 mappedBatch.Select(log => log.Id));
 
-            var missingLogs = mappedBatch
-                .Where(log => !string.IsNullOrWhiteSpace(log.Id) && !existingIds.Contains(log.Id))
+            var logsToSync = mappedBatch
+                .Where(log => !string.IsNullOrWhiteSpace(log.Id))
                 .ToArray();
 
-            if (missingLogs.Length > 0)
+            if (logsToSync.Length > 0)
             {
-                await indexService.IndexData(missingLogs, LogsIndexName);
-                indexedCount += missingLogs.Length;
+                await indexService.IndexData(logsToSync, LogsIndexName);
+                indexedCount += logsToSync.Length;
             }
 
             if (!long.TryParse(logsBatch[^1].Id, out lastProcessedSqlId))
@@ -147,27 +147,27 @@ public class ElasticDataIndexService(IIndexService indexService, ISQLDataService
             }
 
             logger.LogInformation(
-                "Processed logs reindex batch {BatchNumber}. Scanned={ScannedCount}, IndexedMissing={IndexedCount}, LastSqlId={LastSqlId}",
+                "Processed logs sync batch {BatchNumber}. Scanned={ScannedCount}, Synchronized={IndexedCount}, ExistingBeforeSync={ExistingCount}, LastSqlId={LastSqlId}",
                 processedBatches,
                 scannedCount,
                 indexedCount,
+                existingIds.Count,
                 lastProcessedSqlId);
         }
 
         var completedAtUtc = DateTime.UtcNow;
 
         logger.LogInformation(
-            "Finished missing logs reindex. Scanned={ScannedCount}, IndexedMissing={IndexedCount}, SkippedExisting={SkippedCount}",
+            "Finished logs synchronization. Scanned={ScannedCount}, Synchronized={IndexedCount}",
             scannedCount,
-            indexedCount,
-            scannedCount - indexedCount);
+            indexedCount);
 
         return new LogsReindexResult(
             LogsIndexName,
             batchSize,
             scannedCount,
             indexedCount,
-            scannedCount - indexedCount,
+            0,
             processedBatches,
             startedAtUtc,
             completedAtUtc);

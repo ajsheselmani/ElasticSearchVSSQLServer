@@ -379,12 +379,22 @@ const LogsElasticSearch = () => {
         minWidth: 150,
         sortable: false,
         type: "dateTime",
-        valueGetter: (value) => (value ? new Date(value) : null),
+        valueGetter: (value) => {
+          if (!value) return null;
+
+          const date = new Date(value);
+
+          return Number.isNaN(date.getTime()) || date.getUTCFullYear() <= 1
+            ? null
+            : date;
+        },
         renderCell: (params) => {
           const rawDate = params?.row?.insertedDate;
           if (!rawDate) return "";
 
           const date = new Date(rawDate);
+          if (Number.isNaN(date.getTime()) || date.getUTCFullYear() <= 1)
+            return "";
 
           const dateFormated = new Intl.DateTimeFormat("en-GB", {
             day: "2-digit",
