@@ -20,6 +20,8 @@ import { useTranslation } from "react-i18next";
 import { DashboardContent } from "src/layouts/dashboard";
 import { DashboardPerformanceOverview } from "src/components/performance/performance-insights";
 import {
+  buildCapacityBenchmarkRows,
+  buildCapacityBenchmarkSummary,
   buildViewBenchmarkRows,
   buildViewBenchmarkSummary,
   formatGeneratedAt,
@@ -170,6 +172,11 @@ export default function TestResults() {
     () => buildViewBenchmarkSummary(benchmarkRows),
     [benchmarkRows],
   );
+  const capacityRows = useMemo(() => buildCapacityBenchmarkRows(t), [t]);
+  const capacitySummary = useMemo(
+    () => buildCapacityBenchmarkSummary(capacityRows),
+    [capacityRows],
+  );
 
   // const slowestRunLabel = summary.slowestRow
   //   ? `${summary.slowestRow.view} / ${formatPerformanceValue(
@@ -189,6 +196,16 @@ export default function TestResults() {
 
   const userLevelsLabel = summary.distinctUsers.length
     ? summary.distinctUsers.join(", ")
+    : t("testResults.notAvailable");
+  const capacityUserLevelsLabel = capacitySummary.distinctUsers.length
+    ? capacitySummary.distinctUsers.join(", ")
+    : t("testResults.notAvailable");
+  const fastestCapacityLabel = capacitySummary.fastestThroughputRow
+    ? `${capacitySummary.fastestThroughputRow.source} / ${formatPerformanceValue(
+        capacitySummary.fastestThroughputRow.throughput,
+        "req/s",
+        t,
+      )}`
     : t("testResults.notAvailable");
 
   return (
@@ -624,6 +641,190 @@ export default function TestResults() {
               </Table>
             </TableContainer>
           </Card>
+
+          {capacityRows.length > 0 ? (
+            <Card
+              sx={{
+                overflow: "hidden",
+                border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+                boxShadow: "none",
+              }}
+            >
+              <Box sx={{ p: 2.5, display: "grid", gap: 1.5 }}>
+                <Box>
+                  <Typography variant="h6">
+                    {t("testResults.capacityResultsTableTitle", {
+                      defaultValue: "Independent throughput capacity",
+                    })}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ mt: 0.75, color: "text.secondary", maxWidth: 900 }}
+                  >
+                    {t("testResults.capacityResultsTableDescription", {
+                      defaultValue:
+                        "These runs load SQL Server and Elasticsearch separately, so request rate reflects the throughput each source can carry on its own.",
+                    })}
+                  </Typography>
+                </Box>
+
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  <Chip
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    label={t("testResults.savedMeasurementsWithCount", {
+                      count: capacitySummary.totalRows,
+                      defaultValue: `${capacitySummary.totalRows} measurements`,
+                    })}
+                  />
+                  <Chip
+                    size="small"
+                    color="warning"
+                    variant="outlined"
+                    label={t("testResults.concurrentUsersWithValue", {
+                      users: capacityUserLevelsLabel,
+                      defaultValue: `Users: ${capacityUserLevelsLabel}`,
+                    })}
+                  />
+                  <Chip
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                    label={t("testResults.fastestCapacityWithValue", {
+                      value: fastestCapacityLabel,
+                      defaultValue: `Highest capacity: ${fastestCapacityLabel}`,
+                    })}
+                  />
+                </Stack>
+              </Box>
+
+              <TableContainer
+                sx={{
+                  maxHeight: { xs: "none", xl: 760 },
+                  borderTop: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+                }}
+              >
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>{t("testResults.view")}</TableCell>
+                      <TableCell>{t("testResults.workload")}</TableCell>
+                      <TableCell>{t("testResults.filter")}</TableCell>
+                      <TableCell>{t("testResults.users")}</TableCell>
+                      <TableCell>
+                        {t("testResults.avgResultTime")}
+                      </TableCell>
+                      <TableCell>{t("testResults.p90ResultTime")}</TableCell>
+                      <TableCell>{t("testResults.failureRate")}</TableCell>
+                      <TableCell>
+                        {t("testResults.capacityThroughput", {
+                          defaultValue: "Capacity throughput",
+                        })}
+                      </TableCell>
+                      <TableCell>{t("testResults.requestCount")}</TableCell>
+                      <TableCell>
+                        {t("testResults.successfulRequests", {
+                          defaultValue: "Successful requests",
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        {t("testResults.transportErrors", {
+                          defaultValue: "Transport errors",
+                        })}
+                      </TableCell>
+                      <TableCell>{t("testResults.generatedAt")}</TableCell>
+                    </TableRow>
+                  </TableHead>
+
+                  <TableBody>
+                    {capacityRows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        hover
+                        sx={getRowStyles(theme, row.sourceKey)}
+                      >
+                        <TableCell sx={{ minWidth: 280 }}>
+                          <Stack spacing={0.75}>
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              flexWrap="wrap"
+                              useFlexGap
+                              alignItems="center"
+                            >
+                              <Typography variant="subtitle2">
+                                {row.view}
+                              </Typography>
+                              <Chip
+                                size="small"
+                                label={row.source}
+                                color={
+                                  row.sourceKey === "sql" ? "info" : "success"
+                                }
+                                variant="outlined"
+                              />
+                            </Stack>
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "text.secondary" }}
+                            >
+                              {row.viewPath}
+                            </Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 170 }}>
+                          <Chip
+                            size="small"
+                            label={row.workload}
+                            color={
+                              row.workloadKey === "browse"
+                                ? "primary"
+                                : "warning"
+                            }
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 180 }}>
+                          {row.queryLabel}
+                        </TableCell>
+                        <TableCell>
+                          {formatPerformanceValue(row.users, "users", t)}
+                        </TableCell>
+                        <TableCell>
+                          {formatPerformanceValue(row.avgLatency, "ms", t)}
+                        </TableCell>
+                        <TableCell>
+                          {formatPerformanceValue(row.p90Latency, "ms", t)}
+                        </TableCell>
+                        <TableCell>
+                          {formatPerformanceValue(row.failureRate, "rate", t)}
+                        </TableCell>
+                        <TableCell>
+                          {formatPerformanceValue(row.throughput, "req/s", t)}
+                        </TableCell>
+                        <TableCell>
+                          {row.requestCount?.toLocaleString?.() ??
+                            t("testResults.notAvailable")}
+                        </TableCell>
+                        <TableCell>
+                          {row.successCount?.toLocaleString?.() ??
+                            t("testResults.notAvailable")}
+                        </TableCell>
+                        <TableCell>
+                          {row.transportErrorCount?.toLocaleString?.() ??
+                            t("testResults.notAvailable")}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 190 }}>
+                          {formatGeneratedAt(row.generatedAt, t)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Card>
+          ) : null}
         </Stack>
       ) : (
         <Card

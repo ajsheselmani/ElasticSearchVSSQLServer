@@ -13,4 +13,8 @@ public class SearchParamsNew
     public IEnumerable<AggregationType>? aggregations { get; set; } = new List<AggregationType>();
 
     public string logicType { get; set; } = "and";
+
+    public bool includeTotalCount { get; set; } = true;
+
+    public IEnumerable<string>? searchFields { get; set; }
 }

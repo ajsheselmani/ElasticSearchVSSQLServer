@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
@@ -24,6 +25,67 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
 {
     private const string ElectronicsDatasetIndexName = "elasticvssql_electronics";
     private const string HMFashionDatasetIndexName = "elasticvssql_hmfashion";
+    private const string LogsIndexName = "elasticvssql_logs";
+
+    private static readonly ConcurrentDictionary<string, Properties> IndexPropertiesCache = new(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly IReadOnlyDictionary<string, string[]> DefaultGlobalSearchFieldsByIndex =
+        new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            [ElectronicsDatasetIndexName] =
+            [
+                "EventTime",
+                "EventType",
+                "ProductId",
+                "CategoryId",
+                "CategoryCode",
+                "Brand",
+                "Price",
+                "UserId",
+                "UserSession"
+            ],
+            [HMFashionDatasetIndexName] =
+            [
+                "CustomerId",
+                "ArticleId",
+                "Price",
+                "SalesChannelId",
+                "ProductCode",
+                "ProdName",
+                "ProductTypeName",
+                "ProductGroupName",
+                "GraphicalAppearanceName",
+                "ColourGroupName",
+                "PerceivedColourValueName",
+                "DepartmentName",
+                "IndexName",
+                "IndexGroupName",
+                "SectionName",
+                "GarmentGroupName",
+                "DetailDesc",
+                "Fn",
+                "Active",
+                "ClubMemberStatus",
+                "FashionNewsFrequency",
+                "PostalCode",
+                "Age",
+                "TransactionDate"
+            ],
+            [LogsIndexName] =
+            [
+                "UserId",
+                "IP",
+                "Url",
+                "HttpMethod",
+                "Controller",
+                "Action",
+                "Error",
+                "FromContent",
+                "Response",
+                "Exception",
+                "InsertedDate"
+            ]
+        };
 
     private static readonly Dictionary<string, string> FieldAliases = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -42,6 +104,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             {
                 throw new Exception($"Failed to create index '{index}'. Error: {createResponse.ElasticsearchServerError?.Error?.Reason}");
             }
+            ClearIndexPropertiesCache(index);
         }
         if (data != null && data.Any())
         {
@@ -67,6 +130,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
                 throw new Exception("Bulk indexing failed.");
 
             await client.Indices.RefreshAsync(index);
+            ClearIndexPropertiesCache(index);
         }
     }
 
@@ -85,6 +149,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             {
                 throw new Exception($"Failed to create index '{index}'. Error: {createResponse.ElasticsearchServerError?.Error?.Reason}");
             }
+            ClearIndexPropertiesCache(index);
         }
 
         if (data == null || !data.Any())
@@ -116,6 +181,7 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         }
 
         await client.Indices.RefreshAsync(index);
+        ClearIndexPropertiesCache(index);
     }
 
     public async Task<PaginatedSearchResponse<TQueryModel>> Search<TQueryModel>(int? page,
@@ -186,35 +252,55 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         if (query == "null")
             query = null;
 
-        var currentPage = page ?? 0;
-        var currentPageSize = pageSize ?? 10;
+        var effectiveSearchParams = searchParams ?? new SearchParamsNew();
+        var currentPage = Math.Max(page ?? 0, 0);
+        var currentPageSize = pageSize.GetValueOrDefault(10);
+        if (currentPageSize < 1)
+        {
+            currentPageSize = 10;
+        }
 
         var client = getElasticClient(indexName);
 
         var properties = GetIndexProperties(client, indexName);
 
-        SortOptions[] fieldsSort = setSorting(searchParams?.sortOrders, properties);
+        SortOptions[] fieldsSort = setSorting(effectiveSearchParams.sortOrders, properties);
         if (fieldsSort.Length == 0)
         {
             fieldsSort = getDefaultSorting(indexName, properties);
         }
 
-        Query queryFilter = setFilteringNew(query, searchParams?.filter ?? [], properties, searchParams?.logicType ?? "and");
+        var filters = effectiveSearchParams.filter ?? [];
+        var aggregations = effectiveSearchParams.aggregations?.ToArray() ?? [];
+        Query queryFilter = setFilteringNew(
+            query,
+            filters,
+            properties,
+            effectiveSearchParams.logicType ?? "and",
+            indexName,
+            effectiveSearchParams.searchFields);
 
-         
-        var response = await client.SearchAsync<TQueryModel>(x => x
-            .Index(indexName)
-            .From(currentPage * currentPageSize)
-            .Size(currentPageSize)
-            .Sort(fieldsSort)
-            .Query(queryFilter)
-            .Aggregations(setAggregationsNew(
-                searchParams?.aggregations ?? [],
-                searchParams?.filter ?? [],
-                properties,
-                query))
-            .TrackTotalHits(new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true))
-        );
+        var includeTotalCount = effectiveSearchParams.includeTotalCount;
+        var response = await client.SearchAsync<TQueryModel>(x =>
+        {
+            x.Index(indexName);
+            x.From(currentPage * currentPageSize);
+            x.Size(currentPageSize);
+            if (fieldsSort.Length > 0)
+            {
+                x.Sort(fieldsSort);
+            }
+            x.Query(queryFilter);
+            if (aggregations.Length > 0)
+            {
+                x.Aggregations(setAggregationsNew(
+                    aggregations,
+                    filters,
+                    properties,
+                    query));
+            }
+            x.TrackTotalHits(new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(includeTotalCount));
+        });
 
         if (!response.IsValidResponse)
         {
@@ -226,28 +312,26 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             );
         }
 
-        var firstHit = response.Hits?.FirstOrDefault();
-        if (firstHit != null)
-        {
-            // Debug aid for inspecting the raw ES document shape.
-            var rawSource = System.Text.Json.JsonSerializer.Serialize(firstHit.Source);
-            Console.WriteLine("RAW JSON: " + rawSource);
-        }
-
-        var totalPages = (int)Math.Ceiling((double)response.Total / currentPageSize);
-
         var deserializedObjects = response.Documents?.ToList() ?? new List<TQueryModel>();
+        var totalCount = includeTotalCount
+            ? response.Total
+            : currentPage * currentPageSize + deserializedObjects.Count;
+        var totalPages = includeTotalCount
+            ? (int)Math.Ceiling((double)totalCount / currentPageSize)
+            : currentPage + (deserializedObjects.Count == currentPageSize ? 2 : 1);
 
         return new PaginatedSearchResponse<TQueryModel>()
         {
             Hits = deserializedObjects,
             Metadata = new SearchPaginationMetadata
             {
-                CurrentPage = page ?? 0,
-                PageSize = response.Documents.Count,
-                TotalCount = response.Total,
+                CurrentPage = currentPage,
+                PageSize = deserializedObjects.Count,
+                TotalCount = totalCount,
                 TotalPages = totalPages,
-                NextPage = currentPage + 1 < totalPages,
+                NextPage = includeTotalCount
+                    ? currentPage + 1 < totalPages
+                    : deserializedObjects.Count == currentPageSize,
                 PreviousPage = currentPage > 0,
             },
             IsError = response.ElasticsearchServerError != null,
@@ -261,6 +345,9 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
     }
 
     private static Properties GetIndexProperties(ElasticsearchClient client, string indexName)
+        => IndexPropertiesCache.GetOrAdd(indexName, key => LoadIndexProperties(client, key));
+
+    private static Properties LoadIndexProperties(ElasticsearchClient client, string indexName)
     {
         var mappingsResponse = client.Indices.GetMapping();
         var indices = mappingsResponse?.Indices;
@@ -282,6 +369,9 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
 
         return properties;
     }
+
+    private static void ClearIndexPropertiesCache(string indexName)
+        => IndexPropertiesCache.TryRemove(indexName, out _);
 
     private SortOptions[] setSorting(IEnumerable<SortType> sortOrders, Properties properties)
     {
@@ -804,7 +894,11 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         return searchTerm;
     }
 
-    private Query? BuildGlobalSearchQuery(string? rawValue, Properties properties)
+    private Query? BuildGlobalSearchQuery(
+        string? rawValue,
+        Properties properties,
+        string? indexName = null,
+        IEnumerable<string>? searchFields = null)
     {
         var searchTerms = SplitSearchTerms(rawValue);
         if (searchTerms.Count == 0)
@@ -813,15 +907,15 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         }
 
         var termQueries = new List<Query>();
+        var fieldNames = GetGlobalSearchFieldNames(indexName, properties, searchFields);
 
         foreach (var searchTerm in searchTerms)
         {
             var fieldQueries = new List<Query>();
 
-            foreach (var property in properties)
+            foreach (var propertyName in fieldNames)
             {
-                var propertyName = property.Key.ToString();
-                var propertyType = property.Value?.Type ?? string.Empty;
+                var propertyType = getPropertyType(propertyName, properties);
 
                 if (!CanApplyGlobalSearchTerm(searchTerm, propertyType))
                 {
@@ -867,10 +961,42 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         });
     }
 
-    private Query setFilteringNew(string searchQuery, IEnumerable<DataFilter> filters, Properties properties, string logicType = "and")
+    private IEnumerable<string> GetGlobalSearchFieldNames(
+        string? indexName,
+        Properties properties,
+        IEnumerable<string>? requestedFields)
+    {
+        var candidateFields = requestedFields?
+            .Where(field => !string.IsNullOrWhiteSpace(field))
+            .ToArray();
+
+        if (candidateFields is null || candidateFields.Length == 0)
+        {
+            candidateFields = indexName != null &&
+                DefaultGlobalSearchFieldsByIndex.TryGetValue(indexName, out var defaultFields)
+                    ? defaultFields
+                    : properties.Select(property => property.Key.ToString()).ToArray();
+        }
+
+        return candidateFields
+            .Select(field => resolveFieldName(field, properties))
+            .Where(field => !string.IsNullOrWhiteSpace(field))
+            .Where(field => !string.IsNullOrWhiteSpace(getPropertyType(field, properties)))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private Query setFilteringNew(
+        string searchQuery,
+        IEnumerable<DataFilter> filters,
+        Properties properties,
+        string logicType = "and",
+        string? indexName = null,
+        IEnumerable<string>? searchFields = null)
     {
         var mustConditions = new List<Query>();
         var mustNotConditions = new List<Query>();
+        var normalizedFilters = filters?.ToArray() ?? [];
 
         var safeSearchQuery = BuildQueryStringQueryValue(searchQuery, wrapWithWildcards: true);
         if (!string.IsNullOrWhiteSpace(safeSearchQuery))
@@ -878,14 +1004,20 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
 
         var topLevelFilterQueries = new List<Query>();
 
-        var globalSearchFilter = filters.FirstOrDefault(f => f.PropertyName == "globalSearch");
-        var globalSearchQuery = BuildGlobalSearchQuery(globalSearchFilter?.Value?.ToString(), properties);
+        var globalSearchFilter = normalizedFilters.FirstOrDefault(f =>
+            string.Equals(f.PropertyName, "globalSearch", StringComparison.OrdinalIgnoreCase));
+        var globalSearchQuery = BuildGlobalSearchQuery(
+            globalSearchFilter?.Value?.ToString(),
+            properties,
+            indexName,
+            searchFields);
         if (globalSearchQuery != null)
         {
             topLevelFilterQueries.Add(globalSearchQuery);
         }
 
-        foreach (var filter in filters.Where(f => f.PropertyName != "globalSearch"))
+        foreach (var filter in normalizedFilters.Where(f =>
+            !string.Equals(f.PropertyName, "globalSearch", StringComparison.OrdinalIgnoreCase)))
         {
             if (filter.PropertyName == "_id")
             {
@@ -1113,6 +1245,8 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
             var reason = error?.Reason ?? createResponse.DebugInformation;
             throw new InvalidOperationException($"Failed to create index '{indexName}'. Reason: {reason}");
         }
+
+        ClearIndexPropertiesCache(indexName);
     }
 
     public async Task IndexData<T>(IEnumerable<T> data, string indexName) where T : class
@@ -1129,6 +1263,8 @@ public class IndexService(IOptions<ElasticConfiguration> config, IMapper mapper,
         {
             throw new InvalidOperationException($"Failed to index data to '{indexName}'.");
         }
+
+        ClearIndexPropertiesCache(indexName);
     }
 
     public async Task<HashSet<string>> GetExistingIdsAsync<TDocument>(string indexName, IEnumerable<string> ids) where TDocument : class

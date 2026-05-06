@@ -6,15 +6,23 @@ using ElasticSearchVSSQLServer.Persistence.Audit;
 using ElasticSearchVSSQLServer.RestApi.Utils.General;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace ElasticSearchVSSQLServer.RestApi.Utils.Middlewares;
 
 #pragma warning disable 1591
-public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate next, ILogger<LogMiddleware> logger)
+public class LogMiddleware(
+    IServiceProvider serviceProvider,
+    RequestDelegate next,
+    ILogger<LogMiddleware> logger,
+    IHostEnvironment hostEnvironment,
+    IConfiguration configuration)
 {
 	private const string LogsIndexName = "elasticvssql_logs";
+	private const string BenchmarkSkipAuditHeader = "X-Benchmark-Skip-Audit";
 
     public async Task Invoke(HttpContext context)
 	{
@@ -23,6 +31,12 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
         string[] methodsToAvoid = ["OPTIONS", "CONNECT"];
 
 		if (methodsToAvoid.Any(x => x == context.Request.Method))
+		{
+			await next(context);
+			return;
+		}
+
+		if (ShouldSkipAuditForBenchmark(context))
 		{
 			await next(context);
 			return;
@@ -157,6 +171,29 @@ public class LogMiddleware(IServiceProvider serviceProvider, RequestDelegate nex
             logger.LogWarning(ex, "Log was saved to SQL but failed to index in Elasticsearch.");
         }
     }
+
+    private bool ShouldSkipAuditForBenchmark(HttpContext context)
+	{
+		if (!context.Request.Headers.TryGetValue(BenchmarkSkipAuditHeader, out var values))
+		{
+			return false;
+		}
+
+		var requestedSkip = values.Any(value =>
+			string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ||
+			string.Equals(value, "1", StringComparison.OrdinalIgnoreCase));
+
+		if (!requestedSkip)
+		{
+			return false;
+		}
+
+		var explicitlyAllowed = bool.TryParse(
+			configuration["Benchmark:AllowSkipAudit"],
+			out var allowSkipAudit) && allowSkipAudit;
+
+		return hostEnvironment.IsDevelopment() || explicitlyAllowed;
+	}
 
     public static bool StatisFileRequest(string path)
 	{

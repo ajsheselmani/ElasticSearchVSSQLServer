@@ -27,6 +27,7 @@ const SOURCE_SORT_ORDER = {
 };
 
 export const VIEW_BENCHMARK_SUITE_KEY = "view-benchmark-matrix";
+export const CAPACITY_BENCHMARK_SUITE_KEY = "throughput-capacity";
 export const VIEW_BENCHMARK_USER_LEVELS = [20, 50, 100];
 
 export const COMPARISON_DEFINITIONS = [
@@ -36,7 +37,7 @@ export const COMPARISON_DEFINITIONS = [
     labelDefault: "Average response",
     descriptionKey: "averageTimeServeRequest",
     descriptionDefault:
-      "Average time needed to serve one request in this scenario.",
+      "Average time needed to serve a successful request in this scenario.",
     sourceMetric: "http_req_duration",
     selector: (entry) => entry?.avg,
     unit: "ms",
@@ -47,7 +48,8 @@ export const COMPARISON_DEFINITIONS = [
     labelKey: "p90ResponseTime",
     labelDefault: "P90 response time",
     descriptionKey: "p90ResponseTimeDescription",
-    descriptionDefault: "90% of requests complete under this threshold.",
+    descriptionDefault:
+      "90% of successful requests complete under this threshold.",
     sourceMetric: "http_req_duration",
     selector: (entry) => entry?.p90,
     unit: "ms",
@@ -58,7 +60,8 @@ export const COMPARISON_DEFINITIONS = [
     labelKey: "p95ResponseTime",
     labelDefault: "P95 response time",
     descriptionKey: "p95ResponseTimeDescription",
-    descriptionDefault: "Tail latency for the slowest 5% of requests.",
+    descriptionDefault:
+      "Tail latency for the slowest 5% of successful requests.",
     sourceMetric: "http_req_duration",
     selector: (entry) => entry?.p95,
     unit: "ms",
@@ -77,16 +80,40 @@ export const COMPARISON_DEFINITIONS = [
     better: "lower",
   },
   {
+    id: "successful-requests",
+    labelKey: "testResults.successfulRequests",
+    labelDefault: "Successful requests",
+    descriptionKey: "testResults.successfulRequestsDescription",
+    descriptionDefault:
+      "Higher is better because it means more requests returned HTTP 200.",
+    sourceMetric: "http_req_successful",
+    selector: (entry) => entry?.count,
+    unit: "count",
+    better: "higher",
+  },
+  {
+    id: "transport-errors",
+    labelKey: "testResults.transportErrors",
+    labelDefault: "Transport errors",
+    descriptionKey: "testResults.transportErrorsDescription",
+    descriptionDefault:
+      "Lower is better because these requests timed out or failed before a valid HTTP response.",
+    sourceMetric: "http_req_transport_errors",
+    selector: (entry) => entry?.count,
+    unit: "count",
+    better: "lower",
+  },
+  {
     id: "throughput",
     labelKey: "testResults.throughput",
-    labelDefault: "Throughput",
+    labelDefault: "Paired request rate",
     descriptionKey: "testResults.throughputDescription",
     descriptionDefault:
-      "Higher throughput means the source completed more requests per second.",
+      "In paired-batch mode this is expected to match because each iteration sends one SQL request and one Elasticsearch request.",
     sourceMetric: "http_reqs",
     selector: (entry) => entry?.rate,
     unit: "req/s",
-    better: "higher",
+    better: "equal",
   },
   {
     id: "vus-max",
@@ -204,6 +231,7 @@ export function formatPerformanceValue(value, unit, t) {
   if (unit === "ms") return `${value.toFixed(value >= 100 ? 1 : 2)} ms`;
   if (unit === "rate") return `${(value * 100).toFixed(2)}%`;
   if (unit === "req/s") return `${value.toFixed(2)} req/s`;
+  if (unit === "count") return `${value.toFixed(0)}`;
   if (unit === "users") {
     return (
       t?.("testResults.usersUnit", { count: value.toFixed(0) }) ??
@@ -429,7 +457,9 @@ export function buildScenarioMatrixRows(scenarioEntries, t) {
 
 export function getDatasetScenarioMatrixRows(datasetKey, t) {
   const entries = buildTranslatedScenarioEntries(t).filter(
-    ({ report }) => getScenarioDatasetKey(report) === datasetKey,
+    ({ report }) =>
+      getScenarioDatasetKey(report) === datasetKey &&
+      isMatrixBenchmarkReport(report),
   );
 
   return buildScenarioMatrixRows(entries, t);
@@ -482,7 +512,45 @@ function isMatrixBenchmarkReport(report) {
   return (
     isScenarioReady(report) &&
     report?.metadata?.suiteKey === VIEW_BENCHMARK_SUITE_KEY &&
-    VIEW_BENCHMARK_USER_LEVELS.includes(Number(users))
+    VIEW_BENCHMARK_USER_LEVELS.includes(Number(users)) &&
+    !isAuthenticationSetupFailureReport(report)
+  );
+}
+
+function getReportMetricValue(report, sourceKey, metric, valueKey) {
+  return sanitizeNumber(
+    getMetricEntry(report?.[sourceKey]?.summary, metric)?.[valueKey],
+  );
+}
+
+function isAuthenticationSetupFailureReport(report) {
+  const authMode = report?.metadata?.authMode;
+
+  if (authMode !== "none") return false;
+
+  const sqlFailureRate = getReportMetricValue(
+    report,
+    "sql",
+    "http_req_failed",
+    "rate",
+  );
+  const elasticFailureRate = getReportMetricValue(
+    report,
+    "elastic",
+    "http_req_failed",
+    "rate",
+  );
+  const sqlSuccesses =
+    getReportMetricValue(report, "sql", "http_req_successful", "count") ?? 0;
+  const elasticSuccesses =
+    getReportMetricValue(report, "elastic", "http_req_successful", "count") ??
+    0;
+
+  return (
+    sqlFailureRate === 1 &&
+    elasticFailureRate === 1 &&
+    sqlSuccesses === 0 &&
+    elasticSuccesses === 0
   );
 }
 
@@ -492,6 +560,8 @@ function buildBenchmarkViewRow(report, sourceKey, t) {
   const duration = getMetricEntry(summary, "http_req_duration");
   const failures = getMetricEntry(summary, "http_req_failed");
   const requests = getMetricEntry(summary, "http_reqs");
+  const successes = getMetricEntry(summary, "http_req_successful");
+  const transportErrors = getMetricEntry(summary, "http_req_transport_errors");
   const iterations = getMetricEntry(summary, "iterations");
   const users = sanitizeNumber(getScenarioUsers(report));
   const failureRate = sanitizeNumber(failures?.rate);
@@ -522,6 +592,8 @@ function buildBenchmarkViewRow(report, sourceKey, t) {
     failureRate,
     throughput: sanitizeNumber(requests?.rate),
     requestCount: sanitizeNumber(requests?.count),
+    successCount: sanitizeNumber(successes?.count),
+    transportErrorCount: sanitizeNumber(transportErrors?.count),
     iterationCount: sanitizeNumber(iterations?.count),
   };
 }
@@ -567,6 +639,122 @@ export function buildViewBenchmarkRows(t) {
       buildBenchmarkViewRow(report, "elastic", t),
     ])
     .sort(compareBenchmarkViewRows);
+}
+
+function isCapacityBenchmarkReport(report) {
+  const users = getScenarioUsers(report);
+
+  return (
+    isScenarioReady(report) &&
+    report?.metadata?.suiteKey === CAPACITY_BENCHMARK_SUITE_KEY &&
+    VIEW_BENCHMARK_USER_LEVELS.includes(Number(users)) &&
+    hasCapacityMeasurements(report) &&
+    !isCapacityAuthenticationSetupFailureReport(report)
+  );
+}
+
+function getCapacitySourceKey(report) {
+  return report?.source?.key ?? report?.metadata?.source ?? "unknown";
+}
+
+function getCapacityMetricValue(report, metric, valueKey) {
+  return sanitizeNumber(getMetricEntry(report?.source?.summary, metric)?.[valueKey]);
+}
+
+function hasCapacityMeasurements(report) {
+  return (
+    getCapacityMetricValue(report, "http_reqs", "count") != null ||
+    getCapacityMetricValue(report, "http_req_failed", "rate") != null ||
+    getCapacityMetricValue(report, "http_req_duration", "avg") != null
+  );
+}
+
+function isCapacityAuthenticationSetupFailureReport(report) {
+  if (report?.metadata?.authMode !== "none") return false;
+
+  const failureRate = getCapacityMetricValue(report, "http_req_failed", "rate");
+  const successes =
+    getCapacityMetricValue(report, "http_req_successful", "count") ?? 0;
+
+  return failureRate === 1 && successes === 0;
+}
+
+function buildCapacityBenchmarkRow(report, t) {
+  const summary = report?.source?.summary ?? [];
+  const datasetKey = getScenarioDatasetKey(report);
+  const sourceKey = getCapacitySourceKey(report);
+  const duration = getMetricEntry(summary, "http_req_duration");
+  const failures = getMetricEntry(summary, "http_req_failed");
+  const requests = getMetricEntry(summary, "http_reqs");
+  const successes = getMetricEntry(summary, "http_req_successful");
+  const transportErrors = getMetricEntry(summary, "http_req_transport_errors");
+  const users = sanitizeNumber(getScenarioUsers(report));
+  const failureRate = sanitizeNumber(failures?.rate);
+  const avgLatency = sanitizeNumber(duration?.avg);
+  const shouldHideDurationMetrics = failureRate === 1 && avgLatency === 0;
+
+  return {
+    id: report.id,
+    reportId: report.id,
+    title: report.title,
+    status: report.status,
+    datasetKey,
+    dataset: getScenarioDatasetLabel(datasetKey, t),
+    sourceKey,
+    source: getBenchmarkSourceLabel(sourceKey, t),
+    viewId: `capacity-${sourceKey}-${datasetKey}`,
+    view: getBenchmarkViewLabel(datasetKey, sourceKey, t),
+    viewPath: getBenchmarkViewPath(datasetKey, sourceKey),
+    workloadKey: getScenarioViewKey(report),
+    workload: getScenarioWorkloadLabel(report, t),
+    queryLabel: report.queryLabel,
+    users,
+    generatedAt: report?.metadata?.generatedAt ?? null,
+    avgLatency: shouldHideDurationMetrics ? null : avgLatency,
+    p90Latency: shouldHideDurationMetrics ? null : sanitizeNumber(duration?.p90),
+    p95Latency: shouldHideDurationMetrics ? null : sanitizeNumber(duration?.p95),
+    maxLatency: shouldHideDurationMetrics ? null : sanitizeNumber(duration?.max),
+    failureRate,
+    throughput: sanitizeNumber(requests?.rate),
+    requestCount: sanitizeNumber(requests?.count),
+    successCount: sanitizeNumber(successes?.count),
+    transportErrorCount: sanitizeNumber(transportErrors?.count),
+  };
+}
+
+export function buildCapacityBenchmarkRows(t) {
+  return SCENARIO_REPORTS.filter(isCapacityBenchmarkReport)
+    .map((report) => buildCapacityBenchmarkRow(report, t))
+    .sort(compareBenchmarkViewRows);
+}
+
+export function buildCapacityBenchmarkSummary(rows) {
+  const readyRows = rows.filter((row) => row.status === "ready");
+  const distinctUsers = [...new Set(readyRows.map((row) => row.users))]
+    .filter((value) => value != null)
+    .sort((a, b) => a - b);
+  const fastestThroughputRow = readyRows.reduce((best, row) => {
+    if (!best || Number(best.throughput ?? -1) < Number(row.throughput ?? -1)) {
+      return row;
+    }
+
+    return best;
+  }, null);
+  const freshestRun = readyRows.reduce((best, row) => {
+    const currentTime = new Date(row.generatedAt ?? 0).getTime();
+    const bestTime = new Date(best?.generatedAt ?? 0).getTime();
+
+    return currentTime > bestTime ? row : best;
+  }, null);
+
+  return {
+    readyRows,
+    totalRows: readyRows.length,
+    totalViews: new Set(readyRows.map((row) => row.viewId)).size,
+    distinctUsers,
+    fastestThroughputRow,
+    freshestRun,
+  };
 }
 
 export function buildViewBenchmarkSummary(rows) {

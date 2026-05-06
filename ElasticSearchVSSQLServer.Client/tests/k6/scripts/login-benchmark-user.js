@@ -1,64 +1,77 @@
-import http from "k6/http";
-import { check, fail } from "k6";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 
-import { BASE_URL } from "../config.js";
+const DEFAULT_BASE_URL = process.env.K6_BASE_URL || "https://localhost:7236/api";
+const DEFAULT_BENCHMARK_EMAIL = "benchmark.k6@example.com";
+const DEFAULT_BENCHMARK_PASSWORD = "Benchmark123!";
+const TOKEN_REPORT_PATH = "tests/k6/reports/benchmark-auth-token.json";
 
-export const options = {
-  vus: 1,
-  iterations: 1,
-  insecureSkipTLSVerify: true,
-};
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-let issuedToken = "";
+const email = (process.env.K6_EMAIL || DEFAULT_BENCHMARK_EMAIL).trim();
+const password = (process.env.K6_PASSWORD || DEFAULT_BENCHMARK_PASSWORD).trim();
+const baseUrl = DEFAULT_BASE_URL.replace(/\/$/, "");
 
-export default function () {
-  const email = (__ENV.K6_EMAIL || "").trim();
-  const password = (__ENV.K6_PASSWORD || "").trim();
-
-  if (!email || !password) {
-    fail("K6_EMAIL and K6_PASSWORD are required to issue a benchmark token.");
-  }
-
-  const response = http.post(
-    `${BASE_URL}/auth`,
-    JSON.stringify({ email, password }),
-    {
-      headers: { "Content-Type": "application/json" },
-      timeout: "60s",
-    },
-  );
-
-  let token = "";
-
-  try {
-    token = JSON.parse(response.body || "{}")?.token || "";
-  } catch (error) {
-    token = "";
-  }
-
-  check(response, {
-    "benchmark auth token issued": () => response.status === 200 && !!token,
-  });
-
-  if (response.status !== 200 || !token) {
-    fail(
-      `Benchmark auth token request failed. Status: ${response.status}. Body: ${response.body}`,
-    );
-  }
-
-  issuedToken = token;
+if (!email || !password) {
+  throw new Error("K6_EMAIL and K6_PASSWORD are required to issue a benchmark token.");
 }
 
-export function handleSummary() {
-  return {
-    "tests/k6/reports/benchmark-auth-token.json": JSON.stringify(
+const response = await fetch(`${baseUrl}/auth`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email, password }),
+});
+
+const responseText = await response.text();
+const responseBody = safeJson(responseText);
+const token = getAuthToken(responseBody);
+
+await writeTokenReport({
+  token,
+  status: response.status,
+  error: response.ok && token ? null : responseText,
+});
+
+if (!response.ok || !token) {
+  throw new Error(
+    `Benchmark auth token request failed. Status: ${response.status}. Body: ${responseText}`,
+  );
+}
+
+console.log(`TOKEN:${token}`);
+
+function safeJson(text) {
+  try {
+    return JSON.parse(text || "{}");
+  } catch (error) {
+    return {};
+  }
+}
+
+function getAuthToken(authBody) {
+  return (
+    authBody?.token ??
+    authBody?.Token ??
+    authBody?.accessToken ??
+    authBody?.AccessToken ??
+    ""
+  );
+}
+
+async function writeTokenReport(report) {
+  const outputPath = path.resolve(TOKEN_REPORT_PATH);
+  await mkdir(path.dirname(outputPath), { recursive: true });
+  await writeFile(
+    outputPath,
+    `${JSON.stringify(
       {
         generatedAt: new Date().toISOString(),
-        token: issuedToken,
+        token: report.token,
+        status: report.status,
+        error: report.error,
       },
       null,
       2,
-    ),
-    stdout: issuedToken ? `TOKEN:${issuedToken}\n` : "TOKEN:\n",
-  };
+    )}\n`,
+  );
 }

@@ -18,7 +18,15 @@ using System.Text;
 
 namespace ElasticSearchVSSQLServer.Domain.Services.Auth
 {
-    public class AuthService(UserManager<ApplicationUser> userManager, IGenericRepository<DomainDTO, int> domainRepo, IOptions<JWTConfiguration> options, IOptions<DomainConfiguration> domainConfiguration, IMapper mapper, ILogger<AuthService> logger, RealtimeEventPublisher realtimeEventPublisher) : IAuthService
+    public class AuthService(
+        UserManager<ApplicationUser> userManager,
+        IGenericRepository<DomainDTO, int> domainRepo,
+        IOptions<JWTConfiguration> options,
+        IOptions<DomainConfiguration> domainConfiguration,
+        IOptions<IdentityOptions> identityOptions,
+        IMapper mapper,
+        ILogger<AuthService> logger,
+        RealtimeEventPublisher realtimeEventPublisher) : IAuthService
     {
         private readonly JWTConfiguration settings = options.Value;
 
@@ -41,7 +49,9 @@ namespace ElasticSearchVSSQLServer.Domain.Services.Auth
             logger.LogInformation("Përdoruesi u gjet për kyçje. Email: {Email}.", user.Email);
 
 
-            if (user.EmailConfirmed == false)
+            if ((identityOptions.Value.SignIn.RequireConfirmedEmail ||
+                 identityOptions.Value.SignIn.RequireConfirmedAccount) &&
+                user.EmailConfirmed == false)
             {
                 logger.LogWarning("Kyçja u refuzua: emaili nuk është i konfirmuar. Email: {Email}.", user.Email);
                 return LoginResultDto.Failure(new ErrorDTO { ErrorType = ErrorTypeEnum.Warning, Message = Resource.EmailNotConfirmed });
