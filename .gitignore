@@ -365,4 +365,9 @@ MigrationBackup/
 FodyWeavers.xsd
 
 .codex-dotnet/
+.codex-screenshots/
 .dotnet/
+ElasticSearchVSSQLServer.Client/.codex-vite/
+ElasticSearchVSSQLServer.Client/screenshots/
+ElasticSearchVSSQLServer.Client/public/dashboard-results-table.png
+ElasticSearchVSSQLServer.Client/tests/k6/reports/scenario-capacity-*.json

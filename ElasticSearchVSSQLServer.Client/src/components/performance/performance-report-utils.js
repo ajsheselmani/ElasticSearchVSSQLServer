@@ -598,6 +598,58 @@ function buildBenchmarkViewRow(report, sourceKey, t) {
   };
 }
 
+function normalizeCapacityMatchValue(value) {
+  return `${value ?? ""}`.trim().toLowerCase();
+}
+
+function getCapacityMatchKey(row) {
+  return [
+    row.datasetKey,
+    row.sourceKey,
+    row.workloadKey,
+    normalizeCapacityMatchValue(row.queryLabel),
+    Number(row.users ?? 0),
+  ].join("|");
+}
+
+function buildCapacityBenchmarkLookup(t) {
+  return buildCapacityBenchmarkRows(t).reduce((lookup, row) => {
+    lookup.set(getCapacityMatchKey(row), row);
+    return lookup;
+  }, new Map());
+}
+
+function getLatestGeneratedAt(...values) {
+  return values.reduce((latest, value) => {
+    if (!value) return latest;
+
+    const currentTime = new Date(value).getTime();
+    if (Number.isNaN(currentTime)) return latest;
+
+    const latestTime = new Date(latest ?? 0).getTime();
+    return currentTime > latestTime ? value : latest;
+  }, null);
+}
+
+function addIndependentCapacityMetrics(row, capacityLookup) {
+  const capacityRow = capacityLookup.get(getCapacityMatchKey(row));
+  const latestGeneratedAt = getLatestGeneratedAt(
+    row.generatedAt,
+    capacityRow?.generatedAt,
+  );
+
+  return {
+    ...row,
+    latestGeneratedAt,
+    independentThroughput: capacityRow?.throughput ?? null,
+    independentRequestCount: capacityRow?.requestCount ?? null,
+    independentSuccessCount: capacityRow?.successCount ?? null,
+    independentTransportErrorCount: capacityRow?.transportErrorCount ?? null,
+    independentThroughputGeneratedAt: capacityRow?.generatedAt ?? null,
+    independentThroughputReportId: capacityRow?.reportId ?? null,
+  };
+}
+
 function compareBenchmarkViewRows(a, b) {
   const datasetDiff =
     (DATASET_SORT_ORDER[a.datasetKey] ?? DATASET_SORT_ORDER.unknown) -
@@ -633,11 +685,14 @@ function isHealthyBenchmarkRow(row) {
 }
 
 export function buildViewBenchmarkRows(t) {
+  const capacityLookup = buildCapacityBenchmarkLookup(t);
+
   return SCENARIO_REPORTS.filter(isMatrixBenchmarkReport)
     .flatMap((report) => [
       buildBenchmarkViewRow(report, "sql", t),
       buildBenchmarkViewRow(report, "elastic", t),
     ])
+    .map((row) => addIndependentCapacityMetrics(row, capacityLookup))
     .sort(compareBenchmarkViewRows);
 }
 
@@ -768,8 +823,12 @@ export function buildViewBenchmarkSummary(rows) {
     .sort((a, b) => a - b);
 
   const freshestRun = readyRows.reduce((best, row) => {
-    const currentTime = new Date(row.generatedAt ?? 0).getTime();
-    const bestTime = new Date(best?.generatedAt ?? 0).getTime();
+    const currentTime = new Date(
+      row.latestGeneratedAt ?? row.generatedAt ?? 0,
+    ).getTime();
+    const bestTime = new Date(
+      best?.latestGeneratedAt ?? best?.generatedAt ?? 0,
+    ).getTime();
 
     return currentTime > bestTime ? row : best;
   }, null);

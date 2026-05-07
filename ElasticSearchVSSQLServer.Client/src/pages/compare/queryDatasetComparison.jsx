@@ -27,6 +27,22 @@ import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
 import { paths } from "src/routes/paths";
 
 const PAGE_SIZE = 10;
+const RESULT_TABLE_MIN_WIDTH = 1160;
+const RESULT_COLUMN_WIDTHS = {
+  eventTime: 160,
+  eventType: 120,
+  brand: 140,
+  categoryCode: 240,
+  productId: 130,
+  price: 110,
+  userId: 150,
+  date: 130,
+  customerId: 220,
+  articleId: 130,
+  prodName: 220,
+  productTypeName: 170,
+  departmentName: 180,
+};
 const DATE_LOCALE_BY_LANGUAGE = {
   en: "en-GB",
   sq: "sq-AL",
@@ -39,6 +55,10 @@ const SEARCH_TERM_TRIM_PATTERN = /^[.?!:()[\]{}"']+|[.?!:()[\]{}"']+$/g;
 function formatValue(value, fallback = "///") {
   if (value === null || value === undefined || value === "") return fallback;
   return String(value);
+}
+
+function getResultColumnWidth(columnKey) {
+  return RESULT_COLUMN_WIDTHS[columnKey] ?? 150;
 }
 
 function getDateLocale(language) {
@@ -432,7 +452,9 @@ function SourceResultsCard({
 
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Chip
-              label={t("compareView.recordsValue", { count: result.totalCount })}
+              label={t("compareView.recordsValue", {
+                count: result.totalCount,
+              })}
               color="default"
               variant="outlined"
             />
@@ -455,14 +477,28 @@ function SourceResultsCard({
         ) : result.rows.length === 0 ? (
           <Alert severity="info">{t("compareView.noResultsForSource")}</Alert>
         ) : (
-          <Box sx={{ overflowX: "auto" }}>
-            <Table size="small">
+          <Box sx={{ width: "100%", overflowX: "auto" }}>
+            <Table
+              size="small"
+              sx={{
+                minWidth: RESULT_TABLE_MIN_WIDTH,
+                tableLayout: "fixed",
+                "& .MuiTableCell-root": {
+                  verticalAlign: "top",
+                },
+              }}
+            >
               <TableHead>
                 <TableRow>
                   {columns.map((column) => (
                     <TableCell
                       key={column.key}
-                      sx={{ whiteSpace: "nowrap", fontWeight: 700 }}
+                      sx={{
+                        width: getResultColumnWidth(column.key),
+                        fontWeight: 700,
+                        whiteSpace: "normal",
+                        overflowWrap: "anywhere",
+                      }}
                     >
                       {column.label}
                     </TableCell>
@@ -476,7 +512,13 @@ function SourceResultsCard({
                     {columns.map((column) => (
                       <TableCell
                         key={column.key}
-                        sx={{ whiteSpace: "nowrap", maxWidth: 220 }}
+                        title={column.getValue(row, dateLocale)}
+                        sx={{
+                          width: getResultColumnWidth(column.key),
+                          whiteSpace: "normal",
+                          overflowWrap: "anywhere",
+                          wordBreak: "break-word",
+                        }}
                       >
                         {column.getValue(row, dateLocale)}
                       </TableCell>
@@ -512,7 +554,10 @@ export default function QueryDatasetComparison() {
     title: `${t("sqlVsElasticsearchSearch")} - ${CONFIG.appName}`,
   };
 
-  const handleSearch = async (nextDatasetKey = datasetKey, nextQuery = query) => {
+  const handleSearch = async (
+    nextDatasetKey = datasetKey,
+    nextQuery = query,
+  ) => {
     const currentSearchId = latestSearchId.current + 1;
     latestSearchId.current = currentSearchId;
     setResults({
@@ -590,7 +635,9 @@ export default function QueryDatasetComparison() {
               "linear-gradient(135deg, rgba(14, 116, 144, 0.12), rgba(15, 23, 42, 0.03))",
           }}
         >
-          <CardContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <CardContent
+            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+          >
             <Stack spacing={1}>
               <Typography variant="h4">{t("compareView.heroTitle")}</Typography>
               <Typography variant="body1" color="text.secondary">
@@ -642,7 +689,9 @@ export default function QueryDatasetComparison() {
                 disabled={loading}
                 sx={{ minWidth: { xs: "100%", lg: 170 }, height: 56 }}
               >
-                {loading ? t("compareView.searching") : t("compareView.runSearch")}
+                {loading
+                  ? t("compareView.searching")
+                  : t("compareView.runSearch")}
               </Button>
             </Stack>
 

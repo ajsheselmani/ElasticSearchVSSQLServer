@@ -586,42 +586,48 @@ public class GenericRepository<T, TDto, Tid>(ApplicationDBService dbContext, IMa
         return (pageItems, filteredTotalCount);
     }
 
-    private IQueryable<HMFashionDatasetDTO> BuildHMFashionProjection(IQueryable<HMdatasetTransactionsTrain> transactionsQuery)
-        =>
-            from t in transactionsQuery
-            join a in _dbContext.Set<HMdatasetArticles>().AsNoTracking()
-                on t.ArticleId equals a.Id
-            join c in _dbContext.Set<HMdatasetCustomers>().AsNoTracking()
-                on t.CustomerId equals c.Id
-            select new HMFashionDatasetDTO
-            {
-                Date = t.Date,
-                CustomerId = t.CustomerId,
-                ArticleId = t.ArticleId,
-                Price = t.Price,
-                SalesChannelId = t.SalesChannelId,
+    private IQueryable<HMFashionDatasetDTO> BuildHMFashionProjection(
+        IQueryable<HMdatasetTransactionsTrain> transactionsQuery)
+    {
+        var articlesQuery = _dbContext.Set<HMdatasetArticles>().AsNoTracking();
+        var customersQuery = _dbContext.Set<HMdatasetCustomers>().AsNoTracking();
 
-                ProductCode = a.ProductCode,
-                ProdName = a.ProdName,
-                ProductTypeName = a.ProductTypeName,
-                ProductGroupName = a.ProductGroupName,
-                GraphicalAppearanceName = a.GraphicalAppearanceName,
-                ColourGroupName = a.ColourGroupName,
-                PerceivedColourValueName = a.PerceivedColourValueName,
-                DepartmentName = a.DepartmentName,
-                IndexName = a.IndexName,
-                IndexGroupName = a.IndexGroupName,
-                SectionName = a.SectionName,
-                GarmentGroupName = a.GarmentGroupName,
-                DetailDesc = a.DetailDesc,
+        return transactionsQuery
+            .SelectMany(
+                transaction => articlesQuery.Where(article => article.Id == transaction.ArticleId),
+                (transaction, article) => new { transaction, article })
+            .SelectMany(
+                data => customersQuery.Where(customer => customer.Id == data.transaction.CustomerId),
+                (data, customer) => new HMFashionDatasetDTO
+                {
+                    Date = data.transaction.Date,
+                    CustomerId = data.transaction.CustomerId,
+                    ArticleId = data.transaction.ArticleId,
+                    Price = data.transaction.Price,
+                    SalesChannelId = data.transaction.SalesChannelId,
 
-                Fn = c.Fn,
-                Active = c.Active,
-                ClubMemberStatus = c.ClubMemberStatus,
-                FashionNewsFrequency = c.FashionNewsFrequency,
-                Age = c.Age,
-                PostalCode = c.PostalCode
-            };
+                    ProductCode = data.article.ProductCode,
+                    ProdName = data.article.ProdName,
+                    ProductTypeName = data.article.ProductTypeName,
+                    ProductGroupName = data.article.ProductGroupName,
+                    GraphicalAppearanceName = data.article.GraphicalAppearanceName,
+                    ColourGroupName = data.article.ColourGroupName,
+                    PerceivedColourValueName = data.article.PerceivedColourValueName,
+                    DepartmentName = data.article.DepartmentName,
+                    IndexName = data.article.IndexName,
+                    IndexGroupName = data.article.IndexGroupName,
+                    SectionName = data.article.SectionName,
+                    GarmentGroupName = data.article.GarmentGroupName,
+                    DetailDesc = data.article.DetailDesc,
+
+                    Fn = customer.Fn,
+                    Active = customer.Active,
+                    ClubMemberStatus = customer.ClubMemberStatus,
+                    FashionNewsFrequency = customer.FashionNewsFrequency,
+                    Age = customer.Age,
+                    PostalCode = customer.PostalCode
+                });
+    }
 
     private static bool HasActiveFilters(List<FilterItemDto> filters)
         => filters != null

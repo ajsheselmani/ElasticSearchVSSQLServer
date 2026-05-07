@@ -38,37 +38,48 @@ public class Repository(ApplicationDBService dbContextService) : IRepository
                 (t.Date == lastDate.Value && t.CustomerId == customerId && t.ArticleId == articleId && (t.Price ?? 0d) == price && (t.SalesChannelId ?? 0) > salesChannelId));
         }
 
-        var query = from t in transactions
-                    join c in dbContextService.DbContext.HMdatasetCustomers.AsNoTracking() on t.CustomerId equals c.Id
-                    join a in dbContextService.DbContext.HMdatasetArticles.AsNoTracking() on t.ArticleId equals a.Id
-                    orderby t.Date, t.CustomerId, t.ArticleId, (t.Price ?? 0d), (t.SalesChannelId ?? 0)
-                    select new HMFashionFlatSqlRow
-                    {
-                        Date = t.Date,
-                        Price = t.Price ?? 0,
-                        SalesChannelId = t.SalesChannelId,
-                        CustomerId = t.CustomerId,
-                        Fn = c.Fn,
-                        Active = c.Active,
-                        Age = c.Age,
-                        ClubMemberStatus = c.ClubMemberStatus,
-                        FashionNewsFrequency = c.FashionNewsFrequency,
-                        PostalCode = c.PostalCode,
-                        ArticleId = t.ArticleId,
-                        ProdName = a.ProdName,
-                        ProductTypeName = a.ProductTypeName,
-                        ProductGroupName = a.ProductGroupName,
-                        ColourGroupName = a.ColourGroupName,
-                        DepartmentName = a.DepartmentName,
-                        IndexName = a.IndexName,
-                        IndexGroupName = a.IndexGroupName,
-                        SectionName = a.SectionName,
-                        GarmentGroupName = a.GarmentGroupName,
-                        DetailDesc = a.DetailDesc,
-                        ProductCode = a.ProductCode,
-                        GraphicalAppearanceName = a.GraphicalAppearanceName,
-                        PerceivedColourValueName = a.PerceivedColourValueName,
-                    };
+        var customersQuery = dbContextService.DbContext.HMdatasetCustomers.AsNoTracking();
+        var articlesQuery = dbContextService.DbContext.HMdatasetArticles.AsNoTracking();
+
+        var query = transactions
+            .SelectMany(
+                transaction => customersQuery.Where(customer => customer.Id == transaction.CustomerId),
+                (transaction, customer) => new { transaction, customer })
+            .SelectMany(
+                data => articlesQuery.Where(article => article.Id == data.transaction.ArticleId),
+                (data, article) => new { data.transaction, data.customer, article })
+            .OrderBy(data => data.transaction.Date)
+            .ThenBy(data => data.transaction.CustomerId)
+            .ThenBy(data => data.transaction.ArticleId)
+            .ThenBy(data => data.transaction.Price ?? 0d)
+            .ThenBy(data => data.transaction.SalesChannelId ?? 0)
+            .Select(data => new HMFashionFlatSqlRow
+            {
+                Date = data.transaction.Date,
+                Price = data.transaction.Price ?? 0,
+                SalesChannelId = data.transaction.SalesChannelId,
+                CustomerId = data.transaction.CustomerId,
+                Fn = data.customer.Fn,
+                Active = data.customer.Active,
+                Age = data.customer.Age,
+                ClubMemberStatus = data.customer.ClubMemberStatus,
+                FashionNewsFrequency = data.customer.FashionNewsFrequency,
+                PostalCode = data.customer.PostalCode,
+                ArticleId = data.transaction.ArticleId,
+                ProdName = data.article.ProdName,
+                ProductTypeName = data.article.ProductTypeName,
+                ProductGroupName = data.article.ProductGroupName,
+                ColourGroupName = data.article.ColourGroupName,
+                DepartmentName = data.article.DepartmentName,
+                IndexName = data.article.IndexName,
+                IndexGroupName = data.article.IndexGroupName,
+                SectionName = data.article.SectionName,
+                GarmentGroupName = data.article.GarmentGroupName,
+                DetailDesc = data.article.DetailDesc,
+                ProductCode = data.article.ProductCode,
+                GraphicalAppearanceName = data.article.GraphicalAppearanceName,
+                PerceivedColourValueName = data.article.PerceivedColourValueName,
+            });
 
         var records = await EntityFrameworkQueryableExtensions.ToListAsync(query.Take(batchSize));
 
